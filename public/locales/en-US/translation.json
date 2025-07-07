@@ -1,0 +1,56 @@
+
+{
+  "booking": {
+    "title": "Schedule Private Class",
+    "description": "Choose the best time for your class",
+    "email": "Your Email",
+    "emailPlaceholder": "your@email.com",
+    "date": "Class Date",
+    "datePlaceholder": "Choose a date",
+    "time": "Time",
+    "timePlaceholder": "Select a time",
+    "price": "Class price:",
+    "continueToPayment": "Continue to Payment",
+    "requiredFields": "Required fields",
+    "fillAllFields": "Please fill in all fields to continue"
+  },
+  "payment": {
+    "title": "Payment Details",
+    "summary": "Class Summary",
+    "cardName": "Name on Card",
+    "cardNamePlaceholder": "Name as printed on card",
+    "cardNumber": "Card Number",
+    "cardNumberPlaceholder": "1234 5678 9012 3456",
+    "expiryDate": "Expiry Date",
+    "expiryPlaceholder": "MM/YY",
+    "cvv": "CVV",
+    "cvvPlaceholder": "123",
+    "total": "Total:",
+    "pay": "Pay",
+    "processing": "Processing...",
+    "back": "Back",
+    "incompleteData": "Incomplete data",
+    "fillCardData": "Please fill in all card details"
+  },
+  "confirmation": {
+    "title": "Class Confirmed!",
+    "description": "Your payment has been successfully processed",
+    "details": "Your Class Details",
+    "email": "Email",
+    "date": "Date",
+    "time": "Time",
+    "paidAmount": "Amount Paid",
+    "meetingLink": "Virtual Meeting Link",
+    "zoomMeeting": "Zoom meeting link:",
+    "accessMeeting": "Access Meeting",
+    "addToCalendar": "Add to Google Calendar",
+    "scheduleNew": "Schedule New Class",
+    "paymentId": "Payment ID:",
+    "processedAt": "Processed at:",
+    "emailSent": "Email sent!",
+    "emailDescription": "Class details have been sent to your email"
+  },
+  "common": {
+    "language": "Language"
+  }
+}

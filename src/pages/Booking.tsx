@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,8 +13,10 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
+import LanguageSelector from '@/components/LanguageSelector';
 
 const Booking = () => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState('');
@@ -27,8 +30,8 @@ const Booking = () => {
   const handleBooking = () => {
     if (!email || !selectedDate || !selectedTime) {
       toast({
-        title: "Campos obrigatórios",
-        description: "Por favor, preencha todos os campos para continuar",
+        title: t('booking.requiredFields'),
+        description: t('booking.fillAllFields'),
         variant: "destructive"
       });
       return;
@@ -49,23 +52,28 @@ const Booking = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4">
       <div className="max-w-2xl mx-auto">
+        {/* Language Selector */}
+        <div className="flex justify-end mb-4">
+          <LanguageSelector />
+        </div>
+        
         <Card className="shadow-xl">
           <CardHeader>
             <CardTitle className="text-2xl font-bold text-center text-gray-800">
-              Agendar Aula Particular
+              {t('booking.title')}
             </CardTitle>
             <CardDescription className="text-center text-gray-600">
-              Escolha o melhor horário para sua aula
+              {t('booking.description')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Email Input */}
             <div className="space-y-2">
-              <Label htmlFor="email">Seu E-mail</Label>
+              <Label htmlFor="email">{t('booking.email')}</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="seu@email.com"
+                placeholder={t('booking.emailPlaceholder')}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full"
@@ -74,7 +82,7 @@ const Booking = () => {
 
             {/* Date Picker */}
             <div className="space-y-2">
-              <Label>Data da Aula</Label>
+              <Label>{t('booking.date')}</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -85,7 +93,7 @@ const Booking = () => {
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {selectedDate ? format(selectedDate, "dd/MM/yyyy") : "Escolha uma data"}
+                    {selectedDate ? format(selectedDate, "dd/MM/yyyy") : t('booking.datePlaceholder')}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -103,10 +111,10 @@ const Booking = () => {
 
             {/* Time Selector */}
             <div className="space-y-2">
-              <Label>Horário</Label>
+              <Label>{t('booking.time')}</Label>
               <Select value={selectedTime} onValueChange={setSelectedTime}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Selecione um horário" />
+                  <SelectValue placeholder={t('booking.timePlaceholder')} />
                 </SelectTrigger>
                 <SelectContent>
                   {availableTimes.map((time) => (
@@ -124,7 +132,7 @@ const Booking = () => {
             {/* Price Display */}
             <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
               <div className="flex justify-between items-center">
-                <span className="text-gray-700">Valor da aula:</span>
+                <span className="text-gray-700">{t('booking.price')}</span>
                 <span className="text-2xl font-bold text-blue-600">R$ 150,00</span>
               </div>
             </div>
@@ -134,7 +142,7 @@ const Booking = () => {
               onClick={handleBooking}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg"
             >
-              Continuar para Pagamento
+              {t('booking.continueToPayment')}
             </Button>
           </CardContent>
         </Card>

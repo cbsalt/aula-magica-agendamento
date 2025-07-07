@@ -1,0 +1,56 @@
+
+{
+  "booking": {
+    "title": "Agendar Aula Particular",
+    "description": "Escolha o melhor horário para sua aula",
+    "email": "Seu E-mail",
+    "emailPlaceholder": "seu@email.com",
+    "date": "Data da Aula",
+    "datePlaceholder": "Escolha uma data",
+    "time": "Horário",
+    "timePlaceholder": "Selecione um horário",
+    "price": "Valor da aula:",
+    "continueToPayment": "Continuar para Pagamento",
+    "requiredFields": "Campos obrigatórios",
+    "fillAllFields": "Por favor, preencha todos os campos para continuar"
+  },
+  "payment": {
+    "title": "Dados de Pagamento",
+    "summary": "Resumo da Aula",
+    "cardName": "Nome no Cartão",
+    "cardNamePlaceholder": "Nome como impresso no cartão",
+    "cardNumber": "Número do Cartão",
+    "cardNumberPlaceholder": "1234 5678 9012 3456",
+    "expiryDate": "Validade",
+    "expiryPlaceholder": "MM/AA",
+    "cvv": "CVV",
+    "cvvPlaceholder": "123",
+    "total": "Total:",
+    "pay": "Pagar",
+    "processing": "Processando...",
+    "back": "Voltar",
+    "incompleteData": "Dados incompletos",
+    "fillCardData": "Por favor, preencha todos os dados do cartão"
+  },
+  "confirmation": {
+    "title": "Aula Confirmada!",
+    "description": "Seu pagamento foi processado com sucesso",
+    "details": "Detalhes da Sua Aula",
+    "email": "E-mail",
+    "date": "Data",
+    "time": "Horário",
+    "paidAmount": "Valor Pago",
+    "meetingLink": "Link da Reunião Virtual",
+    "zoomMeeting": "Link da reunião Zoom:",
+    "accessMeeting": "Acessar Reunião",
+    "addToCalendar": "Adicionar ao Google Calendar",
+    "scheduleNew": "Agendar Nova Aula",
+    "paymentId": "ID do Pagamento:",
+    "processedAt": "Processado em:",
+    "emailSent": "E-mail enviado!",
+    "emailDescription": "Detalhes da aula foram enviados para seu e-mail"
+  },
+  "common": {
+    "language": "Idioma"
+  }
+}

@@ -1,11 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, Calendar, Clock, Mail, Video, ExternalLink, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { toast } from '@/hooks/use-toast';
+import LanguageSelector from '@/components/LanguageSelector';
 
 interface PaymentData {
   email: string;
@@ -18,6 +20,7 @@ interface PaymentData {
 }
 
 const Confirmation = () => {
+  const { t } = useTranslation();
   const [paymentData, setPaymentData] = useState<PaymentData | null>(null);
   const [zoomLink, setZoomLink] = useState('');
   const navigate = useNavigate();
@@ -55,8 +58,8 @@ const Confirmation = () => {
     });
     
     toast({
-      title: "E-mail enviado!",
-      description: "Detalhes da aula foram enviados para seu e-mail",
+      title: t('confirmation.emailSent'),
+      description: t('confirmation.emailDescription'),
     });
   };
 
@@ -91,14 +94,19 @@ const Confirmation = () => {
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-100 py-12 px-4">
       <div className="max-w-2xl mx-auto space-y-8">
         
+        {/* Language Selector */}
+        <div className="flex justify-end">
+          <LanguageSelector />
+        </div>
+        
         {/* Success Header */}
         <div className="text-center space-y-4">
           <CheckCircle className="mx-auto h-16 w-16 text-green-500" />
           <h1 className="text-3xl font-bold text-gray-800">
-            Aula Confirmada!
+            {t('confirmation.title')}
           </h1>
           <p className="text-gray-600">
-            Seu pagamento foi processado com sucesso
+            {t('confirmation.description')}
           </p>
         </div>
 
@@ -106,7 +114,7 @@ const Confirmation = () => {
         <Card className="shadow-xl">
           <CardHeader>
             <CardTitle className="text-xl text-gray-800">
-              Detalhes da Sua Aula
+              {t('confirmation.details')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -114,7 +122,7 @@ const Confirmation = () => {
               <div className="flex items-center space-x-3">
                 <Mail className="h-5 w-5 text-blue-500" />
                 <div>
-                  <p className="text-sm text-gray-500">E-mail</p>
+                  <p className="text-sm text-gray-500">{t('confirmation.email')}</p>
                   <p className="font-medium">{paymentData.email}</p>
                 </div>
               </div>
@@ -122,7 +130,7 @@ const Confirmation = () => {
               <div className="flex items-center space-x-3">
                 <Calendar className="h-5 w-5 text-blue-500" />
                 <div>
-                  <p className="text-sm text-gray-500">Data</p>
+                  <p className="text-sm text-gray-500">{t('confirmation.date')}</p>
                   <p className="font-medium">{format(new Date(paymentData.date), "dd/MM/yyyy")}</p>
                 </div>
               </div>
@@ -130,7 +138,7 @@ const Confirmation = () => {
               <div className="flex items-center space-x-3">
                 <Clock className="h-5 w-5 text-blue-500" />
                 <div>
-                  <p className="text-sm text-gray-500">Horário</p>
+                  <p className="text-sm text-gray-500">{t('confirmation.time')}</p>
                   <p className="font-medium">{paymentData.time}</p>
                 </div>
               </div>
@@ -138,7 +146,7 @@ const Confirmation = () => {
               <div className="flex items-center space-x-3">
                 <CheckCircle className="h-5 w-5 text-green-500" />
                 <div>
-                  <p className="text-sm text-gray-500">Valor Pago</p>
+                  <p className="text-sm text-gray-500">{t('confirmation.paidAmount')}</p>
                   <p className="font-medium text-green-600">R$ {paymentData.price.toFixed(2)}</p>
                 </div>
               </div>
@@ -152,12 +160,12 @@ const Confirmation = () => {
             <CardHeader>
               <CardTitle className="flex items-center text-xl text-blue-800">
                 <Video className="mr-2 h-5 w-5" />
-                Link da Reunião Virtual
+                {t('confirmation.meetingLink')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                <p className="text-sm text-blue-600 mb-2">Link da reunião Zoom:</p>
+                <p className="text-sm text-blue-600 mb-2">{t('confirmation.zoomMeeting')}</p>
                 <p className="font-mono text-sm bg-white p-2 rounded border break-all">
                   {zoomLink}
                 </p>
@@ -168,7 +176,7 @@ const Confirmation = () => {
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white"
               >
                 <Video className="mr-2 h-4 w-4" />
-                Acessar Reunião
+                {t('confirmation.accessMeeting')}
                 <ExternalLink className="ml-2 h-4 w-4" />
               </Button>
             </CardContent>
@@ -183,14 +191,14 @@ const Confirmation = () => {
             className="h-12"
           >
             <Plus className="mr-2 h-4 w-4" />
-            Adicionar ao Google Calendar
+            {t('confirmation.addToCalendar')}
           </Button>
           
           <Button
             onClick={() => navigate('/')}
             className="h-12 bg-emerald-600 hover:bg-emerald-700"
           >
-            Agendar Nova Aula
+            {t('confirmation.scheduleNew')}
           </Button>
         </div>
 
@@ -198,8 +206,8 @@ const Confirmation = () => {
         <Card className="shadow-lg border-gray-200">
           <CardContent className="pt-6">
             <div className="text-center text-sm text-gray-500 space-y-1">
-              <p>ID do Pagamento: {paymentData.paymentId}</p>
-              <p>Processado em: {format(new Date(paymentData.paidAt), "dd/MM/yyyy 'às' HH:mm")}</p>
+              <p>{t('confirmation.paymentId')} {paymentData.paymentId}</p>
+              <p>{t('confirmation.processedAt')} {format(new Date(paymentData.paidAt), "dd/MM/yyyy 'às' HH:mm")}</p>
             </div>
           </CardContent>
         </Card>

@@ -9,6 +9,7 @@ import Booking from "./pages/Booking";
 import Payment from "./pages/Payment";
 import Confirmation from "./pages/Confirmation";
 import NotFound from "./pages/NotFound";
+import "./lib/i18n";
 
 const queryClient = new QueryClient();
 
