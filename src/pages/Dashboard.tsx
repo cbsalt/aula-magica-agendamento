@@ -1,19 +1,23 @@
-
-import React, { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/pure/Card';
-import Button from '../components/pure/Button';
-import Input from '../components/pure/Input';
+import React, { useState } from "react";
+import { useAuth } from "../contexts/AuthContext";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../components/pure/Card";
+import Button from "../components/pure/Button";
+import Input from "../components/pure/Input";
 
 const Dashboard: React.FC = () => {
   const { user, signOut } = useAuth();
-  const [activeTab, setActiveTab] = useState('profile');
+  const [activeTab, setActiveTab] = useState("profile");
 
   const tabs = [
-    { id: 'profile', label: 'Perfil', icon: '👤' },
-    { id: 'calendar', label: 'Agenda', icon: '📅' },
-    { id: 'integrations', label: 'Integrações', icon: '🔗' },
-    { id: 'payments', label: 'Pagamentos', icon: '💳' },
+    { id: "profile", label: "Perfil", icon: "👤" },
+    { id: "calendar", label: "Agenda", icon: "📅" },
+    { id: "integrations", label: "Integrações", icon: "🔗" },
+    { id: "payments", label: "Pagamentos", icon: "💳" },
   ];
 
   return (
@@ -23,7 +27,9 @@ const Dashboard: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <h1 className="text-xl font-semibold text-gray-900">Dashboard do Professor</h1>
+              <h1 className="text-xl font-semibold text-gray-900">
+                Dashboard do Professor
+              </h1>
             </div>
             <div className="flex items-center space-x-4">
               {user?.picture && (
@@ -53,8 +59,8 @@ const Dashboard: React.FC = () => {
                   onClick={() => setActiveTab(tab.id)}
                   className={`w-full flex items-center px-4 py-3 text-left rounded-lg transition-colors ${
                     activeTab === tab.id
-                      ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                      : 'text-gray-700 hover:bg-gray-100'
+                      ? "bg-blue-50 text-blue-700 border border-blue-200"
+                      : "text-gray-700 hover:bg-gray-100"
                   }`}
                 >
                   <span className="mr-3">{tab.icon}</span>
@@ -66,10 +72,10 @@ const Dashboard: React.FC = () => {
 
           {/* Main Content */}
           <div className="flex-1">
-            {activeTab === 'profile' && <ProfileSection />}
-            {activeTab === 'calendar' && <CalendarSection />}
-            {activeTab === 'integrations' && <IntegrationsSection />}
-            {activeTab === 'payments' && <PaymentsSection />}
+            {activeTab === "profile" && <ProfileSection />}
+            {activeTab === "calendar" && <CalendarSection />}
+            {activeTab === "integrations" && <IntegrationsSection />}
+            {activeTab === "payments" && <PaymentsSection />}
           </div>
         </div>
       </div>
@@ -80,23 +86,25 @@ const Dashboard: React.FC = () => {
 const ProfileSection: React.FC = () => {
   const { user } = useAuth();
   const [formData, setFormData] = useState({
-    name: user?.name || '',
-    email: user?.email || '',
-    bio: '',
-    price: '',
-    currency: 'BRL',
+    name: user?.name || "",
+    email: user?.email || "",
+    bio: "",
+    price: "",
+    currency: "BRL",
   });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData(prev => ({
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     }));
   };
 
   const handleSave = () => {
     // Save profile data
-    console.log('Saving profile:', formData);
+    console.log("Saving profile:", formData);
   };
 
   return (
@@ -119,7 +127,7 @@ const ProfileSection: React.FC = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
           <Input
             label="Nome"
             name="name"
@@ -136,7 +144,7 @@ const ProfileSection: React.FC = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 mb-2 text-left">
             Biografia
           </label>
           <textarea
@@ -149,7 +157,7 @@ const ProfileSection: React.FC = () => {
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4 text-left">
           <Input
             label="Preço por aula"
             name="price"
@@ -159,13 +167,15 @@ const ProfileSection: React.FC = () => {
             placeholder="0.00"
           />
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2 text-left">
               Moeda
             </label>
             <select
               name="currency"
               value={formData.currency}
-              onChange={(e) => setFormData(prev => ({ ...prev, currency: e.target.value }))}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, currency: e.target.value }))
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="BRL">BRL - Real</option>
@@ -175,9 +185,7 @@ const ProfileSection: React.FC = () => {
           </div>
         </div>
 
-        <Button onClick={handleSave}>
-          Salvar Alterações
-        </Button>
+        <Button onClick={handleSave}>Salvar Alterações</Button>
       </CardContent>
     </Card>
   );
@@ -186,10 +194,21 @@ const ProfileSection: React.FC = () => {
 const CalendarSection: React.FC = () => {
   const [isConnected, setIsConnected] = useState(false);
 
-  const connectCalendar = () => {
-    // Connect to Google Calendar
-    setIsConnected(true);
-    console.log('Connecting to Google Calendar...');
+  const connectCalendar = async () => {
+    const token = localStorage.getItem("google_access_token");
+    if (!token) return;
+
+    const res = await fetch(
+      "https://www.googleapis.com/calendar/v3/users/me/calendarList",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const data = await res.json();
+    console.log("Calendários conectados:", data);
   };
 
   return (
@@ -205,7 +224,8 @@ const CalendarSection: React.FC = () => {
               Calendário Conectado!
             </h3>
             <p className="text-gray-600 mb-4">
-              Sua agenda está sincronizada e os horários disponíveis são atualizados automaticamente.
+              Sua agenda está sincronizada e os horários disponíveis são
+              atualizados automaticamente.
             </p>
             <Button variant="outline" onClick={() => setIsConnected(false)}>
               Desconectar
@@ -218,11 +238,10 @@ const CalendarSection: React.FC = () => {
               Conectar Google Calendar
             </h3>
             <p className="text-gray-600 mb-6">
-              Conecte sua agenda para que os alunos vejam apenas seus horários realmente disponíveis.
+              Conecte sua agenda para que os alunos vejam apenas seus horários
+              realmente disponíveis.
             </p>
-            <Button onClick={connectCalendar}>
-              Conectar Agenda
-            </Button>
+            <Button onClick={connectCalendar}>Conectar Agenda</Button>
           </div>
         )}
       </CardContent>
@@ -232,7 +251,20 @@ const CalendarSection: React.FC = () => {
 
 const IntegrationsSection: React.FC = () => {
   const [zoomConnected, setZoomConnected] = useState(false);
-  const [meetLink, setMeetLink] = useState('');
+  const [meetLink, setMeetLink] = useState("");
+
+  const handleZoomConnect = () => {
+    const clientId = import.meta.env.VITE_ZOOM_CLIENT_ID;
+    const redirectUri = `${window.location.origin}/zoom/callback`;
+    const state = crypto.randomUUID();
+    sessionStorage.setItem("zoom_oauth_state", state);
+
+    const zoomAuthUrl =
+      `https://zoom.us/oauth/authorize?` +
+      `response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&state=${state}`;
+
+    window.location.href = zoomAuthUrl;
+  };
 
   return (
     <div className="space-y-6">
@@ -250,7 +282,9 @@ const IntegrationsSection: React.FC = () => {
                 </div>
                 <div>
                   <p className="font-medium">Zoom conectado</p>
-                  <p className="text-sm text-gray-600">Links serão gerados automaticamente</p>
+                  <p className="text-sm text-gray-600">
+                    Links serão gerados automaticamente
+                  </p>
                 </div>
               </div>
               <Button variant="outline" onClick={() => setZoomConnected(false)}>
@@ -262,16 +296,14 @@ const IntegrationsSection: React.FC = () => {
               <p className="text-gray-600 mb-4">
                 Conecte sua conta Zoom para gerar links automaticamente
               </p>
-              <Button onClick={() => setZoomConnected(true)}>
-                Conectar Zoom
-              </Button>
+              <Button onClick={handleZoomConnect}>Conectar Zoom</Button>
             </div>
           )}
         </CardContent>
       </Card>
 
       {/* Google Meet */}
-      <Card>
+      {/* <Card>
         <CardHeader>
           <CardTitle>Google Meet</CardTitle>
         </CardHeader>
@@ -287,28 +319,28 @@ const IntegrationsSection: React.FC = () => {
           />
           <Button>Salvar Link</Button>
         </CardContent>
-      </Card>
+      </Card> */}
     </div>
   );
 };
 
 const PaymentsSection: React.FC = () => {
-  const [selectedMethod, setSelectedMethod] = useState('');
+  const [selectedMethod, setSelectedMethod] = useState("");
   const [paymentData, setPaymentData] = useState({
-    stripeAccountId: '',
-    paypalEmail: '',
-    payoneerEmail: '',
+    stripeAccountId: "",
+    paypalEmail: "",
+    payoneerEmail: "",
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPaymentData(prev => ({
+    setPaymentData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     }));
   };
 
   const savePaymentMethod = () => {
-    console.log('Saving payment method:', { selectedMethod, paymentData });
+    console.log("Saving payment method:", { selectedMethod, paymentData });
   };
 
   return (
@@ -323,11 +355,14 @@ const PaymentsSection: React.FC = () => {
           </label>
           <div className="space-y-3">
             {[
-              { id: 'stripe', label: 'Stripe Connect', icon: '💳' },
-              { id: 'paypal', label: 'PayPal', icon: '🏦' },
-              { id: 'payoneer', label: 'Payoneer', icon: '💰' },
+              { id: "stripe", label: "Stripe Connect", icon: "💳" },
+              { id: "paypal", label: "PayPal", icon: "🏦" },
+              { id: "payoneer", label: "Payoneer", icon: "💰" },
             ].map((method) => (
-              <label key={method.id} className="flex items-center cursor-pointer">
+              <label
+                key={method.id}
+                className="flex items-center cursor-pointer"
+              >
                 <input
                   type="radio"
                   name="paymentMethod"
@@ -343,7 +378,7 @@ const PaymentsSection: React.FC = () => {
           </div>
         </div>
 
-        {selectedMethod === 'stripe' && (
+        {selectedMethod === "stripe" && (
           <Input
             label="Stripe Account ID"
             name="stripeAccountId"
@@ -353,7 +388,7 @@ const PaymentsSection: React.FC = () => {
           />
         )}
 
-        {selectedMethod === 'paypal' && (
+        {selectedMethod === "paypal" && (
           <Input
             label="E-mail do PayPal"
             name="paypalEmail"
@@ -364,7 +399,7 @@ const PaymentsSection: React.FC = () => {
           />
         )}
 
-        {selectedMethod === 'payoneer' && (
+        {selectedMethod === "payoneer" && (
           <Input
             label="E-mail do Payoneer"
             name="payoneerEmail"
@@ -376,9 +411,7 @@ const PaymentsSection: React.FC = () => {
         )}
 
         {selectedMethod && (
-          <Button onClick={savePaymentMethod}>
-            Salvar Configuração
-          </Button>
+          <Button onClick={savePaymentMethod}>Salvar Configuração</Button>
         )}
       </CardContent>
     </Card>
