@@ -1,5 +1,4 @@
-
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from "react";
 
 interface User {
   id: string;
@@ -21,18 +20,20 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // Check if user is already logged in
-    const storedUser = localStorage.getItem('user');
+    const storedUser = localStorage.getItem("user");
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
@@ -42,31 +43,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signInWithGoogle = async () => {
     try {
       setIsLoading(true);
-      
+
+      const state = crypto.randomUUID();
+      sessionStorage.setItem("oauth_state", state);
+
       // Google OAuth2 configuration
-      const clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
-      const redirectUri = `${window.location.origin}/auth/callback`;
-      const scope = 'openid profile email https://www.googleapis.com/auth/calendar';
-      
-      const authUrl = `https://accounts.google.com/oauth/authorize?` +
+      const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+      const redirectUri = import.meta.env.VITE_GOOGLE_REDIRECT_URI;
+      const scope =
+        "openid profile email https://www.googleapis.com/auth/calendar";
+
+      const authUrl =
+        `https://accounts.google.com/o/oauth2/v2/auth?` +
         `client_id=${clientId}&` +
         `redirect_uri=${redirectUri}&` +
         `response_type=code&` +
         `scope=${scope}&` +
         `access_type=offline&` +
-        `prompt=consent`;
-      
+        `prompt=consent&` +
+        `state=${state}`;
+
       window.location.href = authUrl;
     } catch (error) {
-      console.error('Error signing in with Google:', error);
+      console.error("Error signing in with Google:", error);
       setIsLoading(false);
     }
   };
 
   const signOut = () => {
     setUser(null);
-    localStorage.removeItem('user');
-    window.location.href = '/';
+    localStorage.removeItem("user");
+    window.location.href = "/";
   };
 
   const value = {
