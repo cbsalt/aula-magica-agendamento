@@ -1,37 +1,68 @@
-
-import React, { useEffect } from 'react';
+import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const AuthCallback: React.FC = () => {
+  const navigate = useNavigate();
+
   useEffect(() => {
-    const handleAuthCallback = async () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const code = urlParams.get('code');
-      
-      if (code) {
-        try {
-          // In a real implementation, you would exchange the code for tokens on your backend
-          // For now, we'll simulate a successful authentication
-          const mockUser = {
-            id: 'mock-user-id',
-            name: 'Professor Exemplo',
-            email: 'professor@exemplo.com',
-            picture: 'https://via.placeholder.com/150',
-            accessToken: 'mock-access-token'
-          };
-          
-          localStorage.setItem('user', JSON.stringify(mockUser));
-          window.location.href = '/dashboard';
-        } catch (error) {
-          console.error('Error handling auth callback:', error);
-          window.location.href = '/dashboard';
+    const handleAuth = async () => {
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get("code");
+      const state = params.get("state");
+      const storedState = sessionStorage.getItem("oauth_state");
+
+      if (!code || state !== storedState) {
+        alert("Erro de autenticação com Google");
+        return;
+      }
+
+      try {
+        const tokenResponse = await fetch(
+          "https://oauth2.googleapis.com/token",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: new URLSearchParams({
+              code,
+              client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+              client_secret: import.meta.env.VITE_GOOGLE_CLIENT_SECRET,
+              redirect_uri: import.meta.env.VITE_GOOGLE_REDIRECT_URI,
+              grant_type: "authorization_code",
+            }),
+          }
+        );
+
+        const tokenData = await tokenResponse.json();
+
+        if (tokenData.access_token) {
+          localStorage.setItem("google_access_token", tokenData.access_token);
+
+          const userInfoRes = await fetch(
+            "https://www.googleapis.com/oauth2/v2/userinfo",
+            {
+              headers: {
+                Authorization: `Bearer ${tokenData.access_token}`,
+              },
+            }
+          );
+
+          const user = await userInfoRes.json();
+
+          localStorage.setItem("user", JSON.stringify(user));
+
+          navigate("/dashboard");
+        } else {
+          console.error("Token inválido:", tokenData);
         }
-      } else {
-        window.location.href = '/dashboard';
+      } catch (err) {
+        console.error("Erro ao trocar código por token:", err);
       }
     };
 
-    handleAuthCallback();
-  }, []);
+    handleAuth();
+  }, [navigate]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
