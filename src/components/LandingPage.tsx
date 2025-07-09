@@ -2,7 +2,7 @@
 'use client'
 
 import Link from 'next/link'
-import Button from './ui/Button'
+import { Button } from './ui/button'
 
 export default function LandingPage() {
   return (
