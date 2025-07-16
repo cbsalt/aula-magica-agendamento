@@ -2,6 +2,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
+import { ZoomService } from '@/lib/zoom'
+import { z } from 'zod'
+
+const zoomConnectSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(1),
+})
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,40 +18,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 
-    const { code } = await request.json()
+    const body = await request.json()
+    const { email, password } = zoomConnectSchema.parse(body)
 
-    // Exchange code for tokens
-    const tokenResponse = await fetch('https://zoom.us/oauth/token', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': `Basic ${Buffer.from(`${process.env.ZOOM_CLIENT_ID}:${process.env.ZOOM_CLIENT_SECRET}`).toString('base64')}`
-      },
-      body: new URLSearchParams({
-        grant_type: 'authorization_code',
-        code: code,
-        redirect_uri: `${process.env.NEXTAUTH_URL}/api/zoom/callback`
-      })
-    })
+    // Test Zoom authentication
+    const zoomService = new ZoomService(undefined, email, password)
+    const authResult = await zoomService.authenticate()
 
-    const tokens = await tokenResponse.json()
-
-    if (tokens.error) {
-      return NextResponse.json({ error: tokens.error }, { status: 400 })
-    }
-
-    // Save tokens to database
+    // Save Zoom credentials to database
     await prisma.teacher.update({
       where: { email: session.user.email },
       data: {
-        zoomAccessToken: tokens.access_token,
-        zoomRefreshToken: tokens.refresh_token,
+        zoomEmail: email,
+        zoomPassword: password, // In production, this should be encrypted
+        zoomAccessToken: authResult.access_token,
+        zoomRefreshToken: authResult.refresh_token,
       }
     })
 
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Erro ao conectar Zoom:', error)
-    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
+    return NextResponse.json({ error: 'Erro ao conectar Zoom. Verifique suas credenciais.' }, { status: 500 })
   }
 }

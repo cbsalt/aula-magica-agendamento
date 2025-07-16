@@ -3,26 +3,28 @@
 
 import Link from 'next/link'
 import { Button } from './ui/button'
+import { useTranslation } from 'react-i18next';
 
 export default function LandingPage() {
+  const { t } = useTranslation();
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="container mx-auto px-4 py-16">
         <div className="text-center mb-16">
           <h1 className="text-5xl font-bold text-gray-900 mb-6">
-            Aula Mágica
+            {t('landing.title')}
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            Plataforma completa para professores particulares agendarem aulas e receberem pagamentos de forma automática.
+            {t('landing.subtitle')}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/auth/signin">
               <Button size="lg" className="w-full sm:w-auto">
-                Começar como Professor
+                {t('landing.startAsTeacher')}
               </Button>
             </Link>
             <Button variant="outline" size="lg" className="w-full sm:w-auto">
-              Saber Mais
+              {t('landing.learnMore')}
             </Button>
           </div>
         </div>

@@ -12,8 +12,8 @@ import LanguageSelector from '@/components/LanguageSelector';
 import PaymentMethodSelector, { PaymentMethod } from '@/components/PaymentMethodSelector';
 import CardPaymentForm from '@/components/PaymentForms/CardPaymentForm';
 import PaypalPaymentForm from '@/components/PaymentForms/PaypalPaymentForm';
-import PayoneerPaymentForm from '@/components/PaymentForms/PayoneerPaymentForm';
-import { CardFormData, PaypalFormData, PayoneerFormData } from '@/lib/validation';
+import { CardFormData, PaypalFormData } from '@/lib/validation';
+import { Badge } from '@/components/ui/badge';
 
 interface BookingData {
   email: string;
@@ -27,7 +27,7 @@ const Payment = () => {
   const { t } = useTranslation();
   const [bookingData, setBookingData] = useState<BookingData | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('card');
-  const [paymentData, setPaymentData] = useState<CardFormData | PaypalFormData | PayoneerFormData | null>(null);
+  const [paymentData, setPaymentData] = useState<CardFormData | PaypalFormData | null>(null);
   const [isPaymentValid, setIsPaymentValid] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const navigate = useNavigate();
@@ -49,7 +49,7 @@ const Payment = () => {
 
   const handlePaymentValidation = (
     isValid: boolean, 
-    data?: CardFormData | PaypalFormData | PayoneerFormData
+    data?: CardFormData | PaypalFormData
   ) => {
     setIsPaymentValid(isValid);
     setPaymentData(data || null);
@@ -98,12 +98,7 @@ const Payment = () => {
             onValidationChange={handlePaymentValidation}
           />
         );
-      case 'payoneer':
-        return (
-          <PayoneerPaymentForm 
-            onValidationChange={handlePaymentValidation}
-          />
-        );
+
       default:
         return null;
     }
@@ -129,22 +124,22 @@ const Payment = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center space-x-2 text-gray-600">
-                <Mail className="h-4 w-4" />
-                <span>{bookingData.email}</span>
-              </div>
-              {bookingData.name && (
+              <div className="flex flex-col items-start space-y-2">
                 <div className="flex items-center space-x-2 text-gray-600">
-                  <span className="font-medium">{bookingData.name}</span>
+                  <Mail className="h-4 w-4" />
+                  <span>{bookingData.email}</span>
                 </div>
-              )}
-              <div className="flex items-center space-x-2 text-gray-600">
-                <Calendar className="h-4 w-4" />
-                <span>{format(new Date(bookingData.date), "dd/MM/yyyy")}</span>
-              </div>
-              <div className="flex items-center space-x-2 text-gray-600">
-                <Clock className="h-4 w-4" />
-                <span>{bookingData.time}</span>
+                {bookingData.name && (
+                  <div className="flex items-center space-x-2 text-gray-600">
+                    <span className="font-medium">{bookingData.name}</span>
+                  </div>
+                )}
+                <div className="flex items-center space-x-2 mt-2">
+                  <Badge className="bg-emerald-600 text-white px-3 py-2 text-lg font-semibold flex items-center">
+                    <Clock className="h-5 w-5 mr-2" />
+                    {format(new Date(bookingData.date), "dd/MM/yyyy")} às {bookingData.time}
+                  </Badge>
+                </div>
               </div>
               <Separator />
               <div className="flex justify-between items-center text-xl font-bold">
@@ -169,7 +164,9 @@ const Payment = () => {
               />
 
               {/* Payment Form */}
-              {renderPaymentForm()}
+              <div className="transition-all duration-300">
+                {renderPaymentForm()}
+              </div>
 
               <div className="pt-4 space-y-4">
                 <Button
@@ -177,7 +174,15 @@ const Payment = () => {
                   disabled={isProcessing || !isPaymentValid}
                   className="w-full bg-green-600 hover:bg-green-700 text-white py-3 text-lg disabled:opacity-50"
                 >
-                  {isProcessing ? t('payment.processing') : `${t('payment.pay')} R$ ${bookingData.price.toFixed(2)}`}
+                  {isProcessing ? (
+                    <span className="flex items-center justify-center">
+                      <svg className="animate-spin h-5 w-5 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                      </svg>
+                      {t('payment.processing')}
+                    </span>
+                  ) : `${t('payment.pay')} R$ ${bookingData.price.toFixed(2)}`}
                 </Button>
                 
                 <Button

@@ -47,6 +47,8 @@ export const authOptions: NextAuthOptions = {
             update: {
               name: session.user.name!,
               photo: session.user.image,
+              googleAccessToken: token.accessToken as string | undefined,
+              googleRefreshToken: token.refreshToken as string | undefined,
             },
             create: {
               email: session.user.email,
@@ -55,9 +57,10 @@ export const authOptions: NextAuthOptions = {
               price: 150, // Default price
               currency: 'BRL',
               slug: session.user.email.split('@')[0] + '-' + Math.random().toString(36).substr(2, 9),
+              googleAccessToken: token.accessToken as string | undefined,
+              googleRefreshToken: token.refreshToken as string | undefined,
             },
           })
-          
           session.user.teacherId = teacher.id
           session.user.slug = teacher.slug
         } catch (error) {

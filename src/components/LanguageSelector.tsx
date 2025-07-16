@@ -1,19 +1,26 @@
+"use client";
 
-import React from 'react';
-import { useTranslation } from 'react-i18next';
-import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Globe } from 'lucide-react';
+import React from "react";
+import { useTranslation } from "react-i18next";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Globe } from "lucide-react";
+
+const languages = [
+  { code: "pt-BR", flag: "🇧🇷" },
+  { code: "en-US", flag: "🇺🇸" },
+];
 
 const LanguageSelector = () => {
-  const { i18n, t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
-  const languages = [
-    { code: 'pt-BR', name: 'Português (BR)', flag: '🇧🇷' },
-    { code: 'en-US', name: 'English (US)', flag: '🇺🇸' }
-  ];
-
-  const currentLanguage = languages.find(lang => lang.code === i18n.language) || languages[0];
+  const currentLanguage =
+    languages.find((lang) => lang.code === i18n.language) || languages[0];
 
   const changeLanguage = (languageCode: string) => {
     i18n.changeLanguage(languageCode);
@@ -24,7 +31,9 @@ const LanguageSelector = () => {
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" className="gap-2">
           <Globe className="h-4 w-4" />
-          <span className="hidden sm:inline">{currentLanguage.flag} {currentLanguage.name}</span>
+          <span className="hidden sm:inline">
+            {currentLanguage.flag} {t(`language.${currentLanguage.code}`)}
+          </span>
           <span className="sm:hidden">{currentLanguage.flag}</span>
         </Button>
       </DropdownMenuTrigger>
@@ -36,7 +45,7 @@ const LanguageSelector = () => {
             className="gap-2"
           >
             <span>{language.flag}</span>
-            <span>{language.name}</span>
+            <span>{t(`language.${language.code}`)}</span>
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

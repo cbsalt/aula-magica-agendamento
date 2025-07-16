@@ -1,35 +1,22 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
-import LanguageDetector from "i18next-browser-languagedetector";
 
-import ptBR from "@/locales/pt-BR/translation.json";
-import enUS from "@/locales/en-US/translation.json";
+import en from "@/locales/en-US/translation.json";
+import pt from "@/locales/pt-BR/translation.json";
 
-const resources = {
-  "pt-BR": {
-    translation: ptBR,
+i18n.use(initReactI18next).init({
+  lng: "pt-BR",
+  fallbackLng: "pt-BR",
+  resources: {
+    "pt-BR": { translation: pt },
+    "en-US": { translation: en },
   },
-  "en-US": {
-    translation: enUS,
+  interpolation: {
+    escapeValue: false,
   },
-};
-
-i18n
-  .use(LanguageDetector)
-  .use(initReactI18next)
-  .init({
-    resources,
-    fallbackLng: "pt-BR",
-    debug: false,
-
-    interpolation: {
-      escapeValue: false,
-    },
-
-    detection: {
-      order: ["localStorage", "navigator", "htmlTag"],
-      caches: ["localStorage"],
-    },
-  });
+  react: {
+    useSuspense: false,
+  },
+});
 
 export default i18n;

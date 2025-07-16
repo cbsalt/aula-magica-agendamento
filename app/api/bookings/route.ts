@@ -12,7 +12,7 @@ const bookingSchema = z.object({
   studentEmail: z.string().email(),
   date: z.string(),
   time: z.string(),
-  paymentMethod: z.enum(['stripe', 'paypal', 'payoneer']),
+  studentPaymentMethod: z.enum(['stripe', 'paypal']), // Como o aluno quer pagar
 })
 
 export async function POST(request: NextRequest) {
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
       currency: teacher.currency,
       teacherId: teacher.id,
       studentEmail: bookingData.studentEmail,
-      paymentMethod: bookingData.paymentMethod,
+      studentPaymentMethod: bookingData.studentPaymentMethod,
       paymentConfig: teacher.paymentConfig,
     })
 

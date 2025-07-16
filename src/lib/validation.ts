@@ -92,15 +92,6 @@ export const paypalSchema = z.object({
     .email('payment.validation.paypalEmailInvalid')
 });
 
-// Schema para Payoneer
-export const payoneerSchema = z.object({
-  email: z
-    .string()
-    .min(1, 'payment.validation.payoneerEmailRequired')
-    .email('payment.validation.payoneerEmailInvalid')
-});
-
 export type BookingFormData = z.infer<typeof bookingSchema>;
 export type CardFormData = z.infer<typeof cardSchema>;
 export type PaypalFormData = z.infer<typeof paypalSchema>;
-export type PayoneerFormData = z.infer<typeof payoneerSchema>;

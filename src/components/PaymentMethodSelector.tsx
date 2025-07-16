@@ -5,7 +5,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { CreditCard, Mail } from 'lucide-react';
 
-export type PaymentMethod = 'card' | 'paypal' | 'payoneer';
+export type PaymentMethod = 'card' | 'paypal';
 
 interface PaymentMethodSelectorProps {
   value: PaymentMethod;
@@ -24,16 +24,11 @@ const PaymentMethodSelector = ({ value, onChange }: PaymentMethodSelectorProps) 
     },
     {
       id: 'paypal' as PaymentMethod,
-      name: 'PayPal',
+      name: t('payment.methods.paypal'),
       icon: <Mail className="h-5 w-5" />,
       description: t('payment.methods.paypalDescription')
     },
-    {
-      id: 'payoneer' as PaymentMethod,
-      name: 'Payoneer',
-      icon: <Mail className="h-5 w-5" />,
-      description: t('payment.methods.payoneerDescription')
-    }
+
   ];
 
   return (

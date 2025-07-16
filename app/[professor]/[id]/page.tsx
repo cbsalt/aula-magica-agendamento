@@ -32,12 +32,12 @@ export async function generateMetadata({ params }: Props) {
     const teacher = await response.json()
     
     return {
-      title: `Agendar aula com ${teacher.name} - Aula Mágica`,
+              title: `Agendar aula com ${teacher.name} - Talk Gringo`,
       description: `Agende sua aula particular com ${teacher.name}. Valor: ${teacher.currency} ${teacher.price}`,
     }
   } catch {
     return {
-      title: 'Professor não encontrado - Aula Mágica',
+              title: 'Professor não encontrado - Talk Gringo',
     }
   }
 }

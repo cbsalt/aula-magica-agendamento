@@ -17,7 +17,7 @@
     "price": "Lesson price",
     "continueToPayment": "Continue to payment",
     "requiredFields": "Required fields",
-    "fillAllFields": "Fill in all required fields",
+    "fillAllFields": "Please fill in all required fields",
     "selectDateTime": "Select Date and Time",
     "studentInfo": "Student Information"
   },
@@ -33,7 +33,6 @@
     "paymentMethod": "Payment method",
     "card": "Credit card",
     "paypal": "PayPal",
-    "payoneer": "Payoneer",
     "cardNumber": "Card number",
     "cardNumberPlaceholder": "1234 5678 9012 3456",
     "expiryDate": "Expiry date",
@@ -41,19 +40,15 @@
     "cvv": "CVV",
     "cvvPlaceholder": "123",
     "cardName": "Name on card",
-    "cardNamePlaceholder": "Name as on card",
+    "cardNamePlaceholder": "Name as it appears on the card",
     "paypalEmail": "PayPal email",
     "paypalEmailPlaceholder": "your@paypal.com",
     "paypalMessage": "You will be redirected to PayPal to complete the payment.",
-    "payoneerEmail": "Payoneer email",
-    "payoneerEmailPlaceholder": "your@payoneer.com",
-    "payoneerMessage": "You will be redirected to Payoneer to complete the payment.",
-    "selectMethod": "Select your payment method",
+    "selectMethod": "Select a payment method",
     "methods": {
       "card": "Credit card",
-      "cardDescription": "Pay securely using your credit card.",
-      "paypalDescription": "You will be redirected to PayPal to complete the payment.",
-      "payoneerDescription": "Use your Payoneer account to make the payment."
+      "cardDescription": "Pay securely with your credit card.",
+      "paypalDescription": "You will be redirected to PayPal to complete the payment."
     }
   },
   "teacher": {
@@ -78,11 +73,49 @@
     "timeRequired": "Time is required",
     "cardNumberRequired": "Card number is required",
     "cardNumberInvalid": "Invalid card number",
-    "expiryRequired": "Expiry date is required",
-    "expiryInvalid": "Invalid expiry date",
+    "expiryRequired": "Expiration date is required",
+    "expiryInvalid": "Invalid expiration date",
     "cvvRequired": "CVV is required",
     "cvvInvalid": "Invalid CVV",
     "cardNameRequired": "Name on card is required"
   },
-  "loading": "Loading..."
+  "confirmation": {
+    "title": "Booking Confirmed!",
+    "description": "Your lesson has been successfully booked.",
+    "details": "Booking Details",
+    "email": "Email",
+    "date": "Date",
+    "time": "Time",
+    "paidAmount": "Paid Amount",
+    "meetingLink": "Meeting Link",
+    "zoomMeeting": "Join your Zoom meeting:",
+    "accessMeeting": "Access Meeting",
+    "addToCalendar": "Add to Google Calendar",
+    "scheduleNew": "Schedule Another Lesson",
+    "paymentId": "Payment ID:",
+    "processedAt": "Processed at:"
+  },
+  "publicBooking": {
+    "chooseDate": "Choose Date",
+    "chooseTime": "Choose Time",
+    "yourData": "Your Information",
+    "continueToPayment": "Continue to Payment",
+    "paymentDetails": "Lesson Details",
+    "teacher": "Teacher:",
+    "date": "Date:",
+    "time": "Time:",
+    "student": "Student:",
+    "email": "Email:",
+    "value": "Amount:",
+    "choosePayment": "Choose how you want to pay:",
+    "creditCard": "Credit Card",
+    "creditCardDesc": "Pay securely with your card",
+    "paypal": "PayPal",
+    "paypalDesc": "Pay with your PayPal account"
+  },
+  "loading": "Loading...",
+  "language": {
+    "pt-BR": "Portuguese (BR)",
+    "en-US": "English (US)"
+  }
 }

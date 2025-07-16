@@ -33,7 +33,6 @@
     "paymentMethod": "Método de pagamento",
     "card": "Cartão de crédito",
     "paypal": "PayPal",
-    "payoneer": "Payoneer",
     "cardNumber": "Número do cartão",
     "cardNumberPlaceholder": "1234 5678 9012 3456",
     "expiryDate": "Data de validade",
@@ -45,16 +44,13 @@
     "paypalEmail": "E-mail do PayPal",
     "paypalEmailPlaceholder": "seu@paypal.com",
     "paypalMessage": "Você será redirecionado para o PayPal para completar o pagamento.",
-    "payoneerEmail": "E-mail do Payoneer",
-    "payoneerEmailPlaceholder": "seu@payoneer.com",
-    "payoneerMessage": "Você será redirecionado para o Payoneer para completar o pagamento.",
+
     "selectMethod": "Selecione a forma de pagamento",
     "methods": {
       "card": "Cartão de crédito",
       "cardDescription": "Pague com seu cartão de crédito de forma segura.",
-      "paypalDescription": "Você será redirecionado para o PayPal para concluir o pagamento.",
-      "payoneerDescription": "Use sua conta Payoneer para efetuar o pagamento."
-    }
+              "paypalDescription": "Você será redirecionado para o PayPal para concluir o pagamento."
+      }
   },
   "teacher": {
     "login": "Login do Professor",
@@ -84,5 +80,55 @@
     "cvvInvalid": "CVV inválido",
     "cardNameRequired": "Nome no cartão é obrigatório"
   },
-  "loading": "Carregando..."
+  "loading": "Carregando...",
+  "landing": {
+    "title": "Talk Gringo",
+    "subtitle": "Plataforma completa para professores particulares agendarem aulas e receberem pagamentos de forma automática.",
+    "startAsTeacher": "Começar como Professor",
+    "learnMore": "Saber Mais",
+    "smartBooking": "Agendamento Inteligente",
+    "smartBookingDesc": "Conecte seu Google Calendar e deixe os alunos verem apenas seus horários livres.",
+    "autoPayments": "Pagamentos Automáticos",
+    "autoPaymentsDesc": "Receba pagamentos via Stripe, PayPal ou Payoneer de forma segura e automática.",
+    "onlineLessons": "Aulas Online",
+    "onlineLessonsDesc": "Integração com Zoom para criar links de reunião automaticamente."
+  },
+  "confirmation": {
+    "title": "Agendamento Confirmado!",
+    "description": "Sua aula foi agendada com sucesso.",
+    "details": "Detalhes do Agendamento",
+    "email": "E-mail",
+    "date": "Data",
+    "time": "Horário",
+    "paidAmount": "Valor Pago",
+    "meetingLink": "Link da Reunião",
+    "zoomMeeting": "Acesse sua reunião no Zoom:",
+    "accessMeeting": "Acessar Reunião",
+    "addToCalendar": "Adicionar ao Google Calendar",
+    "scheduleNew": "Agendar Nova Aula",
+    "paymentId": "ID do Pagamento:",
+    "processedAt": "Processado em:"
+  },
+  "publicBooking": {
+    "chooseDate": "Escolha a Data",
+    "chooseTime": "Escolha o Horário",
+    "yourData": "Seus Dados",
+    "continueToPayment": "Continuar para Pagamento",
+    "paymentDetails": "Detalhes da Aula",
+    "teacher": "Professor:",
+    "date": "Data:",
+    "time": "Horário:",
+    "student": "Aluno:",
+    "email": "E-mail:",
+    "value": "Valor:",
+    "choosePayment": "Escolha como deseja pagar:",
+    "creditCard": "Cartão de Crédito",
+    "creditCardDesc": "Pague com cartão de forma segura",
+    "paypal": "PayPal",
+    "paypalDesc": "Pague com sua conta PayPal"
+  },
+  "language": {
+    "pt-BR": "Português (BR)",
+    "en-US": "English (US)"
+  }
 }

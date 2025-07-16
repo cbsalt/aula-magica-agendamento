@@ -27,7 +27,8 @@ export class GoogleCalendarService {
     endTime.setHours(18, 0, 0, 0) // 6:00 PM
 
     try {
-      const response = await calendar.freebusy.query({
+      // Get busy times
+      const freebusyResponse = await calendar.freebusy.query({
         requestBody: {
           timeMin: startTime.toISOString(),
           timeMax: endTime.toISOString(),
@@ -35,7 +36,18 @@ export class GoogleCalendarService {
         },
       })
 
-      const busyTimes = response.data.calendars?.[calendarId]?.busy || []
+      const busyTimes = freebusyResponse.data.calendars?.[calendarId]?.busy || []
+      
+      // Get events for more details
+      const eventsResponse = await calendar.events.list({
+        calendarId,
+        timeMin: startTime.toISOString(),
+        timeMax: endTime.toISOString(),
+        singleEvents: true,
+        orderBy: 'startTime',
+      })
+
+      const events = eventsResponse.data.items || []
       
       // Generate 1-hour slots
       const slots = []
@@ -50,11 +62,34 @@ export class GoogleCalendarService {
           return current < busyEnd && slotEnd > busyStart
         })
 
+        // Find conflicting events
+        const conflictingEvents = events.filter((event: any) => {
+          const eventStart = new Date(event.start.dateTime || event.start.date)
+          const eventEnd = new Date(event.end.dateTime || event.end.date)
+          return current < eventEnd && slotEnd > eventStart
+        })
+
         if (isAvailable) {
           slots.push({
             start: current.toTimeString().slice(0, 5), // HH:MM format
             end: slotEnd.toTimeString().slice(0, 5),
             available: true,
+            conflictingEvents: conflictingEvents.map((event: any) => ({
+              title: event.summary,
+              start: event.start.dateTime || event.start.date,
+              end: event.end.dateTime || event.end.date,
+            })),
+          })
+        } else {
+          slots.push({
+            start: current.toTimeString().slice(0, 5),
+            end: slotEnd.toTimeString().slice(0, 5),
+            available: false,
+            conflictingEvents: conflictingEvents.map((event: any) => ({
+              title: event.summary,
+              start: event.start.dateTime || event.start.date,
+              end: event.end.dateTime || event.end.date,
+            })),
           })
         }
 
@@ -64,6 +99,31 @@ export class GoogleCalendarService {
       return slots
     } catch (error) {
       console.error('Error fetching calendar availability:', error)
+      throw error
+    }
+  }
+
+  async getEvents(calendarId: string, date: string) {
+    const calendar = google.calendar({ version: 'v3', auth: this.oauth2Client })
+
+    const startTime = new Date(date)
+    startTime.setHours(0, 0, 0, 0)
+
+    const endTime = new Date(date)
+    endTime.setHours(23, 59, 59, 999)
+
+    try {
+      const response = await calendar.events.list({
+        calendarId,
+        timeMin: startTime.toISOString(),
+        timeMax: endTime.toISOString(),
+        singleEvents: true,
+        orderBy: 'startTime',
+      })
+
+      return response.data.items || []
+    } catch (error) {
+      console.error('Error fetching calendar events:', error)
       throw error
     }
   }
