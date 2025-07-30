@@ -44,13 +44,12 @@
     "paypalEmail": "E-mail do PayPal",
     "paypalEmailPlaceholder": "seu@paypal.com",
     "paypalMessage": "Você será redirecionado para o PayPal para completar o pagamento.",
-
     "selectMethod": "Selecione a forma de pagamento",
     "methods": {
       "card": "Cartão de crédito",
       "cardDescription": "Pague com seu cartão de crédito de forma segura.",
-              "paypalDescription": "Você será redirecionado para o PayPal para concluir o pagamento."
-      }
+      "paypalDescription": "Você será redirecionado para o PayPal para concluir o pagamento."
+    }
   },
   "teacher": {
     "login": "Login do Professor",
@@ -82,7 +81,7 @@
   },
   "loading": "Carregando...",
   "landing": {
-    "title": "Talk Gringo",
+    "title": "scheduleasier",
     "subtitle": "Plataforma completa para professores particulares agendarem aulas e receberem pagamentos de forma automática.",
     "startAsTeacher": "Começar como Professor",
     "learnMore": "Saber Mais",
@@ -125,7 +124,8 @@
     "creditCard": "Cartão de Crédito",
     "creditCardDesc": "Pague com cartão de forma segura",
     "paypal": "PayPal",
-    "paypalDesc": "Pague com sua conta PayPal"
+    "paypalDesc": "Pague com sua conta PayPal",
+    "noAvailableTimes": "Nenhum horário disponível"
   },
   "language": {
     "pt-BR": "Português (BR)",

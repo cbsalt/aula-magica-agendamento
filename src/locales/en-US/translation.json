@@ -111,7 +111,8 @@
     "creditCard": "Credit Card",
     "creditCardDesc": "Pay securely with your card",
     "paypal": "PayPal",
-    "paypalDesc": "Pay with your PayPal account"
+    "paypalDesc": "Pay with your PayPal account",
+    "noAvailableTimes": "No available times"
   },
   "loading": "Loading...",
   "language": {
