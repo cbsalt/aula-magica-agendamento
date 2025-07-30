@@ -6,7 +6,7 @@ import { I18nProvider } from "@/components/I18nProvider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "Talk Gringo - Agendamento de Aulas",
+  title: "scheduleasier - Agendamento de Aulas",
   description: "Plataforma para agendamento e pagamento de aulas particulares",
 };
 
