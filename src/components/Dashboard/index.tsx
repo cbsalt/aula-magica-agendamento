@@ -1,0 +1,87 @@
+"use client";
+
+import { useState } from "react";
+import { useSession, signOut } from "next-auth/react";
+import { Button } from "../ui/button";
+import { Toaster } from "react-hot-toast";
+import { ProfileSection } from "./ProfileSection";
+import { CalendarSection } from "./CalendarSection";
+import { IntegrationsSection } from "./IntegrationSection";
+import { PaymentsSection } from "./PaymentSection";
+import { PublicLinkSection } from "./PublicSection";
+
+export default function Dashboard() {
+  const { data: session } = useSession();
+  const [activeTab, setActiveTab] = useState("profile");
+
+  const tabs = [
+    { id: "profile", label: "Perfil", icon: "👤" },
+    { id: "calendar", label: "Calendário", icon: "📅" },
+    { id: "integrations", label: "Integrações", icon: "🔗" },
+    { id: "payments", label: "Pagamentos", icon: "💳" },
+    { id: "public-link", label: "Link Público", icon: "🔗" },
+  ];
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Toaster position="top-right" />
+      <header className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <h1 className="text-xl font-semibold text-gray-900">
+              Dashboard do Professor
+            </h1>
+            <div className="flex items-center space-x-4">
+              {session?.user?.image && (
+                <img
+                  src={session.user.image}
+                  alt={session.user.name || ""}
+                  className="w-8 h-8 rounded-full"
+                />
+              )}
+              <span className="text-sm text-gray-700">
+                {session?.user?.name}
+              </span>
+              <Button onClick={() => signOut()} variant="outline" size="sm">
+                Sair
+              </Button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex gap-8">
+          {/* Sidebar */}
+          <div className="w-64">
+            <nav className="space-y-2">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`w-full flex items-center px-4 py-3 text-left rounded-lg transition-colors ${
+                    activeTab === tab.id
+                      ? "bg-blue-50 text-blue-700 border border-blue-200"
+                      : "text-gray-700 hover:bg-gray-100"
+                  }`}
+                >
+                  <span className="mr-3">{tab.icon}</span>
+                  {tab.label}
+                </button>
+              ))}
+            </nav>
+          </div>
+
+          {/* Main Content */}
+          <div className="flex-1">
+            {activeTab === "profile" && <ProfileSection />}
+            {activeTab === "calendar" && <CalendarSection />}
+            {activeTab === "integrations" && <IntegrationsSection />}
+            {activeTab === "payments" && <PaymentsSection />}
+            {activeTab === "public-link" && <PublicLinkSection />}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

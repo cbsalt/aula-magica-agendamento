@@ -1,32 +1,17 @@
-import React from "react";
 import { useTranslation } from "react-i18next";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useFormContext } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { cardSchema, CardFormData } from "@/lib/validation";
+import { CardFormData } from "@/lib/validation";
 
-interface CardPaymentFormProps {
-  onValidationChange: (isValid: boolean, data?: CardFormData) => void;
-}
-
-const CardPaymentForm = ({ onValidationChange }: CardPaymentFormProps) => {
+const CardPaymentForm = () => {
   const { t } = useTranslation();
+
   const {
     register,
-    formState: { errors, isValid },
-    watch,
+    formState: { errors },
     setValue,
-  } = useForm<CardFormData>({
-    resolver: zodResolver(cardSchema),
-    mode: "onChange",
-  });
-
-  const watchedData = watch();
-
-  React.useEffect(() => {
-    onValidationChange(isValid, isValid ? watchedData : undefined);
-  }, [isValid, watchedData, onValidationChange]);
+  } = useFormContext<CardFormData>();
 
   const formatCardNumber = (value: string) => {
     const v = value.replace(/\s+/g, "").replace(/[^0-9]/gi, "");

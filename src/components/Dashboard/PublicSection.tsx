@@ -1,0 +1,124 @@
+"use client";
+
+import { useState } from "react";
+import { Button } from "../ui/button";
+import { Card, CardContent } from "../ui/card";
+import { toast } from "react-hot-toast";
+
+export const PublicLinkSection = () => {
+  const [price, setPrice] = useState(150);
+  const [currency, setCurrency] = useState("BRL");
+  const [publicUrl, setPublicUrl] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const generatePublicLink = async () => {
+    setIsGenerating(true);
+    try {
+      const response = await fetch("/api/teachers/me/public-link", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          price,
+          currency,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setPublicUrl(data.publicUrl);
+        toast.success("Link público gerado com sucesso!");
+      } else {
+        const error = await response.json();
+        toast.error(`Erro: ${error.error}`);
+      }
+    } catch (error) {
+      console.error("Erro ao gerar link:", error);
+      toast.error("Erro ao gerar link público");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(publicUrl);
+    toast.success("Link copiado para a área de transferência!");
+  };
+
+  return (
+    <Card>
+      <CardContent className="p-6">
+        <h2 className="text-xl font-semibold mb-6">Gerar Link Público</h2>
+        <div className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Valor da Aula
+            </label>
+            <div className="flex space-x-2">
+              <input
+                type="number"
+                value={price}
+                onChange={(e) => setPrice(Number(e.target.value))}
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                min="0"
+                step="0.01"
+              />
+              <select
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="BRL">BRL</option>
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="bg-blue-50 p-4 rounded-lg">
+            <h4 className="font-medium text-blue-800 mb-2">
+              Sobre os Pagamentos
+            </h4>
+            <p className="text-sm text-blue-700">
+              Os alunos poderão escolher como querem pagar (cartão de crédito ou
+              PayPal). A plataforma processará o pagamento e repassará o valor
+              para você conforme sua configuração de recebimento.
+            </p>
+          </div>
+
+          <Button
+            onClick={generatePublicLink}
+            disabled={isGenerating}
+            className="w-full"
+          >
+            {isGenerating ? "Gerando..." : "Gerar Link Público"}
+          </Button>
+
+          {publicUrl && (
+            <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <h3 className="font-medium text-green-800 mb-2">
+                Link Público Ativo!
+              </h3>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="text"
+                  value={publicUrl}
+                  readOnly
+                  className="flex-1 px-3 py-2 border border-green-300 rounded-md bg-white text-sm"
+                />
+                <Button onClick={copyToClipboard} variant="outline" size="sm">
+                  Copiar
+                </Button>
+              </div>
+              <p className="text-sm text-green-600 mt-2">
+                Este é seu link único e fixo. Compartilhe com seus alunos para
+                que eles possam agendar aulas diretamente.
+              </p>
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+};

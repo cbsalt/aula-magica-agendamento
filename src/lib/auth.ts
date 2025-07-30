@@ -63,6 +63,33 @@ export const authOptions: NextAuthOptions = {
           })
           session.user.teacherId = teacher.id
           session.user.slug = teacher.slug
+
+          // Buscar e salvar o googleCalendarId se não estiver preenchido
+          if (!teacher.googleCalendarId && teacher.googleAccessToken) {
+            try {
+              const { google } = await import('googleapis');
+              const oauth2Client = new google.auth.OAuth2(
+                process.env.GOOGLE_CLIENT_ID,
+                process.env.GOOGLE_CLIENT_SECRET,
+                process.env.NEXTAUTH_URL + "/api/auth/callback/google"
+              );
+              oauth2Client.setCredentials({
+                access_token: teacher.googleAccessToken,
+                refresh_token: teacher.googleRefreshToken,
+              });
+              const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
+              const res = await calendar.calendarList.list();
+              const primary = res.data.items?.find((cal) => cal.primary);
+              if (primary && primary.id) {
+                await prisma.teacher.update({
+                  where: { id: teacher.id },
+                  data: { googleCalendarId: primary.id },
+                });
+              }
+            } catch (err) {
+              console.warn('Não foi possível salvar googleCalendarId:', err);
+            }
+          }
         } catch (error) {
           console.error('Error creating/updating teacher in session:', error)
         }
