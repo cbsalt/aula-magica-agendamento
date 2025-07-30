@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['lh3.googleusercontent.com', 'via.placeholder.com'],
+    domains: ["lh3.googleusercontent.com", "via.placeholder.com"],
   },
   env: {
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
@@ -15,6 +15,6 @@ const nextConfig = {
     PAYPAL_CLIENT_ID: process.env.PAYPAL_CLIENT_ID,
     PAYPAL_CLIENT_SECRET: process.env.PAYPAL_CLIENT_SECRET,
   },
-}
+};
 
-export default nextConfig
+export default nextConfig;
