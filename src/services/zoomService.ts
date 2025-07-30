@@ -1,87 +1,17 @@
-import axios from 'axios';
-
-export class ZoomService {
-  private accessToken?: string;
-  private email?: string;
-  private password?: string;
-
-  constructor(accessToken?: string, email?: string, password?: string) {
-    this.accessToken = accessToken;
-    this.email = email;
-    this.password = password;
+export function getZoomOAuthUrl(): string {
+  const clientId = process.env.NEXT_PUBLIC_ZOOM_CLIENT_ID;
+  if (!clientId) {
+    throw new Error(
+      "ZOOM_CLIENT_ID não está definido nas variáveis de ambiente"
+    );
   }
+  const redirectUri = `${window.location.origin}/api/zoom/callback`;
 
-  async authenticate() {
-    if (!this.email || !this.password) {
-      throw new Error('Email e senha do Zoom são necessários');
-    }
+  const params = new URLSearchParams({
+    response_type: "code",
+    client_id: clientId,
+    redirect_uri: redirectUri,
+  });
 
-    try {
-      const response = await axios.post(
-        'https://zoom.us/oauth/token',
-        new URLSearchParams({
-          grant_type: 'password',
-          username: this.email!,
-          password: this.password!,
-        }),
-        {
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Authorization': `Basic ${Buffer.from(`${process.env.ZOOM_CLIENT_ID}:${process.env.ZOOM_CLIENT_SECRET}`).toString('base64')}`,
-          },
-        }
-      );
-      this.accessToken = response.data.access_token;
-      return response.data;
-    } catch (error) {
-      console.error('Erro na autenticação do Zoom:', error);
-      throw error;
-    }
-  }
-
-  async createMeeting(meetingData: {
-    topic: string;
-    start_time: string;
-    duration: number;
-    agenda?: string;
-  }) {
-    try {
-      // Authenticate if no access token
-      if (!this.accessToken) {
-        await this.authenticate();
-      }
-
-      const response = await axios.post(
-        'https://api.zoom.us/v2/users/me/meetings',
-        {
-          topic: meetingData.topic,
-          type: 2, // Scheduled meeting
-          start_time: meetingData.start_time,
-          duration: meetingData.duration,
-          agenda: meetingData.agenda,
-          settings: {
-            host_video: true,
-            participant_video: true,
-            join_before_host: false,
-            mute_upon_entry: true,
-            watermark: false,
-            use_pmi: false,
-            approval_type: 0,
-            audio: 'both',
-            auto_recording: 'none',
-          },
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${this.accessToken}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-      return response.data;
-    } catch (error) {
-      console.error('Error creating Zoom meeting:', error);
-      throw error;
-    }
-  }
-} 
+  return `https://zoom.us/oauth/authorize?${params.toString()}`;
+}
