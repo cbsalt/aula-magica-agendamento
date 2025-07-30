@@ -14,7 +14,6 @@ export async function GET(req: NextRequest) {
     where: { email: session.user.email },
     include: { teacherWorkSchedules: true },
   });
-  console.log("teacher", teacher);
 
   if (!teacher) {
     return NextResponse.json(

@@ -20,6 +20,7 @@ export async function GET(
         slug: true,
         isActive: true,
         createdAt: true,
+        googleCalendarId: true,
       }
     })
 
