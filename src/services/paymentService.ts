@@ -1,13 +1,16 @@
-import axios from 'axios';
+import axios from "axios";
 
-export async function createStripePayment(data: any) {
-  // Chamada para endpoint backend que cria sessão Stripe
-  const response = await axios.post('/api/payments/stripe', data);
-  return response.data;
+interface BookingPayload {
+  teacherId: string;
+  studentName: string;
+  studentEmail: string;
+  date: string;
+  time: string;
+  studentPaymentMethod: string;
+  paymentData: any;
 }
 
-export async function createPayPalPayment(data: any) {
-  // Chamada para endpoint backend que cria ordem PayPal
-  const response = await axios.post('/api/payments/paypal', data);
+export async function createBooking(payload: BookingPayload) {
+  const response = await axios.post("/api/bookings", payload);
   return response.data;
-} 
+}
