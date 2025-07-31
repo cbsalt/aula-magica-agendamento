@@ -1,20 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { GoogleCalendarService } from "@/lib/google-calendar";
-import { date, z } from "zod";
-import {
-  parseISO,
-  getDay,
-  startOfWeek,
-  Day,
-  addHours,
-  endOfWeek,
-  addDays,
-  getDate,
-} from "date-fns";
-import { toZonedTime, format } from "date-fns-tz";
-import { start } from "repl";
-import { freeSlots, generateSlots, initializeSlots } from "app/api/helpers";
+import { z } from "zod";
+import { toZonedTime } from "date-fns-tz";
+import { freeSlots, initializeSlots } from "app/api/helpers";
 
 const availabilitySchema = z.object({
   teacherId: z.string(),
@@ -55,7 +44,7 @@ export async function POST(request: NextRequest) {
     const allSlots = initializeSlots(workSchedules, zonedToday);
 
     return NextResponse.json({
-      availability: freeSlots(allSlots),
+      availability: freeSlots(events, allSlots),
       events: events.map((event) => ({
         title: event.summary,
         start: event.start.dateTime || event.start.date,
