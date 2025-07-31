@@ -127,7 +127,8 @@ model Booking {
   date DateTime
   time String
 
-  status String @default("pending") // pending, confirmed, cancelled, completed
+  status String  @default("pending") // pending, confirmed, cancelled, completed
+  notes  String?
 
   // Payment
   paymentId     String? @map("payment_id")
