@@ -73,11 +73,9 @@ export function isSlotFree(events, slot) {
   });
 }
 
-export const freeSlots = (allSlots) =>
+export const freeSlots = (events, allSlots) =>
   allSlots.map((day) => {
-    const availableSlots = day.slots.filter((slot) =>
-      isSlotFree(allSlots, slot)
-    );
+    const availableSlots = day.slots.filter((slot) => isSlotFree(events, slot));
 
     if (availableSlots.length === 0) return null;
 
