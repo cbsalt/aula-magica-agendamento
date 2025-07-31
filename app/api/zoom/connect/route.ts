@@ -3,10 +3,11 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import axios from "axios";
+import { ZoomService } from "@/lib/zoom";
 
 export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get("code");
-  const redirectUri = `${req.nextUrl.origin}/api/zoom/callback`;
+  const redirectUri = `${req.nextUrl.origin}/api/zoom/connect`;
 
   if (!code) {
     return NextResponse.redirect(
@@ -15,7 +16,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const response = await axios.post(
+    const tokenResponse = await axios.post(
       "https://zoom.us/oauth/token",
       new URLSearchParams({
         grant_type: "authorization_code",
@@ -33,20 +34,24 @@ export async function GET(req: NextRequest) {
     );
 
     const session = await getServerSession(authOptions);
+    const email = session?.user?.email;
 
-    await prisma.teacher.update({
-      where: { email: session?.user?.email },
-      data: {
-        zoomAccessToken: response.data.access_token,
-        zoomRefreshToken: response.data.refresh_token,
-      },
+    if (!email) {
+      return NextResponse.redirect(
+        `${req.nextUrl.origin}/dashboard?zoom=error_no_email`
+      );
+    }
+
+    await ZoomService.updateZoomConnection(email, {
+      access_token: tokenResponse.data.access_token,
+      refresh_token: tokenResponse.data.refresh_token,
     });
 
     return NextResponse.redirect(
-      `${req.nextUrl.origin}/dashboard?zoom=success`
+      `${req.nextUrl.origin}/dashboard?zoom=success&tab=integrations`
     );
   } catch (err) {
-    console.error("Erro no callback Zoom:", err);
+    console.error("Erro no callback Zoom:", err?.response?.data || err);
     return NextResponse.redirect(`${req.nextUrl.origin}/dashboard?zoom=error`);
   }
 }
