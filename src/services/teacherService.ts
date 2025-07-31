@@ -8,11 +8,23 @@ export const api = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-export async function fetchTeacherAvailability(teacherId: string) {
-  const response = await api.post("/api/teachers/availability", {
-    teacherId,
-  });
+export async function fetchTeacherAvailability(
+  teacherId: string,
+  signal?: AbortSignal
+) {
+  const response = await api.post(
+    "/api/teachers/availability",
+    {
+      teacherId,
+    },
+    { signal }
+  );
 
+  return response.data;
+}
+
+export async function saveTeacherAvailability(data: any[]) {
+  const response = await api.post("/api/teachers/me/availability", data);
   return response.data;
 }
 

@@ -59,8 +59,6 @@ export default function PublicBookingPage({ teacher }: Props) {
   const [studentPaymentMethod, setStudentPaymentMethod] = useState<
     "stripe" | "paypal"
   >("stripe");
-  const [isPaymentValid, setIsPaymentValid] = useState(false);
-  const [paymentData, setPaymentData] = useState<any>(null);
 
   const fetchAvailability = useCallback(
     async (selectedDate: Date) => {
@@ -103,11 +101,6 @@ export default function PublicBookingPage({ teacher }: Props) {
     if (studentData.name && studentData.email) {
       setStep("payment");
     }
-  };
-
-  const handlePaymentValidation = (isValid: boolean, data?: any) => {
-    setIsPaymentValid(isValid);
-    setPaymentData(data || null);
   };
 
   const handleBooking = async (formData) => {
@@ -360,8 +353,6 @@ export default function PublicBookingPage({ teacher }: Props) {
                               setStudentPaymentMethod(
                                 e.target.value as "stripe" | "paypal"
                               );
-                              setIsPaymentValid(false);
-                              setPaymentData(null);
                             }}
                             className="mr-3"
                           />
@@ -384,8 +375,6 @@ export default function PublicBookingPage({ teacher }: Props) {
                               setStudentPaymentMethod(
                                 e.target.value as "stripe" | "paypal"
                               );
-                              setIsPaymentValid(false);
-                              setPaymentData(null);
                             }}
                             className="mr-3"
                           />

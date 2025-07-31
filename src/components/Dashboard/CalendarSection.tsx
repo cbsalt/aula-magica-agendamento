@@ -1,14 +1,17 @@
-import { fetchTeacherAvailability } from "@/services/teacherService";
+import {
+  fetchTeacherAvailability,
+  saveTeacherAvailability,
+} from "@/services/teacherService";
 import { signIn, useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Card, CardContent } from "../ui/card";
 import { Button } from "../ui/button";
 import { useTeacherData, weekDays } from "@/hooks/useTeacherData";
+import toast from "react-hot-toast";
 
 export const CalendarSection = () => {
   const { data: session } = useSession();
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState("");
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewData, setPreviewData] = useState({ availability: [] });
   const [previewError, setPreviewError] = useState<string | null>(null);
@@ -22,44 +25,40 @@ export const CalendarSection = () => {
   } = useTeacherData(weekDays);
 
   // Função para buscar preview da semana
-  const fetchPreview = async () => {
-    if (!session?.user?.teacherId) return;
-    setPreviewLoading(true);
-    setPreviewError(null);
-    try {
-      const today = new Date();
-      const days: { date: string; label: string }[] = [];
-      for (let i = 0; i < 7; i++) {
-        const d = new Date(today);
-        d.setDate(today.getDate() + i);
-        days.push({
-          date: d.toISOString().slice(0, 10),
-          label:
-            i === 0
-              ? "Hoje"
-              : i === 1
-              ? "Amanhã"
-              : d.toLocaleDateString("pt-BR", { weekday: "long" }),
-        });
-      }
-
-      const results = await fetchTeacherAvailability(session.user.teacherId);
-
-      setPreviewData(results);
-    } catch (err) {
-      setPreviewError("Erro ao buscar preview de disponibilidade.");
-    } finally {
-      setPreviewLoading(false);
-    }
-  };
-
-  // Atualiza preview ao carregar ou ao salvar horários
   useEffect(() => {
-    if (isConnected && session?.user?.teacherId) {
-      fetchPreview();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isConnected]);
+    if (!isConnected || !session?.user?.teacherId) return;
+
+    const controller = new AbortController();
+    const signal = controller.signal;
+
+    const fetchPreview = async () => {
+      setPreviewLoading(true);
+      setPreviewError(null);
+
+      try {
+        const results = await fetchTeacherAvailability(
+          session.user.teacherId,
+          signal
+        );
+
+        setPreviewData(results);
+      } catch (err: any) {
+        if (err.name === "CanceledError" || err.name === "AbortError") {
+          console.log("Requisição cancelada");
+        } else {
+          setPreviewError("Erro ao buscar preview de disponibilidade.");
+        }
+      } finally {
+        setPreviewLoading(false);
+      }
+    };
+
+    fetchPreview();
+
+    return () => {
+      controller.abort();
+    };
+  }, [isConnected, session?.user?.teacherId]);
 
   const handleChange = (
     idx: number,
@@ -71,24 +70,31 @@ export const CalendarSection = () => {
     );
   };
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
+    if (saving) return;
     setSaving(true);
-    setMessage("");
+
     const toSave = workSchedule.filter(
       (item) => item.startTime && item.endTime
     );
-    const res = await fetch("/api/teachers/me/availability", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(toSave),
-    });
-    if (res.ok) {
-      setMessage("Horário salvo com sucesso!");
-    } else {
-      setMessage("Erro ao salvar horário.");
+
+    try {
+      await saveTeacherAvailability(toSave);
+
+      fetchTeacherAvailability(session.user.teacherId)
+        .then((results) => setPreviewData(results))
+        .catch(() => {
+          // pode ignorar erro do preview sem travar UX
+        });
+
+      toast.success("Horários salvos com sucesso!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro ao salvar horários.");
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
-  };
+  }, [saving, workSchedule, session?.user?.teacherId]);
 
   const connectCalendar = () => {
     signIn("google"); // Usa o fluxo seguro do NextAuth
@@ -141,9 +147,6 @@ export const CalendarSection = () => {
               >
                 {saving ? "Salvando..." : "Salvar horários"}
               </Button>
-              {message && (
-                <div className="text-sm mt-2 text-blue-700">{message}</div>
-              )}
             </form>
           )}
         </div>

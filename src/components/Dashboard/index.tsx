@@ -1,26 +1,55 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { Button } from "../ui/button";
-import { Toaster } from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
 import { ProfileSection } from "./ProfileSection";
 import { CalendarSection } from "./CalendarSection";
 import { IntegrationsSection } from "./IntegrationSection";
 import { PaymentsSection } from "./PaymentSection";
 import { PublicLinkSection } from "./PublicSection";
+import { useSearchParams } from "next/navigation";
+import { User, CalendarDays, Link2, CreditCard, Share2 } from "lucide-react";
 
 export default function Dashboard() {
   const { data: session } = useSession();
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get("tab");
+  const zoomStatus = searchParams.get("zoom");
+
   const [activeTab, setActiveTab] = useState("profile");
 
   const tabs = [
-    { id: "profile", label: "Perfil", icon: "👤" },
-    { id: "calendar", label: "Calendário", icon: "📅" },
-    { id: "integrations", label: "Integrações", icon: "🔗" },
-    { id: "payments", label: "Pagamentos", icon: "💳" },
-    { id: "public-link", label: "Link Público", icon: "🔗" },
+    { id: "profile", label: "Perfil", icon: <User size={18} /> },
+    { id: "calendar", label: "Calendário", icon: <CalendarDays size={18} /> },
+    { id: "integrations", label: "Integrações", icon: <Link2 size={18} /> },
+    { id: "payments", label: "Pagamentos", icon: <CreditCard size={18} /> },
+    { id: "public-link", label: "Link Público", icon: <Share2 size={18} /> },
   ];
+
+  const clearUrlParams = () => {
+    const url = new URL(window.location.href);
+    url.searchParams.delete("zoom");
+    url.searchParams.delete("tab");
+    window.history.replaceState({}, "", url.toString());
+  };
+
+  useEffect(() => {
+    if (zoomStatus === "success") {
+      toast.success("Zoom conectado com sucesso");
+
+      // Remover os parâmetros da URL após o feedback
+      clearUrlParams();
+    }
+  }, [zoomStatus]);
+
+  // Definir aba inicial com base na URL
+  useEffect(() => {
+    if (tabParam) {
+      setActiveTab(tabParam);
+    }
+  }, [tabParam]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -58,7 +87,10 @@ export default function Dashboard() {
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => {
+                    setActiveTab(tab.id);
+                    clearUrlParams();
+                  }}
                   className={`w-full flex items-center px-4 py-3 text-left rounded-lg transition-colors ${
                     activeTab === tab.id
                       ? "bg-blue-50 text-blue-700 border border-blue-200"
