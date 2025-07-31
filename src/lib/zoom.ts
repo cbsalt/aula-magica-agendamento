@@ -1,4 +1,5 @@
 import axios from "axios";
+import { prisma } from "./prisma";
 
 export class ZoomService {
   private accessToken: string;
@@ -46,5 +47,41 @@ export class ZoomService {
       console.error("Error creating Zoom meeting:", error);
       throw error;
     }
+  }
+
+  static async updateZoomConnection(
+    email: string,
+    tokenData: {
+      access_token: string;
+      refresh_token: string;
+    }
+  ): Promise<void> {
+    const { access_token, refresh_token } = tokenData;
+
+    let isValid = false;
+
+    try {
+      const validation = await axios.get("https://api.zoom.us/v2/users/me", {
+        headers: {
+          Authorization: `Bearer ${access_token}`,
+        },
+      });
+
+      isValid = validation.status === 200;
+    } catch (error) {
+      console.warn(
+        "Falha ao validar token do Zoom:",
+        error?.response?.data || error
+      );
+    }
+
+    await prisma.teacher.update({
+      where: { email },
+      data: {
+        zoomAccessToken: access_token,
+        zoomRefreshToken: refresh_token,
+        zoomConnected: isValid,
+      },
+    });
   }
 }

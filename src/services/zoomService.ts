@@ -1,3 +1,5 @@
+import axios from "axios";
+
 export function getZoomOAuthUrl(): string {
   const clientId = process.env.NEXT_PUBLIC_ZOOM_CLIENT_ID;
   if (!clientId) {
@@ -5,7 +7,7 @@ export function getZoomOAuthUrl(): string {
       "ZOOM_CLIENT_ID não está definido nas variáveis de ambiente"
     );
   }
-  const redirectUri = `${window.location.origin}/api/zoom/callback`;
+  const redirectUri = `${window.location.origin}/api/zoom/connect`;
 
   const params = new URLSearchParams({
     response_type: "code",
@@ -15,3 +17,8 @@ export function getZoomOAuthUrl(): string {
 
   return `https://zoom.us/oauth/authorize?${params.toString()}`;
 }
+
+export const disconnectZoom = async () => {
+  const res = await axios.post("/api/zoom/disconnect");
+  return res.data;
+};
