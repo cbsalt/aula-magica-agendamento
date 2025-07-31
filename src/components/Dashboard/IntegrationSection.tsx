@@ -1,14 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
 import { toast } from "react-hot-toast";
-import { getZoomOAuthUrl } from "@/services/zoomService";
+import { disconnectZoom, getZoomOAuthUrl } from "@/services/zoomService";
+import { useSession } from "next-auth/react";
 
 export const IntegrationsSection = () => {
+  const { data: session } = useSession();
+
   const [zoomConnected, setZoomConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
+
+  useEffect(() => {
+    if (session?.user?.zoomConnected !== undefined) {
+      setZoomConnected(session.user.zoomConnected);
+    }
+  }, [session?.user?.zoomConnected]);
 
   const handleZoomOAuthConnect = () => {
     try {
@@ -22,9 +31,16 @@ export const IntegrationsSection = () => {
     }
   };
 
-  const handleDisconnect = () => {
-    setZoomConnected(false);
-    toast("Zoom desconectado");
+  const handleDisconnect = async () => {
+    try {
+      await disconnectZoom();
+      setZoomConnected(false);
+
+      toast.success("Zoom desconectado com sucesso");
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro ao desconectar do Zoom");
+    }
   };
 
   return (
