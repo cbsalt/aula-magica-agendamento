@@ -1,9 +1,16 @@
 import Stripe from "stripe";
 
 // Initialize Stripe
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-06-30.basil",
-});
+export function getStripeInstance(): Stripe {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) {
+    throw new Error("Stripe Secret Key (STRIPE_SECRET_KEY) não está definida.");
+  }
+
+  return new Stripe(key, {
+    apiVersion: "2025-06-30.basil",
+  });
+}
 
 export class PaymentService {
   async createPayment(data: {
@@ -11,15 +18,22 @@ export class PaymentService {
     currency: string;
     teacherId: string;
     studentEmail: string;
-    studentPaymentMethod: "stripe" | "paypal"; // Como o aluno quer pagar
+    studentPaymentMethod: "creditCard" | "paypal"; // Como o aluno quer pagar
     paymentConfig: any;
+    metadata: {
+      teacherId: string;
+      studentEmail: string;
+      studentName: string;
+      date: string;
+      time: string;
+    };
   }) {
     try {
       // A plataforma processa o pagamento do aluno
       let paymentSession;
 
       switch (data.studentPaymentMethod) {
-        case "stripe":
+        case "creditCard":
           paymentSession = await this.createStripePayment(data);
           break;
         case "paypal":
@@ -31,7 +45,7 @@ export class PaymentService {
 
       // Após o pagamento ser confirmado, a plataforma repassa para o professor
       // Esta lógica seria implementada nos webhooks de confirmação
-      await this.scheduleTeacherPayout(data);
+      // await this.scheduleTeacherPayout(data);
 
       return paymentSession;
     } catch (error) {
@@ -64,6 +78,7 @@ export class PaymentService {
     currency: string
   ) {
     try {
+      const stripe = getStripeInstance();
       const transfer = await stripe.transfers.create({
         amount: Math.round(amount * 100), // Convert to cents
         currency: currency.toLowerCase(),
@@ -100,6 +115,7 @@ export class PaymentService {
   }
 
   private async createStripePayment(data: any) {
+    const stripe = getStripeInstance();
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: [
@@ -120,7 +136,10 @@ export class PaymentService {
       customer_email: data.studentEmail,
       metadata: {
         teacherId: data.teacherId,
-        bookingId: "pending",
+        studentEmail: data.studentEmail,
+        studentName: data.metadata.studentName,
+        date: data.metadata.date,
+        time: data.metadata.time,
       },
     });
 
@@ -130,18 +149,30 @@ export class PaymentService {
     };
   }
 
+  // Create PayPal order using PayPal API
   private async createPayPalPayment(data: any) {
-    // Create PayPal order using PayPal API
+    const { studentEmail, metadata, currency, amount, teacherId } = data;
+
+    const invoiceData = {
+      studentName: metadata.studentName,
+      date: metadata.date,
+      time: metadata.time,
+      studentEmail,
+    };
+
     const orderData = {
       intent: "CAPTURE",
       purchase_units: [
         {
           amount: {
-            currency_code: data.currency.toUpperCase(),
-            value: data.amount.toString(),
+            currency_code: currency.toUpperCase(),
+            value: amount.toString(),
           },
           description: "Aula Particular",
-          custom_id: data.teacherId,
+          custom_id: teacherId,
+          invoice_id: Buffer.from(JSON.stringify(invoiceData))
+            .toString("base64")
+            .slice(0, 127),
         },
       ],
       application_context: {

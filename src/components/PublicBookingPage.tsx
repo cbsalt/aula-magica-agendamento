@@ -23,6 +23,7 @@ import { useTranslation } from "react-i18next";
 import { FormProvider, useForm } from "react-hook-form";
 import { CardFormData, cardSchema } from "@/lib/validation";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { createBooking } from "@/services/paymentService";
 
 interface Teacher {
   id: string;
@@ -57,8 +58,8 @@ export default function PublicBookingPage({ teacher }: Props) {
   const [error, setError] = useState<string | null>(null);
 
   const [studentPaymentMethod, setStudentPaymentMethod] = useState<
-    "stripe" | "paypal"
-  >("stripe");
+    "creditCard" | "paypal"
+  >("creditCard");
 
   const fetchAvailability = useCallback(
     async (selectedDate: Date) => {
@@ -103,11 +104,12 @@ export default function PublicBookingPage({ teacher }: Props) {
     }
   };
 
-  const handleBooking = async (formData) => {
+  const handleBooking = async (formData: any) => {
     setLoading(true);
     setError(null);
+
     try {
-      const response = await api.post("/api/bookings", {
+      const payload = {
         teacherId: teacher.id,
         studentName: studentData.name,
         studentEmail: studentData.email,
@@ -115,9 +117,12 @@ export default function PublicBookingPage({ teacher }: Props) {
         time: selectedTime,
         studentPaymentMethod,
         paymentData: formData,
-      });
-      if (response.data.paymentUrl) {
-        window.open(response.data.paymentUrl, "_blank");
+      };
+
+      const result = await createBooking(payload);
+
+      if (result.paymentUrl) {
+        window.open(result.paymentUrl, "_blank");
       } else {
         setError("Erro inesperado ao processar pagamento.");
       }
@@ -347,11 +352,11 @@ export default function PublicBookingPage({ teacher }: Props) {
                           <input
                             type="radio"
                             name="paymentMethod"
-                            value="stripe"
-                            checked={studentPaymentMethod === "stripe"}
+                            value="creditCard"
+                            checked={studentPaymentMethod === "creditCard"}
                             onChange={(e) => {
                               setStudentPaymentMethod(
-                                e.target.value as "stripe" | "paypal"
+                                e.target.value as "creditCard" | "paypal"
                               );
                             }}
                             className="mr-3"
@@ -373,7 +378,7 @@ export default function PublicBookingPage({ teacher }: Props) {
                             checked={studentPaymentMethod === "paypal"}
                             onChange={(e) => {
                               setStudentPaymentMethod(
-                                e.target.value as "stripe" | "paypal"
+                                e.target.value as "creditCard" | "paypal"
                               );
                             }}
                             className="mr-3"
@@ -390,7 +395,7 @@ export default function PublicBookingPage({ teacher }: Props) {
                       </div>
                     </div>
                     {/* Formulário Condicional */}
-                    {studentPaymentMethod === "stripe" ? (
+                    {studentPaymentMethod === "creditCard" ? (
                       <CardPaymentForm />
                     ) : (
                       <PaypalPaymentForm />

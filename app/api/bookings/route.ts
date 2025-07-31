@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { GoogleCalendarService } from "@/lib/google-calendar";
 import { PaymentService } from "@/lib/payment";
 import { z } from "zod";
 
@@ -10,64 +9,28 @@ const bookingSchema = z.object({
   studentEmail: z.string().email(),
   date: z.string(), // yyyy-MM-dd
   time: z.string(), // HH:mm
-  studentPaymentMethod: z.enum(["stripe", "paypal"]),
+  studentPaymentMethod: z.enum(["creditCard", "paypal"]),
 });
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const bookingData = bookingSchema.parse(body);
+    const [startTime] = bookingData.time.split(" - ");
 
     // Busca dados do professor
     const teacher = await prisma.teacher.findUnique({
       where: { id: bookingData.teacherId },
       include: { paymentConfig: true },
     });
-    if (!teacher?.googleAccessToken) {
+
+    if (!teacher) {
       return NextResponse.json(
-        { error: "Professor não conectou Google Calendar" },
-        { status: 400 }
+        { error: "Professor não encontrado" },
+        { status: 404 }
       );
     }
 
-    // Verifica disponibilidade real no Google Calendar principal
-    const calendarService = new GoogleCalendarService(
-      teacher.googleAccessToken,
-      teacher.googleRefreshToken
-    );
-    const calendarId = teacher.email; // Calendário principal
-    const slotStart = new Date(`${bookingData.date}T${bookingData.time}`);
-    const slotEnd = new Date(slotStart.getTime() + 60 * 60 * 1000); // 1h depois
-    const events = await calendarService.getEvents(calendarId);
-    const isAvailable = !events.some((event) => {
-      const eventStart = new Date(event.start.dateTime || event.start.date);
-      const eventEnd = new Date(event.end.dateTime || event.end.date);
-      return slotStart < eventEnd && slotEnd > eventStart;
-    });
-    if (!isAvailable) {
-      return NextResponse.json(
-        { error: "Horário não disponível" },
-        { status: 400 }
-      );
-    }
-
-    // Cria evento no Google Calendar do professor
-    let calendarEvent;
-    try {
-      calendarEvent = await calendarService.createEvent(calendarId, {
-        summary: `Aula com ${bookingData.studentName}`,
-        description: `Aluno: ${bookingData.studentName}\nEmail: ${bookingData.studentEmail}`,
-        start: { dateTime: slotStart.toISOString() },
-        end: { dateTime: slotEnd.toISOString() },
-      });
-    } catch (err) {
-      return NextResponse.json(
-        { error: "Erro ao criar evento no Google Calendar" },
-        { status: 500 }
-      );
-    }
-
-    // Cria pagamento
     const paymentService = new PaymentService();
     const paymentSession = await paymentService.createPayment({
       amount: teacher.price,
@@ -76,21 +39,26 @@ export async function POST(request: NextRequest) {
       studentEmail: bookingData.studentEmail,
       studentPaymentMethod: bookingData.studentPaymentMethod,
       paymentConfig: teacher.paymentConfig,
+      metadata: {
+        teacherId: teacher.id,
+        studentEmail: bookingData.studentEmail,
+        studentName: bookingData.studentName,
+        date: bookingData.date,
+        time: startTime,
+      },
     });
 
-    // Cria booking
     const booking = await prisma.booking.create({
       data: {
         teacherId: teacher.id,
         studentName: bookingData.studentName,
         studentEmail: bookingData.studentEmail,
         date: new Date(bookingData.date),
-        time: bookingData.time,
+        time: startTime,
         status: "pending",
         paymentId: paymentSession.id,
         amount: teacher.price,
         currency: teacher.currency,
-        meetLink: calendarEvent?.hangoutLink || null,
       },
     });
 
