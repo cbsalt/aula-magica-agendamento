@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,18 +8,18 @@ datasource db {
 }
 
 model Account {
-  id                String  @id @default(cuid())
-  userId            String  @map("user_id")
-  type              String
-  provider          String
-  providerAccountId String  @map("provider_account_id")
-  refresh_token     String?
-  access_token      String?
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String?
-  session_state     String?
+  id                       String  @id @default(cuid())
+  userId                   String  @map("user_id")
+  type                     String
+  provider                 String
+  providerAccountId        String  @map("provider_account_id")
+  refresh_token            String?
+  access_token             String?
+  expires_at               Int?
+  token_type               String?
+  scope                    String?
+  id_token                 String?
+  session_state            String?
   refresh_token_expires_in Int?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -61,107 +60,106 @@ model VerificationToken {
 }
 
 model Teacher {
-  id                   String    @id @default(cuid())
-  email                String    @unique
-  name                 String
-  photo                String?
-  description          String?
-  price                Float     @default(150)
-  currency             String    @default("BRL")
-  slug                 String    @unique
-  isActive             Boolean   @default(true)
-  
+  id          String  @id @default(cuid())
+  email       String  @unique
+  name        String
+  photo       String?
+  description String?
+  price       Float   @default(150)
+  currency    String  @default("BRL")
+  slug        String  @unique
+  isActive    Boolean @default(true)
+
   // Google Calendar Integration
-  googleAccessToken    String?
-  googleRefreshToken   String?
-  googleCalendarId     String?
-  
+  googleAccessToken  String?
+  googleRefreshToken String?
+  googleCalendarId   String?
+
   // Zoom Integration
-  zoomAccessToken      String?
-  zoomRefreshToken     String?
-  zoomEmail            String?
-  zoomPassword         String?
-  
+  zoomAccessToken  String?
+  zoomRefreshToken String?
+  zoomConnected    Boolean?
+
   // Payment Configuration
-  paymentConfig        PaymentConfig?
-  
+  paymentConfig PaymentConfig?
+
   // Public Link - Using teacher ID directly
-  hasPublicLink        Boolean   @default(false) @map("has_public_link")
-  
+  hasPublicLink Boolean @default(false) @map("has_public_link")
+
   // Relationships
   bookings             Booking[]
   teacherWorkSchedules TeacherWorkSchedule[]
-  
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("teachers")
 }
 
 model PaymentConfig {
-  id                   String    @id @default(cuid())
-  teacherId            String    @unique @map("teacher_id")
-  
+  id        String @id @default(cuid())
+  teacherId String @unique @map("teacher_id")
+
   // Recebimento do Professor
-  receiveViaStripe     Boolean   @default(false) @map("receive_via_stripe")
-  stripeAccountId      String?   @map("stripe_account_id")
-  
-  receiveViaPayPal     Boolean   @default(false) @map("receive_via_paypal")
-  paypalEmail          String?
-  
+  receiveViaStripe Boolean @default(false) @map("receive_via_stripe")
+  stripeAccountId  String? @map("stripe_account_id")
+
+  receiveViaPayPal Boolean @default(false) @map("receive_via_paypal")
+  paypalEmail      String?
+
   // Configuração ativa
-  isActive             Boolean   @default(false) @map("is_active")
-  
-  teacher              Teacher   @relation(fields: [teacherId], references: [id], onDelete: Cascade)
-  
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
+  isActive Boolean @default(false) @map("is_active")
+
+  teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("payment_configs")
 }
 
 model Booking {
-  id                   String    @id @default(cuid())
-  teacherId            String    @map("teacher_id")
-  studentName          String    @map("student_name")
-  studentEmail         String    @map("student_email")
-  
-  date                 DateTime
-  time                 String
-  
-  status               String    @default("pending") // pending, confirmed, cancelled, completed
-  
+  id           String @id @default(cuid())
+  teacherId    String @map("teacher_id")
+  studentName  String @map("student_name")
+  studentEmail String @map("student_email")
+
+  date DateTime
+  time String
+
+  status String @default("pending") // pending, confirmed, cancelled, completed
+
   // Payment
-  paymentId            String?   @map("payment_id")
-  paymentStatus        String    @default("pending") // pending, paid, failed, refunded
-  amount               Float
-  currency             String
-  
+  paymentId     String? @map("payment_id")
+  paymentStatus String  @default("pending") // pending, paid, failed, refunded
+  amount        Float
+  currency      String
+
   // Meeting Links
-  zoomLink             String?   @map("zoom_link")
-  meetLink             String?   @map("meet_link")
-  
+  zoomLink String? @map("zoom_link")
+  meetLink String? @map("meet_link")
+
   // Relationships
-  teacher              Teacher   @relation(fields: [teacherId], references: [id], onDelete: Cascade)
-  
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
+  teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("bookings")
 }
 
 model TeacherWorkSchedule {
-  id         String   @id @default(cuid())
-  teacherId  String   @map("teacher_id")
-  dayOfWeek  Int      // 0 = Domingo, 1 = Segunda, ..., 6 = Sábado
-  startTime  String   // Ex: "09:00"
-  endTime    String   // Ex: "18:00"
+  id        String @id @default(cuid())
+  teacherId String @map("teacher_id")
+  dayOfWeek Int // 0 = Domingo, 1 = Segunda, ..., 6 = Sábado
+  startTime String // Ex: "09:00"
+  endTime   String // Ex: "18:00"
 
-  teacher    Teacher  @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
 
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@map("teacher_work_schedules")
   @@unique([teacherId, dayOfWeek, startTime, endTime])
+  @@map("teacher_work_schedules")
 }
