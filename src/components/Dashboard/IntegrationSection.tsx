@@ -6,6 +6,7 @@ import { Card, CardContent } from "../ui/card";
 import { toast } from "react-hot-toast";
 import { disconnectZoom, getZoomOAuthUrl } from "@/services/zoomService";
 import { useSession } from "next-auth/react";
+import { Video } from "lucide-react";
 
 export const IntegrationsSection = () => {
   const { data: session } = useSession();
@@ -54,8 +55,8 @@ export const IntegrationsSection = () => {
           {zoomConnected ? (
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-lg">
-                  🎥
+                <div className="w-14 h-14 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-lg">
+                  <Video size={32} />
                 </div>
                 <div>
                   <p className="font-medium text-gray-900">Zoom conectado</p>

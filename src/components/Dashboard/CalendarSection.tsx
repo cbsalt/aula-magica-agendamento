@@ -8,6 +8,7 @@ import { Card, CardContent } from "../ui/card";
 import { Button } from "../ui/button";
 import { useTeacherData, weekDays } from "@/hooks/useTeacherData";
 import toast from "react-hot-toast";
+import { CircleCheck } from "lucide-react";
 
 export const CalendarSection = () => {
   const { data: session } = useSession();
@@ -202,7 +203,9 @@ export const CalendarSection = () => {
         <div className="space-y-4">
           {isConnected ? (
             <div className="text-center py-8">
-              <div className="text-green-600 text-5xl mb-4">✅</div>
+              <div className="text-green-600 text-5xl mb-4 justify-items-center">
+                <CircleCheck size={48} />
+              </div>
               <h3 className="text-lg font-medium text-green-800 mb-2">
                 Calendário Conectado!
               </h3>
