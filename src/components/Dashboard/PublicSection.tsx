@@ -112,8 +112,8 @@ export const PublicLinkSection = () => {
                 </Button>
               </div>
               <p className="text-sm text-green-600 mt-2">
-                Este é seu link único e fixo. Compartilhe com seus alunos para
-                que eles possam agendar aulas diretamente.
+                Compartilhe com seus alunos para que eles possam agendar aulas
+                diretamente.
               </p>
             </div>
           )}

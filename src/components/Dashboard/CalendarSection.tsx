@@ -8,7 +8,7 @@ import { Card, CardContent } from "../ui/card";
 import { Button } from "../ui/button";
 import { useTeacherData, weekDays } from "@/hooks/useTeacherData";
 import toast from "react-hot-toast";
-import { CircleCheck } from "lucide-react";
+import { Calendar, CircleCheck } from "lucide-react";
 
 export const CalendarSection = () => {
   const { data: session } = useSession();
@@ -219,7 +219,9 @@ export const CalendarSection = () => {
             </div>
           ) : (
             <div className="text-center py-8">
-              <div className="text-gray-400 text-5xl mb-4">📅</div>
+              <div className="flex justify-center mb-4">
+                <Calendar className="text-gray-400 w-12 h-12" />
+              </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">
                 Conectar Google Calendar
               </h3>

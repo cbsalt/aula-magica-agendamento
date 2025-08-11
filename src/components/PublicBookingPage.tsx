@@ -1,45 +1,24 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Calendar } from "@/components/ui/calendar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Calendar as CalendarIcon,
-  Clock,
-  User,
-  DollarSign,
-} from "lucide-react";
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { api, fetchTeacherAvailability } from "@/services/teacherService";
-import CardPaymentForm from "@/components/PaymentForms/CardPaymentForm";
-import PaypalPaymentForm from "@/components/PaymentForms/PaypalPaymentForm";
+import { fetchTeacherAvailability } from "@/services/teacherService";
+import { motion } from "framer-motion";
+
 import LanguageSelector from "@/components/LanguageSelector";
 import { useTranslation } from "react-i18next";
-import { FormProvider, useForm } from "react-hook-form";
-import { CardFormData, cardSchema } from "@/lib/validation";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { createBooking } from "@/services/paymentService";
-
-interface Teacher {
-  id: string;
-  name: string;
-  email: string;
-  photo?: string;
-  description?: string;
-  price: number;
-  currency: string;
-  paymentConfig?: {
-    defaultMethod: string;
-  };
-}
+import DateSelectionStep from "./Steps/date-selection";
+import { TimeSelectionStep } from "./Steps/time-selection";
+import { StudentInfoFormData, StudentInfoStep } from "./Steps/student-info";
+import PaymentStep from "./Steps/payment";
+import { ITeacher } from "./interfaces";
 
 interface Props {
-  teacher: Teacher;
+  teacher: ITeacher;
 }
 
 export default function PublicBookingPage({ teacher }: Props) {
@@ -47,15 +26,18 @@ export default function PublicBookingPage({ teacher }: Props) {
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [teacherAvailability, setTeacherAvailability] = useState<any>([]);
   const [selectedTime, setSelectedTime] = useState<string>("");
-  const [studentData, setStudentData] = useState({
-    name: "",
-    email: "",
-  });
+  const [studentData, setStudentData] = useState<{
+    name?: string;
+    email?: string;
+  }>({});
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<"date" | "time" | "info" | "payment">(
     "date"
   );
   const [error, setError] = useState<string | null>(null);
+  const [loadingAvailability, setLoadingAvailability] = useState(false);
+  const steps = ["date", "time", "info", "payment"];
+  const currentStepIndex = steps.indexOf(step);
 
   const [studentPaymentMethod, setStudentPaymentMethod] = useState<
     "creditCard" | "paypal"
@@ -63,6 +45,8 @@ export default function PublicBookingPage({ teacher }: Props) {
 
   const fetchAvailability = useCallback(
     async (selectedDate: Date) => {
+      setLoadingAvailability(true);
+
       try {
         const formattedDate = format(selectedDate, "yyyy-MM-dd");
 
@@ -81,9 +65,11 @@ export default function PublicBookingPage({ teacher }: Props) {
         setTeacherAvailability(filteredAvailability);
       } catch (error) {
         console.error("Erro ao buscar disponibilidade:", error);
+      } finally {
+        setLoadingAvailability(false);
       }
     },
-    [teacher.id]
+    [teacher.id, setLoadingAvailability]
   );
 
   useEffect(() => {
@@ -98,13 +84,12 @@ export default function PublicBookingPage({ teacher }: Props) {
     setStep("time");
   };
 
-  const handleInfoSubmit = () => {
-    if (studentData.name && studentData.email) {
-      setStep("payment");
-    }
+  const onSubmit = (data: StudentInfoFormData) => {
+    setStudentData(data);
+    setStep("payment");
   };
 
-  const handleBooking = async (formData: any) => {
+  const handleBooking = async () => {
     setLoading(true);
     setError(null);
 
@@ -116,27 +101,21 @@ export default function PublicBookingPage({ teacher }: Props) {
         date: format(selectedDate, "yyyy-MM-dd"),
         time: selectedTime,
         studentPaymentMethod,
-        paymentData: formData,
       };
 
       const result = await createBooking(payload);
 
       if (result.paymentUrl) {
-        window.open(result.paymentUrl, "_blank");
+        window.location.href = result.paymentUrl; // redireciona para o Stripe Checkout
       } else {
-        setError("Erro inesperado ao processar pagamento.");
+        setError("Erro inesperado ao redirecionar para o pagamento.");
       }
     } catch (error: any) {
-      setError(error?.response?.data?.error || "Erro ao criar agendamento");
+      setError(error?.response?.data?.error || "Erro ao criar pagamento");
     } finally {
       setLoading(false);
     }
   };
-
-  const methods = useForm<CardFormData>({
-    resolver: zodResolver(cardSchema),
-    mode: "onChange",
-  });
 
   const handleScheduledSlot = (slot: any) => {
     const formmatedSlot = `${format(slot.start, "HH:mm")} - ${format(
@@ -156,285 +135,118 @@ export default function PublicBookingPage({ teacher }: Props) {
           <LanguageSelector />
         </div>
         {/* Teacher Info */}
-        <Card className="mb-8">
+        <Card className="mb-8 shadow-lg border border-gray-200">
           <CardHeader>
-            <div className="flex items-center space-x-4">
-              <Avatar className="h-16 w-16">
-                <AvatarImage src={teacher.photo} />
+            <div className="flex items-center gap-5">
+              <Avatar className="h-16 w-16 ring-2 ring-primary ring-offset-2">
+                <AvatarImage src={teacher.photo} alt={teacher.name} />
                 <AvatarFallback>{teacher.name.charAt(0)}</AvatarFallback>
               </Avatar>
-              <div>
-                <CardTitle className="text-2xl">{teacher.name}</CardTitle>
-                <p className="text-gray-600">{teacher.description}</p>
-                <div className="flex items-center mt-2 text-green-600 font-semibold">
-                  <DollarSign className="h-4 w-4 mr-1" />
+
+              <div className="flex flex-col justify-center">
+                <CardTitle className="text-xl font-semibold text-gray-800">
+                  {teacher.name}
+                </CardTitle>
+
+                <p className="text-sm text-gray-600 line-clamp-2 max-w-md">
+                  {teacher.description}
+                </p>
+
+                <div className="mt-2 inline-flex items-center text-sm font-medium text-green-600">
+                  <div className="text-gray-600 mr-1">
+                    {t(`publicBooking.price`)}:
+                  </div>
                   {teacher.price.toFixed(2)} {teacher.currency}
                 </div>
               </div>
             </div>
           </CardHeader>
         </Card>
+
+        {/* Progress Bar */}
+        <div className="w-full mb-8">
+          <div className="flex items-center justify-between text-sm font-medium text-gray-600 mb-2">
+            {steps.map((s, index) => (
+              <div
+                key={s}
+                className={`flex-1 text-center ${
+                  index === currentStepIndex ? "text-primary font-semibold" : ""
+                }`}
+              >
+                {t(`publicBooking.stepLabels.${s}`)}
+              </div>
+            ))}
+          </div>
+          <div className="relative h-2 bg-gray-200 rounded-full overflow-hidden">
+            <motion.div
+              className="absolute top-0 left-0 h-full bg-gradient-to-r from-primary to-green-400 rounded-full"
+              initial={{ width: 0 }}
+              animate={{
+                width: `${((currentStepIndex + 1) / steps.length) * 100}%`,
+              }}
+              transition={{ duration: 0.6, ease: "easeInOut" }}
+            />
+          </div>
+        </div>
+
         {/* Booking Steps */}
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="flex flex-col md:flex-row md:flex-wrap gap-6 justify-center">
           {/* Step 1: Date Selection */}
           {step === "date" && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <CalendarIcon className="mr-2 h-5 w-5" />
-                  {t("publicBooking.chooseDate")}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={handleDateSelect}
-                  disabled={(date) => date < new Date()}
-                  className="rounded-md border"
-                />
-              </CardContent>
-            </Card>
+            <DateSelectionStep
+              selectedDate={selectedDate}
+              onSelect={handleDateSelect}
+            />
           )}
+
           {/* Step 2: Time Selection */}
           {step === "time" && selectedDate && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Clock className="mr-2 h-5 w-5" />
-                  {t("publicBooking.chooseDate")} -{" "}
-                  {format(selectedDate, "dd/MM/yyyy", { locale: ptBR })}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {loading ? (
-                  <p className="text-sm text-gray-500">{t("loading")}...</p>
-                ) : error ? (
-                  <p className="text-sm text-red-500">{t("error")}</p>
-                ) : (
-                  <>
-                    {teacherAvailability.length === 0 ? (
-                      <p className="text-sm text-gray-500">
-                        {t("publicBooking.noAvailableTimes")}
-                      </p>
-                    ) : (
-                      <div className="space-y-4">
-                        {teacherAvailability.map((day, index) => (
-                          <div key={index}>
-                            <h4 className="font-semibold text-gray-700 mb-2">
-                              {day.label}
-                            </h4>
-                            <div className="flex flex-wrap gap-2">
-                              {day.slots.map((slot, i) => (
-                                <button
-                                  key={i}
-                                  onClick={() => handleScheduledSlot(slot)}
-                                  className="px-3 py-1 border border-primary text-primary rounded hover:bg-primary hover:text-white transition text-sm"
-                                >
-                                  {new Date(slot.start).toLocaleTimeString(
-                                    "pt-BR",
-                                    {
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                    }
-                                  )}{" "}
-                                  -{" "}
-                                  {new Date(slot.end).toLocaleTimeString(
-                                    "pt-BR",
-                                    {
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                    }
-                                  )}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </>
-                )}
-              </CardContent>
-            </Card>
+            <TimeSelectionStep
+              selectedDate={selectedDate}
+              onChangeDate={(newDate) => {
+                setSelectedDate(newDate);
+                setSelectedTime("");
+              }}
+              error={error}
+              teacherAvailability={teacherAvailability}
+              selectedTime={selectedTime}
+              handleSlot={handleScheduledSlot}
+              loadingAvailability={loadingAvailability}
+            />
           )}
 
           {/* Step 3: Student Info */}
-          {step === "info" && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <User className="mr-2 h-5 w-5" />
-                  {t("publicBooking.yourData")}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="name">{t("booking.name")}</Label>
-                  <Input
-                    id="name"
-                    value={studentData.name}
-                    onChange={(e) =>
-                      setStudentData((prev) => ({
-                        ...prev,
-                        name: e.target.value,
-                      }))
-                    }
-                    placeholder={t("booking.namePlaceholder")}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="email">{t("booking.email")}</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={studentData.email}
-                    onChange={(e) =>
-                      setStudentData((prev) => ({
-                        ...prev,
-                        email: e.target.value,
-                      }))
-                    }
-                    placeholder={t("booking.emailPlaceholder")}
-                  />
-                </div>
-                <Button onClick={handleInfoSubmit} className="w-full">
-                  {t("publicBooking.continueToPayment")}
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-          {/* Step 4: Payment Method & Form */}
+          {step === "info" && <StudentInfoStep onSubmit={onSubmit} />}
+
+          {/* Step 4: Payment */}
           {step === "payment" && (
-            <FormProvider {...methods}>
-              <form onSubmit={methods.handleSubmit(handleBooking)}>
-                <Card>
-                  <CardHeader>
-                    <CardTitle>{t("publicBooking.choosePayment")}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                      <h3 className="font-semibold mb-2">
-                        {t("publicBooking.paymentDetails")}
-                      </h3>
-                      <p>
-                        <strong>{t("publicBooking.teacher")}</strong>{" "}
-                        {teacher.name}
-                      </p>
-                      <p>
-                        <strong>{t("publicBooking.date")}</strong>{" "}
-                        {selectedDate &&
-                          format(selectedDate, "dd/MM/yyyy", { locale: ptBR })}
-                      </p>
-                      <p>
-                        <strong>{t("publicBooking.time")}</strong>{" "}
-                        {selectedTime}
-                      </p>
-                      <p>
-                        <strong>{t("publicBooking.student")}</strong>{" "}
-                        {studentData.name}
-                      </p>
-                      <p>
-                        <strong>{t("publicBooking.email")}</strong>{" "}
-                        {studentData.email}
-                      </p>
-                      <p>
-                        <strong>{t("publicBooking.value")}</strong>{" "}
-                        {teacher.price.toFixed(2)} {teacher.currency}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-3">
-                        {t("publicBooking.choosePayment")}
-                      </label>
-                      <div className="space-y-3">
-                        <label className="flex items-center cursor-pointer">
-                          <input
-                            type="radio"
-                            name="paymentMethod"
-                            value="creditCard"
-                            checked={studentPaymentMethod === "creditCard"}
-                            onChange={(e) => {
-                              setStudentPaymentMethod(
-                                e.target.value as "creditCard" | "paypal"
-                              );
-                            }}
-                            className="mr-3"
-                          />
-                          <div>
-                            <div className="font-medium">
-                              {t("publicBooking.creditCard")}
-                            </div>
-                            <div className="text-sm text-gray-600">
-                              {t("publicBooking.creditCardDesc")}
-                            </div>
-                          </div>
-                        </label>
-                        <label className="flex items-center cursor-pointer">
-                          <input
-                            type="radio"
-                            name="paymentMethod"
-                            value="paypal"
-                            checked={studentPaymentMethod === "paypal"}
-                            onChange={(e) => {
-                              setStudentPaymentMethod(
-                                e.target.value as "creditCard" | "paypal"
-                              );
-                            }}
-                            className="mr-3"
-                          />
-                          <div>
-                            <div className="font-medium">
-                              {t("publicBooking.paypal")}
-                            </div>
-                            <div className="text-sm text-gray-600">
-                              {t("publicBooking.paypalDesc")}
-                            </div>
-                          </div>
-                        </label>
-                      </div>
-                    </div>
-                    {/* Formulário Condicional */}
-                    {studentPaymentMethod === "creditCard" ? (
-                      <CardPaymentForm />
-                    ) : (
-                      <PaypalPaymentForm />
-                    )}
-                    <Button
-                      type="submit"
-                      disabled={
-                        loading ||
-                        methods.formState.isSubmitting ||
-                        !methods.formState.isValid
-                      }
-                      className="w-full"
-                    >
-                      {loading
-                        ? t("payment.processing")
-                        : `${t("payment.pay")} ${teacher.price.toFixed(2)} ${
-                            teacher.currency
-                          }`}
-                    </Button>
-                  </CardContent>
-                </Card>
-              </form>
-            </FormProvider>
+            <PaymentStep
+              teacher={teacher}
+              selectedDate={selectedDate}
+              selectedTime={selectedTime}
+              studentData={studentData}
+              studentPaymentMethod={studentPaymentMethod}
+              setStudentPaymentMethod={setStudentPaymentMethod}
+              handleBooking={handleBooking}
+              loading={loading}
+            />
           )}
-          {/* Navigation */}
-          <div className="space-y-4">
-            {step !== "date" && (
-              <Button
-                variant="outline"
-                onClick={() =>
-                  setStep(
-                    step === "time" ? "date" : step === "info" ? "time" : "info"
-                  )
-                }
-              >
-                Voltar
-              </Button>
-            )}
-          </div>
+        </div>
+        {/* Navigation */}
+        <div className="space-y-4 mt-2">
+          {step !== "date" && (
+            <Button
+              variant="outline"
+              onClick={() =>
+                setStep(
+                  step === "time" ? "date" : step === "info" ? "time" : "info"
+                )
+              }
+              className="w-full md:w-auto"
+            >
+              {t("publicBooking.back")}
+            </Button>
+          )}
         </div>
       </div>
     </div>
