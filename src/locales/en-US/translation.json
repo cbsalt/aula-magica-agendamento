@@ -1,26 +1,4 @@
 {
-  "booking": {
-    "title": "Book a Lesson",
-    "description": "Fill in the details below to book your lesson",
-    "email": "Email",
-    "emailPlaceholder": "your.email@example.com",
-    "name": "Name (optional)",
-    "namePlaceholder": "Your full name",
-    "date": "Date",
-    "datePlaceholder": "Select a date",
-    "time": "Time",
-    "timePlaceholder": "Select a time",
-    "availableTimes": "Available times",
-    "loadingTimes": "Loading times...",
-    "selectTime": "Select a time",
-    "noTimesAvailable": "No times available",
-    "price": "Lesson price",
-    "continueToPayment": "Continue to payment",
-    "requiredFields": "Required fields",
-    "fillAllFields": "Please fill in all required fields",
-    "selectDateTime": "Select Date and Time",
-    "studentInfo": "Student Information"
-  },
   "payment": {
     "title": "Payment",
     "summary": "Booking summary",
@@ -49,6 +27,19 @@
       "card": "Credit card",
       "cardDescription": "Pay securely with your credit card.",
       "paypalDescription": "You will be redirected to PayPal to complete the payment."
+    },
+    "success": {
+      "payment.confirmed": "Payment confirmed!",
+      "payment.thanks": "Thank you",
+      "student": "Student",
+      "date": "Date",
+      "time": "Time",
+      "email.sent": "You will receive a lesson link via email.",
+      "email.info": "If you don't receive it shortly, check your spam folder."
+    },
+    "cancel": {
+      "payment": "Payment Cancelled",
+      "disclaimer": "Your payment was cancelled. If you need to reschedule, please contact the teacher to get the updated class link."
     }
   },
   "teacher": {
@@ -96,6 +87,7 @@
     "processedAt": "Processed at:"
   },
   "publicBooking": {
+    "price": "Lesson price",
     "chooseDate": "Choose Date",
     "chooseTime": "Choose Time",
     "yourData": "Your Information",
@@ -105,14 +97,40 @@
     "date": "Date:",
     "time": "Time:",
     "student": "Student:",
-    "email": "Email:",
+    "email": "Email",
+    "emailPlaceholder": "your.email@example.com",
+    "name": "Name",
+    "namePlaceholder": "Your full name",
     "value": "Amount:",
     "choosePayment": "Choose how you want to pay:",
     "creditCard": "Credit Card",
     "creditCardDesc": "Pay securely with your card",
     "paypal": "PayPal",
     "paypalDesc": "Pay with your PayPal account",
-    "noAvailableTimes": "No available times"
+    "noAvailableTimes": "No available times",
+    "back": "Back",
+    "errors": {
+      "name": "Name is required",
+      "email": {
+        "isRequired": "Email is required",
+        "validEmail": "Email is invalid"
+      }
+    },
+    "weekDays": {
+      "Domingo": "Sunday",
+      "Segunda-feira": "Monday",
+      "Terça-feira": "Tuesday",
+      "Quarta-feira": "Wednesday",
+      "Quinta-feira": "Thursday",
+      "Sexta-feira": "Friday",
+      "Sábado": "Saturday"
+    },
+    "stepLabels": {
+      "date": "Date",
+      "time": "Time",
+      "info": "Your Data",
+      "payment": "Payment"
+    }
   },
   "loading": "Loading...",
   "language": {

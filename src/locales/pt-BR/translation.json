@@ -1,26 +1,4 @@
 {
-  "booking": {
-    "title": "Agendar Aula",
-    "description": "Preencha os dados abaixo para agendar sua aula",
-    "email": "E-mail",
-    "emailPlaceholder": "seu.email@exemplo.com",
-    "name": "Nome (opcional)",
-    "namePlaceholder": "Seu nome completo",
-    "date": "Data",
-    "datePlaceholder": "Selecione uma data",
-    "time": "Horário",
-    "timePlaceholder": "Selecione um horário",
-    "availableTimes": "Horários disponíveis",
-    "loadingTimes": "Carregando horários...",
-    "selectTime": "Selecione um horário",
-    "noTimesAvailable": "Nenhum horário disponível",
-    "price": "Valor da aula",
-    "continueToPayment": "Continuar para pagamento",
-    "requiredFields": "Campos obrigatórios",
-    "fillAllFields": "Preencha todos os campos obrigatórios",
-    "selectDateTime": "Selecionar Data e Hora",
-    "studentInfo": "Dados do Aluno"
-  },
   "payment": {
     "title": "Pagamento",
     "summary": "Resumo do agendamento",
@@ -49,6 +27,19 @@
       "card": "Cartão de crédito",
       "cardDescription": "Pague com seu cartão de crédito de forma segura.",
       "paypalDescription": "Você será redirecionado para o PayPal para concluir o pagamento."
+    },
+    "success": {
+      "payment.confirmed": "Pagamento confirmado!",
+      "payment.thanks": "Obrigado",
+      "student": "Aluno",
+      "date": "Data",
+      "time": "Hora",
+      "email.sent": "Você receberá um link da aula por e-mail.",
+      "email.info": "Caso não receba em alguns minutos, verifique sua caixa de spam."
+    },
+    "cancel": {
+      "payment": "Pagamento Cancelado",
+      "disclaimer": "Seu pagamento foi cancelado. Se precisar reagendar, entre em contato com o professor para obter o link atualizado da aula."
     }
   },
   "teacher": {
@@ -88,7 +79,7 @@
     "smartBooking": "Agendamento Inteligente",
     "smartBookingDesc": "Conecte seu Google Calendar e deixe os alunos verem apenas seus horários livres.",
     "autoPayments": "Pagamentos Automáticos",
-    "autoPaymentsDesc": "Receba pagamentos via Stripe, PayPal ou Payoneer de forma segura e automática.",
+    "autoPaymentsDesc": "Receba pagamentos via Stripe ou PayPal de forma segura e automática.",
     "onlineLessons": "Aulas Online",
     "onlineLessonsDesc": "Integração com Zoom para criar links de reunião automaticamente."
   },
@@ -109,6 +100,7 @@
     "processedAt": "Processado em:"
   },
   "publicBooking": {
+    "price": "Valor da aula",
     "chooseDate": "Escolha a Data",
     "chooseTime": "Escolha o Horário",
     "yourData": "Seus Dados",
@@ -118,14 +110,40 @@
     "date": "Data:",
     "time": "Horário:",
     "student": "Aluno:",
-    "email": "E-mail:",
+    "email": "E-mail",
+    "emailPlaceholder": "seu.email@exemplo.com",
+    "name": "Nome",
+    "namePlaceholder": "Seu nome completo",
     "value": "Valor:",
     "choosePayment": "Escolha como deseja pagar:",
     "creditCard": "Cartão de Crédito",
     "creditCardDesc": "Pague com cartão de forma segura",
     "paypal": "PayPal",
     "paypalDesc": "Pague com sua conta PayPal",
-    "noAvailableTimes": "Nenhum horário disponível"
+    "noAvailableTimes": "Nenhum horário disponível",
+    "back": "Voltar",
+    "errors": {
+      "name": "Nome é obrigatório",
+      "email": {
+        "isRequired": "E-mail é obrigatório",
+        "validEmail": "E-mail inválido"
+      }
+    },
+    "weekDays": {
+      "Domingo": "Domingo",
+      "Segunda-feira": "Segunda-feira",
+      "Terça-feira": "Terça-feira",
+      "Quarta-feira": "Quarta-feira",
+      "Quinta-feira": "Quinta-feira",
+      "Sexta-feira": "Sexta-feira",
+      "Sábado": "Sábado"
+    },
+    "stepLabels": {
+      "date": "Data",
+      "time": "Horário",
+      "info": "Seus Dados",
+      "payment": "Pagamento"
+    }
   },
   "language": {
     "pt-BR": "Português (BR)",
