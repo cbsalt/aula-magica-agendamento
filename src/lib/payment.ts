@@ -1,3 +1,4 @@
+import { NextRequest } from "next/server";
 import Stripe from "stripe";
 
 // Initialize Stripe
@@ -27,6 +28,7 @@ export class PaymentService {
       date: string;
       time: string;
     };
+    request: NextRequest; // Pass the request for success_url
   }) {
     try {
       // A plataforma processa o pagamento do aluno
@@ -121,17 +123,17 @@ export class PaymentService {
       line_items: [
         {
           price_data: {
+            product: process.env.STRIPE_PRODUCT_ID,
             currency: data.currency.toLowerCase(),
-            product_data: {
-              name: "Aula Particular",
-            },
-            unit_amount: data.amount * 100, // Convert to cents
+            unit_amount: Math.round(data.amount * 100), // Convert to cents
           },
           quantity: 1,
         },
       ],
       mode: "payment",
-      success_url: `${process.env.NEXTAUTH_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${data.request.headers.get(
+        "origin"
+      )}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXTAUTH_URL}/cancel`,
       customer_email: data.studentEmail,
       metadata: {

@@ -46,24 +46,10 @@ export async function POST(request: NextRequest) {
         date: bookingData.date,
         time: startTime,
       },
-    });
-
-    const booking = await prisma.booking.create({
-      data: {
-        teacherId: teacher.id,
-        studentName: bookingData.studentName,
-        studentEmail: bookingData.studentEmail,
-        date: new Date(bookingData.date),
-        time: startTime,
-        status: "pending",
-        paymentId: paymentSession.id,
-        amount: teacher.price,
-        currency: teacher.currency,
-      },
+      request: request, // Pass the request
     });
 
     return NextResponse.json({
-      bookingId: booking.id,
       paymentUrl: paymentSession.url,
     });
   } catch (error) {

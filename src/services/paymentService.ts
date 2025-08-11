@@ -7,7 +7,6 @@ interface BookingPayload {
   date: string;
   time: string;
   studentPaymentMethod: string;
-  paymentData: any;
 }
 
 export async function createBooking(payload: BookingPayload) {

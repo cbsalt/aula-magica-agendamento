@@ -8,47 +8,6 @@ export class ZoomService {
     this.accessToken = accessToken;
   }
 
-  async createMeeting(meetingData: {
-    topic: string;
-    start_time: string;
-    duration: number;
-    agenda?: string;
-  }) {
-    try {
-      const response = await axios.post(
-        "https://api.zoom.us/v2/users/me/meetings",
-        {
-          topic: meetingData.topic,
-          type: 2, // Scheduled meeting
-          start_time: meetingData.start_time,
-          duration: meetingData.duration,
-          agenda: meetingData.agenda,
-          settings: {
-            host_video: true,
-            participant_video: true,
-            join_before_host: false,
-            mute_upon_entry: true,
-            watermark: false,
-            use_pmi: false,
-            approval_type: 0,
-            audio: "both",
-            auto_recording: "none",
-          },
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${this.accessToken}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      return response.data;
-    } catch (error) {
-      console.error("Error creating Zoom meeting:", error);
-      throw error;
-    }
-  }
-
   static async updateZoomConnection(
     email: string,
     tokenData: {
@@ -83,5 +42,91 @@ export class ZoomService {
         zoomConnected: isValid,
       },
     });
+  }
+
+  static async refreshZoomAccessToken(refreshToken: string) {
+    const basicAuth = Buffer.from(
+      `${process.env.ZOOM_CLIENT_ID}:${process.env.ZOOM_CLIENT_SECRET}`
+    ).toString("base64");
+
+    const params = new URLSearchParams({
+      grant_type: "refresh_token",
+      refresh_token: refreshToken,
+    });
+
+    const response = await axios.post(
+      "https://zoom.us/oauth/token",
+      params.toString(),
+      {
+        headers: {
+          Authorization: `Basic ${basicAuth}`,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      }
+    );
+
+    return {
+      accessToken: response.data.access_token,
+      refreshToken: response.data.refresh_token,
+      expiresIn: response.data.expires_in,
+    };
+  }
+}
+
+export async function createZoomMeeting(
+  accessToken: string,
+  topic: string,
+  start: Date,
+  end: Date
+) {
+  const durationMinutes = Math.ceil(
+    (end.getTime() - start.getTime()) / (1000 * 60)
+  );
+
+  const response = await axios.post(
+    "https://api.zoom.us/v2/users/me/meetings",
+    {
+      topic,
+      type: 2, // reunião agendada
+      start_time: start.toISOString(),
+      duration: durationMinutes,
+      timezone: "America/Sao_Paulo",
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  return response.data?.join_url || null;
+}
+
+export async function createZoomMeetingWithRetry(
+  teacher: { zoomAccessToken: string; zoomRefreshToken: string; email: string },
+  topic: string,
+  start: Date,
+  end: Date
+) {
+  try {
+    return await createZoomMeeting(teacher.zoomAccessToken, topic, start, end);
+  } catch (error: any) {
+    if (error.response?.status === 401) {
+      const tokens = await ZoomService.refreshZoomAccessToken(
+        teacher.zoomRefreshToken
+      );
+
+      await prisma.teacher.update({
+        where: { email: teacher.email },
+        data: {
+          zoomAccessToken: tokens.accessToken,
+          zoomRefreshToken: tokens.refreshToken,
+        },
+      });
+
+      return await createZoomMeeting(tokens.accessToken, topic, start, end);
+    }
+    throw error;
   }
 }
