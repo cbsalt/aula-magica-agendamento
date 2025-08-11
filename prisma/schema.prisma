@@ -85,6 +85,7 @@ model Teacher {
 
   // Public Link - Using teacher ID directly
   hasPublicLink Boolean @default(false) @map("has_public_link")
+  publicLinkId  String? @unique @map("public_link_id")
 
   // Relationships
   bookings             Booking[]
