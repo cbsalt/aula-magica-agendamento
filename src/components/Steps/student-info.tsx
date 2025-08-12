@@ -1,12 +1,12 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { useForm } from "react-hook-form";
+import z from "zod";
 import { t } from "i18next";
 import { User } from "lucide-react";
 
-import { useForm } from "react-hook-form";
-import z from "zod";
-import { Button } from "../ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 
 interface StudentInfoStepProps {
   onSubmit: (data: StudentInfoFormData) => void;

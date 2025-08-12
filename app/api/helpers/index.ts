@@ -62,7 +62,6 @@ export function initializeSlots(workSchedules, zonedToday) {
   return allSlots;
 }
 
-// Remove slots que colidem com qualquer evento do Google Calendar
 export function isSlotFree(events, slot) {
   return !events.some((event) => {
     const eventStart = new Date(event.start.dateTime || event.start.date);

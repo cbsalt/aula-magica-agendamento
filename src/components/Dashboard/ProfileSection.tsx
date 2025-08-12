@@ -1,127 +1,109 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect } from "react";
 import { useSession } from "next-auth/react";
+import { FormProvider, useForm } from "react-hook-form";
+
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
+import { InputText } from "../Form/InputText";
+import { Textarea } from "../Form/Textarea";
+import { Dropdown } from "../Form/Dropdown";
 
 export const ProfileSection = () => {
   const { data: session } = useSession();
-  const [formData, setFormData] = useState({
-    name: session?.user?.name || "",
-    email: session?.user?.email || "",
-    bio: "",
-    price: "",
-    currency: "BRL",
+  const methods = useForm({
+    defaultValues: {
+      name: "",
+      email: "",
+      bio: "",
+      price: "",
+      currency: "BRL",
+    },
   });
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
-  };
+  useEffect(() => {
+    if (session?.user) {
+      methods.reset({
+        name: session.user.name,
+        email: session.user.email,
+      });
+    }
+  }, [session, methods]);
 
-  const handleSave = () => {
-    // Save profile data
+  const handleSave = (formData) => {
     console.log("Saving profile:", formData);
   };
+
+  const loadingProfile = session?.user?.name;
 
   return (
     <Card>
       <CardContent className="p-6">
         <h2 className="text-xl font-semibold mb-6">Dados do Perfil</h2>
         <div className="space-y-6">
-          <div className="flex items-center space-x-4">
-            {session?.user?.image && (
-              <img
-                src={session.user.image}
-                alt={session.user.name || ""}
-                className="w-20 h-20 rounded-full"
-              />
-            )}
-            <div>
-              <h3 className="text-lg font-medium">{session?.user?.name}</h3>
-              <p className="text-gray-600">{session?.user?.email}</p>
+          <FormProvider {...methods}>
+            <div className="flex items-center space-x-4 bg-gray-100 px-3 py-2 rounded-lg">
+              {loadingProfile ? (
+                <div className="px-3 py-2 rounded-lg w-full flex flex-row align-items-center justify-content-center gap-4">
+                  <img
+                    src={session.user.image}
+                    alt={session.user.name || ""}
+                    className="w-14 h-14 rounded-full"
+                  />
+                  <div>
+                    <h3 className="text-lg font-medium">
+                      {session.user.name}
+                    </h3>
+                    <p className="text-gray-600">{session.user.email}</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="px-3 py-2 rounded-lg w-full flex flex-row align-items-center justify-content-center gap-4">
+                  <div className="h-14 w-14 bg-gray-200 rounded-full animate-pulse" />
+                  <div className="flex flex-col gap-[0.5] w-full justify-center">
+                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2 animate-pulse" />
+                    <div className="h-4 bg-gray-200 rounded w-1/2 animate-pulse" />
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Nome
-              </label>
-              <input
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                E-mail
-              </label>
-              <input
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                disabled
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-              />
-            </div>
-          </div>
+            <form onSubmit={methods.handleSubmit(handleSave)}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+                <InputText name="name" label="Nome" />
+                <InputText name="email" label="E-mail" />
+              </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2 text-left">
-              Biografia
-            </label>
-            <textarea
-              name="bio"
-              value={formData.bio}
-              onChange={handleInputChange}
-              rows={4}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Conte um pouco sobre você e sua experiência..."
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4 text-left">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Preço por aula
-              </label>
-              <input
-                name="price"
-                type="number"
-                value={formData.price}
-                onChange={handleInputChange}
-                placeholder="0.00"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              <Textarea
+                name="bio"
+                label="Biografia"
+                placeholder="Conte um pouco sobre você e sua experiência..."
               />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2 text-left">
-                Moeda
-              </label>
-              <select
-                name="currency"
-                value={formData.currency}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, currency: e.target.value }))
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="BRL">BRL - Real</option>
-                <option value="USD">USD - Dólar</option>
-                <option value="EUR">EUR - Euro</option>
-              </select>
-            </div>
-          </div>
+              <div className="grid grid-cols-2 gap-4 text-left">
+                <InputText
+                  type="number"
+                  name="price"
+                  label="Preço por aula"
+                  placeholder="0.00"
+                />
 
-          <Button onClick={handleSave}>Salvar Alterações</Button>
+                <Dropdown
+                  name="currency"
+                  label="Moeda"
+                  options={[
+                    { value: "BRL", text: "BRL - Real" },
+                    { value: "USD", text: "USD - Dólar" },
+                    { value: "EUR", text: "EUR - Euro" },
+                  ]}
+                />
+              </div>
+
+              <Button type="submit" className="mt-4">
+                Salvar Alterações
+              </Button>
+            </form>
+          </FormProvider>
         </div>
       </CardContent>
     </Card>
