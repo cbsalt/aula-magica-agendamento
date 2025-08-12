@@ -5,6 +5,7 @@ import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import AnimatedCard from "./animated-card";
 import { t } from "i18next";
+import { TeacherAvailability } from "../Partials/TeacherAvailability";
 
 interface Props {
   selectedDate: Date;
@@ -87,47 +88,8 @@ export function TimeSelectionStep({
       <CalendarHeader title={t("publicBooking.chooseTime")} />
       <CardContent>
         <div className="space-y-8">
-          {teacherAvailability.map((day, index) => (
-            <div key={index} className="space-y-2">
-              <h4 className="text-sm font-semibold text-gray-800">
-                {t(`publicBooking.weekDays.${day.label}`)}
-              </h4>
-              <div className="flex flex-wrap gap-3">
-                {day.slots.map((slot, i) => {
-                  const start = new Date(slot.start).toLocaleTimeString(
-                    "pt-BR",
-                    {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    }
-                  );
-                  const end = new Date(slot.end).toLocaleTimeString("pt-BR", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  });
-
-                  const isSelected = selectedTime === start;
-
-                  return (
-                    <button
-                      key={i}
-                      onClick={() => handleSlot(slot)}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-md border text-sm font-medium transition-colors ${
-                        isSelected
-                          ? "bg-primary text-white border-primary"
-                          : "border-primary text-primary hover:bg-primary hover:text-white"
-                      }`}
-                      aria-pressed={isSelected}
-                    >
-                      <Clock className="h-4 w-4" />
-                      <span>{start}</span>
-                      <ArrowRight className="h-3 w-3" />
-                      <span>{end}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+          {teacherAvailability.map((day) => (
+            <TeacherAvailability key={day} day={day} selectedTime={selectedTime} handleSlot={handleSlot} />
           ))}
         </div>
       </CardContent>
