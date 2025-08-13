@@ -1,8 +1,21 @@
 import { addDays, addHours, format, startOfWeek } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
 
+const TIMEZONE = "America/Sao_Paulo";
+
 function capitalize(str: string) {
   return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+function filterSlotsWithMinAdvance(slots) {
+  const now = new Date();
+  const nowInZone = toZonedTime(now, TIMEZONE);
+  const minAdvanceDate = addHours(nowInZone, 12);
+
+  return slots.filter((slot) => {
+    const slotStart = toZonedTime(new Date(slot.start), TIMEZONE);
+    return slotStart >= minAdvanceDate;
+  });
 }
 
 export function generateSlots(start: string, end: string, dayDate: Date) {
@@ -43,19 +56,23 @@ export function generateSlots(start: string, end: string, dayDate: Date) {
   };
 }
 
-export function initializeSlots(workSchedules, zonedToday) {
+export function initializeSlots(workSchedules, zonedToday, totalWeeks = 0) {
   let allSlots = [];
 
-  for (const ws of workSchedules) {
-    const startOfCurrentWeek = startOfWeek(zonedToday, {
-      weekStartsOn: 0,
-    });
-    const dayDate = addDays(startOfCurrentWeek, ws.dayOfWeek);
-
-    if (ws.startTime && ws.endTime) {
-      allSlots = allSlots.concat(
-        generateSlots(ws.startTime, ws.endTime, dayDate)
+  for (let weekOffset = 0; weekOffset < totalWeeks; weekOffset++) {
+    for (const ws of workSchedules) {
+      const startOfTargetWeek = addDays(
+        startOfWeek(zonedToday, { weekStartsOn: 0 }),
+        weekOffset * 7
       );
+
+      const dayDate = addDays(startOfTargetWeek, ws.dayOfWeek);
+
+      if (ws.startTime && ws.endTime) {
+        allSlots = allSlots.concat(
+          generateSlots(ws.startTime, ws.endTime, dayDate)
+        );
+      }
     }
   }
 
@@ -73,15 +90,20 @@ export function isSlotFree(events, slot) {
 }
 
 export const freeSlots = (events, allSlots) =>
-  allSlots.map((day) => {
-    const availableSlots = day.slots.filter((slot) => isSlotFree(events, slot));
+  allSlots
+    .map((day) => {
+      const availableSlots = day.slots.filter((slot) =>
+        isSlotFree(events, slot)
+      );
+      const filteredSlots = filterSlotsWithMinAdvance(availableSlots);
 
-    if (availableSlots.length === 0) return null;
+      if (filteredSlots.length === 0) return null;
 
-    return {
-      ...day,
-      slots: availableSlots,
-      start: availableSlots[0].start,
-      end: availableSlots[availableSlots.length - 1].end,
-    };
-  });
+      return {
+        ...day,
+        slots: filteredSlots,
+        start: filteredSlots[0].start,
+        end: filteredSlots[filteredSlots.length - 1].end,
+      };
+    })
+    .filter(Boolean);

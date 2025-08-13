@@ -9,6 +9,7 @@ const AnimatedCard: React.FC<{ children: React.ReactNode }> = ({
     animate={{ opacity: 1, y: 0 }}
     exit={{ opacity: 0, y: -10 }}
     transition={{ duration: 0.4 }}
+    className="w-full"
   >
     <Card className="w-full shadow-sm border border-gray-200 hover:shadow-md transition-all rounded-xl bg-white">
       {children}

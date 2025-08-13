@@ -10,6 +10,8 @@ const availabilitySchema = z.object({
   date: z.string().optional(), // yyyy-MM-dd
 });
 
+const TOTAL_WEEKS = 16;
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -41,7 +43,7 @@ export async function POST(request: NextRequest) {
     const today = new Date();
     const zonedToday = toZonedTime(today, "America/Sao_Paulo");
 
-    const allSlots = initializeSlots(workSchedules, zonedToday);
+    const allSlots = initializeSlots(workSchedules, zonedToday, TOTAL_WEEKS);
 
     return NextResponse.json({
       availability: freeSlots(events, allSlots),
