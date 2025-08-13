@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     const today = new Date();
     const zonedToday = toZonedTime(today, "America/Sao_Paulo");
 
-    const allSlots = initializeSlots(workSchedules, zonedToday);
+    const allSlots = initializeSlots(workSchedules, zonedToday, 16);
 
     return NextResponse.json({
       availability: freeSlots(events, allSlots),
