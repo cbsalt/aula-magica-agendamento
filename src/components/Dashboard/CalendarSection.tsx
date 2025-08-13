@@ -12,6 +12,7 @@ import { Availability } from "../Partials/Availability";
 import { Card, CardContent } from "../ui/card";
 import { Button } from "../ui/button";
 import { Weekday } from "../Partials/Weekday";
+import { startOfDay } from "date-fns";
 
 export const CalendarSection = () => {
   const { data: session } = useSession();
@@ -27,6 +28,20 @@ export const CalendarSection = () => {
     setIsConnected,
     loading,
   } = useTeacherData(weekDays);
+
+  const filterCurrentWeek = (arr) => {
+    const today = startOfDay(new Date());
+    const dayOfWeek = today.getDay();
+    const daysUntilSaturday = 6 - dayOfWeek;
+    const saturday = new Date(today);
+    saturday.setDate(today.getDate() + daysUntilSaturday);
+    saturday.setHours(23, 59, 59, 999);
+
+    return arr.filter((item) => {
+      const itemDate = new Date(item.date);
+      return itemDate >= today && itemDate <= saturday;
+    });
+  };
 
   useEffect(() => {
     if (!isConnected || !session?.user?.teacherId) return;
@@ -44,7 +59,9 @@ export const CalendarSection = () => {
           signal
         );
 
-        setPreviewData(results);
+        const filteredResults = filterCurrentWeek(results.availability);
+
+        setPreviewData({ availability: filteredResults });
       } catch (err) {
         if (err.name === "CanceledError" || err.name === "AbortError") {
           console.log("Requisição cancelada");
@@ -84,11 +101,9 @@ export const CalendarSection = () => {
     try {
       await saveTeacherAvailability(toSave);
 
-      fetchTeacherAvailability(session.user.teacherId)
-        .then((results) => setPreviewData(results))
-        .catch(() => {
-          // pode ignorar erro do preview sem travar UX
-        });
+      const results = await fetchTeacherAvailability(session.user.teacherId);
+      const filteredResults = filterCurrentWeek(results.availability);
+      setPreviewData({ availability: filteredResults });
 
       toast.success("Horários salvos com sucesso!");
     } catch (err) {
