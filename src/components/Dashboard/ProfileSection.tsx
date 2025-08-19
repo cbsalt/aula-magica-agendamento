@@ -52,9 +52,7 @@ export const ProfileSection = () => {
                     className="w-14 h-14 rounded-full"
                   />
                   <div>
-                    <h3 className="text-lg font-medium">
-                      {session.user.name}
-                    </h3>
+                    <h3 className="text-lg font-medium">{session.user.name}</h3>
                     <p className="text-gray-600">{session.user.email}</p>
                   </div>
                 </div>
@@ -80,24 +78,6 @@ export const ProfileSection = () => {
                 label="Biografia"
                 placeholder="Conte um pouco sobre você e sua experiência..."
               />
-              <div className="grid grid-cols-2 gap-4 text-left">
-                <InputText
-                  type="number"
-                  name="price"
-                  label="Preço por aula"
-                  placeholder="0.00"
-                />
-
-                <Dropdown
-                  name="currency"
-                  label="Moeda"
-                  options={[
-                    { value: "BRL", text: "BRL - Real" },
-                    { value: "USD", text: "USD - Dólar" },
-                    { value: "EUR", text: "EUR - Euro" },
-                  ]}
-                />
-              </div>
 
               <Button type="submit" className="mt-4">
                 Salvar Alterações
