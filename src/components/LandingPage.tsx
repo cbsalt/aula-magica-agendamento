@@ -56,7 +56,7 @@ export default function LandingPage() {
               Pagamentos Automáticos
             </h3>
             <p className="text-gray-600 text-sm">
-              Receba pagamentos via Stripe, PayPal ou Payoneer de forma segura e
+              Receba pagamentos via Stripe ou PayPal de forma segura e
               automática.
             </p>
           </div>
