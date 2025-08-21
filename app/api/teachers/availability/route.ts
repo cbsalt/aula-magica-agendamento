@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { GoogleCalendarService } from "@/lib/google-calendar";
 import { z } from "zod";
-import { toZonedTime } from "date-fns-tz";
+import { NextRequest, NextResponse } from "next/server";
+
 import { freeSlots, initializeSlots } from "app/api/helpers";
+import { findTeacherById } from "@/modules/teacher";
+import { getCalendarEvents } from "@/modules/calendar";
 
 const availabilitySchema = z.object({
   teacherId: z.string(),
@@ -15,13 +15,12 @@ const TOTAL_WEEKS = 16;
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { teacherId, date } = availabilitySchema.parse(body);
+    const { teacherId } = availabilitySchema.parse(body);
 
-    // Busca dados do professor e horários configurados
-    const teacher = await prisma.teacher.findUnique({
-      where: { id: teacherId },
-      include: { teacherWorkSchedules: true },
+    const teacher = await findTeacherById(teacherId, {
+      teacherWorkSchedules: true,
     });
+
     if (!teacher?.googleAccessToken) {
       return NextResponse.json(
         { error: "Professor não conectou Google Calendar" },
@@ -29,21 +28,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Busca eventos do calendário principal do Google
-    const calendarService = new GoogleCalendarService(
-      teacher.googleAccessToken,
-      teacher.googleRefreshToken
-    );
-
-    const calendarId = teacher.email; // Calendário principal é o e-mail
-    const events = await calendarService.getEvents(calendarId);
+    const events = await getCalendarEvents(teacher);
 
     // Gera slots de acordo com a configuração semanal
     const workSchedules = teacher.teacherWorkSchedules || [];
-    const today = new Date();
-    const zonedToday = toZonedTime(today, "America/Sao_Paulo");
-
-    const allSlots = initializeSlots(workSchedules, zonedToday, TOTAL_WEEKS);
+    const allSlots = initializeSlots(workSchedules, TOTAL_WEEKS);
 
     return NextResponse.json({
       availability: freeSlots(events, allSlots),

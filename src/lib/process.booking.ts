@@ -1,8 +1,9 @@
 // src/lib/process.booking.ts
-import { prisma } from "@/lib/prisma";
 import { GoogleCalendarService } from "@/lib/google-calendar";
 import { sendConfirmationEmail } from "app/api/mail/send-confirmation-email";
 import { createZoomMeetingWithRetry } from "@/lib/zoom";
+import { findTeacherById } from "@/modules/teacher";
+import { updateBooking } from "@/modules/booking";
 
 export async function processBooking({
   booking,
@@ -24,9 +25,7 @@ export async function processBooking({
   amount: number;
   currency: string;
 }) {
-  const teacher = await prisma.teacher.findUnique({
-    where: { id: teacherId },
-  });
+  const teacher = await findTeacherById(teacherId);
 
   if (!teacher) return;
 
@@ -49,8 +48,8 @@ export async function processBooking({
   });
 
   if (!isAvailable) {
-    await prisma.booking.update({
-      where: { id: booking.id },
+    await updateBooking({
+      booking,
       data: {
         status: "unavailable",
         notes: "Horário indisponível",
@@ -84,8 +83,8 @@ export async function processBooking({
     meetingLink = calendarEvent.conferenceData?.entryPoints?.[0]?.uri || null;
   }
 
-  await prisma.booking.update({
-    where: { id: booking.id },
+  await updateBooking({
+    booking,
     data: {
       status: "confirmed",
       meetLink: meetingLink,

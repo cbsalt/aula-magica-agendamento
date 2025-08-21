@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { updateDataTeacher } from "@/modules/teacher";
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -9,12 +10,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
   }
   const { calendarId } = await req.json();
+
   if (!calendarId) {
-    return NextResponse.json({ error: "calendarId é obrigatório" }, { status: 400 });
+    return NextResponse.json(
+      { error: "calendarId é obrigatório" },
+      { status: 400 }
+    );
   }
-  await prisma.teacher.update({
-    where: { email: session.user.email },
-    data: { googleCalendarId: calendarId },
-  });
+
+  const data = { googleCalendarId: calendarId };
+  await updateDataTeacher(session.user.email, data);
+
   return NextResponse.json({ success: true });
-} 
+}

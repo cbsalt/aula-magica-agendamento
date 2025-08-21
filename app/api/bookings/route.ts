@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { PaymentService } from "@/lib/payment";
 import { z } from "zod";
+import { NextRequest, NextResponse } from "next/server";
+
+import { PaymentService } from "@/lib/payment";
 import { AppError } from "@/errors/AppError";
+import { findTeacherById } from "@/modules/teacher";
 
 const bookingSchema = z.object({
   teacherId: z.string(),
@@ -19,10 +20,8 @@ export async function POST(request: NextRequest) {
     const bookingData = bookingSchema.parse(body);
     const [startTime] = bookingData.time.split(" - ");
 
-    // Busca dados do professor
-    const teacher = await prisma.teacher.findUnique({
-      where: { id: bookingData.teacherId },
-      include: { paymentConfig: true },
+    const teacher = await findTeacherById(bookingData.teacherId, {
+      paymentConfig: true,
     });
 
     if (!teacher) {

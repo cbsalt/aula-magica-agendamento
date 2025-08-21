@@ -1,19 +1,13 @@
 import { notFound } from "next/navigation";
-import { prisma } from "@/lib/prisma";
 import PublicBookingPage from "@/components/PublicBookingPage";
+import { findTeacherByPublicLink } from "@/modules/teacher";
 
 export default async function AppointmentPage(props) {
   const params = await props.params;
   const { id } = params;
 
-  // Find teacher by ID
-  const teacher = await prisma.teacher.findUnique({
-    where: {
-      publicLinkId: id,
-    },
-    include: {
-      paymentConfig: true,
-    },
+  const teacher = await findTeacherByPublicLink(id, {
+    paymentConfig: true,
   });
 
   if (!teacher) {
