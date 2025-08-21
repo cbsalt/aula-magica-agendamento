@@ -1,5 +1,9 @@
-import { NextRequest } from "next/server";
+import axios from "axios";
+import { randomUUID } from "crypto";
+import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
+import { prisma } from "./prisma";
+import { AppError } from "@/errors/AppError";
 
 // Initialize Stripe
 export function getStripeInstance(): Stripe {
@@ -19,8 +23,8 @@ export class PaymentService {
     currency: string;
     teacherId: string;
     studentEmail: string;
-    studentPaymentMethod: "creditCard" | "paypal"; // Como o aluno quer pagar
-    paymentConfig: any;
+    studentPaymentMethod: "creditCard" | "paypal";
+    paymentConfig;
     metadata: {
       teacherId: string;
       studentEmail: string;
@@ -28,8 +32,55 @@ export class PaymentService {
       date: string;
       time: string;
     };
-    request: NextRequest; // Pass the request for success_url
+    request: NextRequest;
   }) {
+    const TEN_MINUTES = 10 * 60 * 1000;
+    const bookingDate = new Date(data.metadata.date);
+
+    const existingBooking = await prisma.booking.findFirst({
+      where: {
+        teacherId: data.teacherId,
+        date: bookingDate,
+        time: data.metadata.time,
+        status: { in: ["pending", "confirmed"] },
+      },
+    });
+
+    if (existingBooking) {
+      const isExpired =
+        existingBooking.status === "pending" &&
+        existingBooking.createdAt.getTime() < Date.now() - TEN_MINUTES;
+
+      if (isExpired) {
+        await prisma.booking.update({
+          where: { id: existingBooking.id },
+          data: {
+            status: "expired",
+            notes: "Pagamento não concluído no prazo",
+          },
+        });
+      } else {
+        throw new AppError(
+          "Conflito: esse horário foi bloqueado recentemente. Tente outro ou volte em alguns minutos.",
+          409
+        );
+      }
+    }
+
+    const booking = await prisma.booking.create({
+      data: {
+        teacherId: data.teacherId,
+        studentName: data.metadata.studentName,
+        studentEmail: data.studentEmail,
+        date: bookingDate,
+        time: data.metadata.time,
+        status: "pending",
+        amount: data.amount,
+        currency: data.currency,
+        notes: "Aguardando pagamento",
+      },
+    });
+
     try {
       // A plataforma processa o pagamento do aluno
       let paymentSession;
@@ -39,11 +90,16 @@ export class PaymentService {
           paymentSession = await this.createStripePayment(data);
           break;
         case "paypal":
-          paymentSession = await this.createPayPalPayment(data);
+          paymentSession = await this.createPayPalPayment(data, booking.id);
           break;
         default:
           throw new Error("Método de pagamento não suportado");
       }
+
+      await prisma.booking.update({
+        where: { id: booking.id },
+        data: { paymentId: paymentSession.id },
+      });
 
       // Após o pagamento ser confirmado, a plataforma repassa para o professor
       // Esta lógica seria implementada nos webhooks de confirmação
@@ -51,12 +107,12 @@ export class PaymentService {
 
       return paymentSession;
     } catch (error) {
-      console.error("Payment creation error:", error);
+      await prisma.booking.delete({ where: { id: booking.id } });
       throw error;
     }
   }
 
-  private async scheduleTeacherPayout(data: any) {
+  private async scheduleTeacherPayout(data) {
     // Esta função seria chamada quando o pagamento for confirmado
     // A plataforma repassa o valor para o professor usando os dados configurados
     const { paymentConfig, amount, currency } = data;
@@ -116,7 +172,7 @@ export class PaymentService {
     }
   }
 
-  private async createStripePayment(data: any) {
+  private async createStripePayment(data) {
     const stripe = getStripeInstance();
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
@@ -151,16 +207,10 @@ export class PaymentService {
     };
   }
 
-  // Create PayPal order using PayPal API
-  private async createPayPalPayment(data: any) {
-    const { studentEmail, metadata, currency, amount, teacherId } = data;
+  private async createPayPalPayment(data, bookingId) {
+    const { currency, amount } = data;
 
-    const invoiceData = {
-      studentName: metadata.studentName,
-      date: metadata.date,
-      time: metadata.time,
-      studentEmail,
-    };
+    const uniqueInvoiceId = `${Date.now()}:${randomUUID()}`;
 
     const orderData = {
       intent: "CAPTURE",
@@ -168,17 +218,15 @@ export class PaymentService {
         {
           amount: {
             currency_code: currency.toUpperCase(),
-            value: amount.toString(),
+            value: amount.toFixed(2),
           },
           description: "Aula Particular",
-          custom_id: teacherId,
-          invoice_id: Buffer.from(JSON.stringify(invoiceData))
-            .toString("base64")
-            .slice(0, 127),
+          custom_id: bookingId,
+          invoice_id: uniqueInvoiceId,
         },
       ],
       application_context: {
-        return_url: `${process.env.NEXTAUTH_URL}/success?session_id={PAYMENT_ID}`,
+        return_url: `${process.env.NEXTAUTH_URL}/api/paypal/return`,
         cancel_url: `${process.env.NEXTAUTH_URL}/cancel`,
         brand_name: "scheduleasier",
         landing_page: "BILLING",
@@ -186,39 +234,35 @@ export class PaymentService {
       },
     };
 
-    try {
-      const response = await fetch(
-        "https://api-m.sandbox.paypal.com/v2/checkout/orders",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${await this.getPayPalAccessToken()}`,
-          },
-          body: JSON.stringify(orderData),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`PayPal API error: ${response.statusText}`);
+    const response = await fetch(
+      "https://api-m.sandbox.paypal.com/v2/checkout/orders",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${await this.getPayPalAccessToken()}`,
+        },
+        body: JSON.stringify(orderData),
       }
+    );
 
-      const order = await response.json();
-
-      return {
-        id: order.id,
-        url: order.links.find((link: any) => link.rel === "approve")?.href,
-      };
-    } catch (error) {
-      console.error("PayPal payment creation error:", error);
-      throw new Error("Erro ao criar pagamento PayPal");
+    if (!response.ok) {
+      throw new Error(`PayPal API error: ${response.statusText}`);
     }
+
+    const order = await response.json();
+
+    return {
+      id: order.id,
+      url: order.links.find((link) => link.rel === "approve")?.href,
+    };
   }
 
   private async getPayPalAccessToken(): Promise<string> {
-    const auth = Buffer.from(
-      `${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_CLIENT_SECRET}`
-    ).toString("base64");
+    const clientId = process.env.PAYPAL_CLIENT_ID;
+    const clientSecret = process.env.PAYPAL_SECRET;
+
+    const auth = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
 
     const response = await fetch(
       "https://api-m.sandbox.paypal.com/v1/oauth2/token",
@@ -238,5 +282,30 @@ export class PaymentService {
 
     const data = await response.json();
     return data.access_token;
+  }
+
+  async capturePayPalPayment(orderId: string) {
+    try {
+      const accessToken = await this.getPayPalAccessToken();
+
+      const response = await axios.post(
+        `https://api-m.sandbox.paypal.com/v2/checkout/orders/${orderId}/capture`,
+        {},
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      console.error(
+        "Erro ao capturar pagamento PayPal:",
+        error.response?.data || error.message
+      );
+      throw new Error("Erro ao capturar pagamento PayPal");
+    }
   }
 }
