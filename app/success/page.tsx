@@ -3,13 +3,14 @@ import { getStripeInstance } from "@/lib/payment";
 import ErrorMessage from "@/components/ErrorMessage";
 
 interface Props {
-  searchParams: { session_id?: string };
+  searchParams?: { session_id?: string };
 }
 
-export default async function SuccessPage(props) {
-  const sessionId = props?.searchParams.session_id;
+export default async function SuccessPage({ searchParams }: Props) {
+  const sessionId = searchParams?.session_id;
+
   if (!sessionId) {
-    return <ErrorMessage message="Sessão de pagamento não encontrada." />;
+    return <SuccessClient />;
   }
 
   try {
@@ -18,6 +19,7 @@ export default async function SuccessPage(props) {
 
     const metadata = session.metadata;
     const { studentEmail, date, time } = metadata || {};
+
     if (!studentEmail || !date || !time) {
       return (
         <ErrorMessage message="Não foi possível recuperar os detalhes da sua aula. Por favor, entre em contato com o suporte." />
@@ -32,7 +34,6 @@ export default async function SuccessPage(props) {
       />
     );
   } catch (error) {
-    console.log("Erro ao buscar sessão do Stripe:", error);
     return (
       <ErrorMessage message="Ocorreu um erro ao verificar seu pagamento. Se você recebeu o comprovante, entre em contato conosco." />
     );
