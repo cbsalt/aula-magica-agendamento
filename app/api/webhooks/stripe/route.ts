@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStripeInstance } from "@/lib/payment";
 import { processBooking } from "@/lib/process.booking";
+import { prisma } from "@/lib/prisma";
 
 export const config = {
   api: {
@@ -36,7 +37,19 @@ export async function POST(req: NextRequest) {
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
 
+    const booking = await prisma.booking.findUnique({
+      where: { paymentId: session.id },
+    });
+
+    if (!booking) {
+      return NextResponse.json(
+        { error: "Booking não encontrado" },
+        { status: 404 }
+      );
+    }
+
     processBooking({
+      booking,
       paymentId: session.id,
       teacherId: session.metadata.teacherId,
       metadata: {
