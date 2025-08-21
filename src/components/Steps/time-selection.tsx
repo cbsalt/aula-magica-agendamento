@@ -89,7 +89,12 @@ export function TimeSelectionStep({
       <CardContent>
         <div className="space-y-8">
           {teacherAvailability.map((day) => (
-            <TeacherAvailability key={day} day={day} selectedTime={selectedTime} handleSlot={handleSlot} />
+            <TeacherAvailability
+              key={day}
+              day={day}
+              selectedTime={selectedTime}
+              handleSlot={handleSlot}
+            />
           ))}
         </div>
       </CardContent>
