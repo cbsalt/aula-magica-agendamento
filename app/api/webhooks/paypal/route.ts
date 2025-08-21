@@ -1,115 +1,58 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { GoogleCalendarService } from "@/lib/google-calendar";
+import { processBooking } from "@/lib/process.booking";
+import { NextApiResponse } from "next";
 
-export async function POST(req: NextRequest) {
-  const body = await req.json();
+export async function POST(req: NextRequest, res: NextApiResponse) {
+  try {
+    const body = await req.json();
 
-  if (!body || !body.event_type) {
-    return NextResponse.json({ error: "Payload inválido" }, { status: 400 });
-  }
-
-  // Verifica se o evento é de aprovação de pagamento
-  if (body.event_type === "CHECKOUT.ORDER.APPROVED") {
-    const resource = body.resource;
-    const purchaseUnit = resource.purchase_units?.[0];
-
-    let metadata: {
-      studentName: string;
-      date: string;
-      time: string;
-      studentEmail: string;
-      teacherId: string;
-    };
-
-    try {
-      const decoded = Buffer.from(purchaseUnit.invoice_id, "base64").toString(
-        "utf-8"
-      );
-      const parsed = JSON.parse(decoded);
-
-      metadata = {
-        studentName: parsed.studentName,
-        date: parsed.date,
-        time: parsed.time,
-        studentEmail: parsed.studentEmail,
-        teacherId: resource.custom_id,
-      };
-    } catch (err) {
-      console.error("Erro ao decodificar invoice_id:", err);
-      return NextResponse.json(
-        { error: "Dados inválidos no invoice_id" },
-        { status: 400 }
-      );
+    if (body.event_type !== "PAYMENT.CAPTURE.COMPLETED") {
+      return NextResponse.json({ received: true });
     }
 
-    const paymentId = resource.id;
+    const capture = body.resource;
+    const localBookingId = capture.custom_id;
+    const orderId = capture.id;
+    const amount = parseFloat(capture.amount.value);
+    const currency = capture.amount.currency_code;
 
-    const existingBooking = await prisma.booking.findFirst({
-      where: { paymentId },
+    const booking = await prisma.booking.findUnique({
+      where: { id: localBookingId },
     });
 
-    if (!existingBooking || existingBooking.status === "confirmed") {
-      return NextResponse.json({ ok: true });
-    }
-
-    const teacher = await prisma.teacher.findUnique({
-      where: { id: metadata.teacherId },
-    });
-
-    if (!teacher) {
+    if (!booking) {
       return NextResponse.json(
-        { error: "Professor não encontrado" },
+        { error: "Booking não encontrado" },
         { status: 404 }
       );
     }
 
-    const calendarService = new GoogleCalendarService(
-      teacher.googleAccessToken,
-      teacher.googleRefreshToken
-    );
-
-    const calendarId = teacher.email;
-    const slotStart = new Date(`${metadata.date}T${metadata.time}`);
-    const slotEnd = new Date(slotStart.getTime() + 60 * 60 * 1000);
-
-    const events = await calendarService.getEvents(calendarId);
-    const isAvailable = !events.some((event) => {
-      const start = new Date(event.start.dateTime || event.start.date);
-      const end = new Date(event.end.dateTime || event.end.date);
-      return slotStart < end && slotEnd > start;
-    });
-
-    if (!isAvailable) {
-      await prisma.booking.update({
-        where: { id: existingBooking.id },
-        data: {
-          status: "failed",
-          notes: "Horário indisponível no momento do pagamento (PayPal)",
-        },
-      });
-
-      return NextResponse.json(
-        { error: "Horário não disponível" },
-        { status: 409 }
-      );
-    }
-
-    const calendarEvent = await calendarService.createEvent(calendarId, {
-      summary: `Aula com ${metadata.studentName}`,
-      description: `Aluno: ${metadata.studentName}\nEmail: ${metadata.studentEmail}`,
-      start: { dateTime: slotStart.toISOString() },
-      end: { dateTime: slotEnd.toISOString() },
-    });
-
     await prisma.booking.update({
-      where: { id: existingBooking.id },
-      data: {
-        status: "confirmed",
-        meetLink: calendarEvent?.hangoutLink || null,
-      },
+      where: { id: booking.id },
+      data: { status: "confirmed", paypalOrderId: orderId, amount, currency },
     });
-  }
 
-  return NextResponse.json({ received: true });
+    await processBooking({
+      booking,
+      paymentId: localBookingId,
+      teacherId: booking.teacherId,
+      metadata: {
+        studentName: booking.studentName,
+        studentEmail: booking.studentEmail,
+        date: booking.date.toISOString().split("T")[0],
+        time: booking.time,
+      },
+      amount,
+      currency,
+    });
+
+    return new NextResponse(null, { status: 200 });
+  } catch (err) {
+    console.error("Erro no webhook PayPal:", err);
+    return NextResponse.json(
+      { error: "Erro no webhook PayPal" },
+      { status: 500 }
+    );
+  }
 }
