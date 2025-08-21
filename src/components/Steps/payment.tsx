@@ -1,4 +1,3 @@
-// components/booking/PaymentStep.tsx
 import { CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
