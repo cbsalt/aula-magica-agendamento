@@ -31,6 +31,8 @@
     "success": {
       "payment.confirmed": "Payment confirmed!",
       "payment.thanks": "Thank you",
+      "payment.received": "Payment received!",
+      "paypal.confirmation": "Your payment has been recorded and is being processed. Once PayPal confirms it, your session will be reserved and you will receive an email with the class link.",
       "student": "Student",
       "date": "Date",
       "time": "Time",

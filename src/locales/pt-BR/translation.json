@@ -31,6 +31,8 @@
     "success": {
       "payment.confirmed": "Pagamento confirmado!",
       "payment.thanks": "Obrigado",
+      "payment.received": "Pagamento recebido!",
+      "paypal.confirmation": "Seu pagamento foi registrado e está em processamento. Assim que o PayPal confirmar, seu horário será reservado e você receberá um e-mail com o link da aula.",
       "student": "Aluno",
       "date": "Data",
       "time": "Hora",
