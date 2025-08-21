@@ -80,16 +80,6 @@ export const CalendarSection = () => {
     };
   }, [isConnected, session?.user?.teacherId]);
 
-  const handleChange = (
-    idx: number,
-    field: "startTime" | "endTime",
-    value: string
-  ) => {
-    setWorkSchedule((prev) =>
-      prev.map((item, i) => (i === idx ? { ...item, [field]: value } : item))
-    );
-  };
-
   const handleSave = useCallback(async () => {
     if (saving) return;
     setSaving(true);
@@ -117,6 +107,10 @@ export const CalendarSection = () => {
   const connectCalendar = () => {
     signIn("google"); // Usa o fluxo seguro do NextAuth
   };
+
+  const isSaveDisabled = workSchedule.some(
+    (ws) => (ws.startTime || ws.endTime) && (!ws.startTime || !ws.endTime)
+  );
 
   return (
     <Card>
@@ -147,14 +141,14 @@ export const CalendarSection = () => {
                   idx={idx}
                   key={idx}
                   workSchedule={workSchedule}
-                  handleChange={handleChange}
+                  setWorkSchedule={setWorkSchedule}
                 />
               ))}
 
               <Button
                 type="button"
                 onClick={handleSave}
-                disabled={saving}
+                disabled={saving || isSaveDisabled}
                 className="mt-4"
               >
                 {saving ? "Salvando..." : "Salvar horários"}

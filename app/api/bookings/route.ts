@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { PaymentService } from "@/lib/payment";
 import { z } from "zod";
+import { AppError } from "@/errors/AppError";
 
 const bookingSchema = z.object({
   teacherId: z.string(),
@@ -54,6 +55,13 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Erro ao criar agendamento:", error);
+    if (error instanceof AppError) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.statusCode }
+      );
+    }
+
     return NextResponse.json(
       { error: "Erro interno do servidor" },
       { status: 500 }

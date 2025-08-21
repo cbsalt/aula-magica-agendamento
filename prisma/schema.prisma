@@ -132,7 +132,8 @@ model Booking {
   notes  String?
 
   // Payment
-  paymentId     String? @map("payment_id")
+  paymentId     String? @unique @map("payment_id")
+  paypalOrderId String? @map("paypal_order_id")
   paymentStatus String  @default("pending") // pending, paid, failed, refunded
   amount        Float
   currency      String

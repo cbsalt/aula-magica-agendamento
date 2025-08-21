@@ -1,10 +1,16 @@
 import { google } from "googleapis";
 import { addDays } from "date-fns";
+import { prisma } from "@/lib/prisma";
 
 export class GoogleCalendarService {
-  private oauth2Client: any;
+  private oauth2Client;
+  private refreshToken?: string;
+  private teacherId?: string;
 
-  constructor(accessToken: string, refreshToken?: string) {
+  constructor(accessToken: string, refreshToken?: string, teacherId?: string) {
+    this.refreshToken = refreshToken;
+    this.teacherId = teacherId;
+
     this.oauth2Client = new google.auth.OAuth2(
       process.env.GOOGLE_CLIENT_ID,
       process.env.GOOGLE_CLIENT_SECRET,
@@ -17,17 +23,44 @@ export class GoogleCalendarService {
     });
   }
 
-  async getEvents(calendarId: string) {
-    const calendar = google.calendar({
-      version: "v3",
-      auth: this.oauth2Client,
-    });
-
-    const startTime = new Date();
-
-    const endTime = addDays(startTime, 7);
-
+  private async requestWithRefresh<T>(fn: () => Promise<T>): Promise<T> {
     try {
+      return await fn();
+    } catch (err) {
+      if (err.code === 401 && this.refreshToken) {
+        console.log("🔄 Google access token expirado. Tentando refresh...");
+
+        const { credentials } = await this.oauth2Client.refreshAccessToken();
+        const newAccessToken = credentials.access_token;
+
+        this.oauth2Client.setCredentials({
+          access_token: newAccessToken,
+          refresh_token: this.refreshToken,
+        });
+
+        // Salva novo token no DB se teacherId estiver disponível
+        if (this.teacherId && newAccessToken) {
+          await prisma.teacher.update({
+            where: { id: this.teacherId },
+            data: { googleAccessToken: newAccessToken },
+          });
+        }
+
+        return await fn(); // tenta de novo
+      }
+      throw err;
+    }
+  }
+
+  async getEvents(calendarId: string) {
+    return this.requestWithRefresh(async () => {
+      const calendar = google.calendar({
+        version: "v3",
+        auth: this.oauth2Client,
+      });
+      const startTime = new Date();
+      const endTime = addDays(startTime, 7);
+
       const response = await calendar.events.list({
         calendarId,
         timeMin: startTime.toISOString(),
@@ -38,19 +71,15 @@ export class GoogleCalendarService {
       });
 
       return response.data.items || [];
-    } catch (error) {
-      console.error("Error fetching calendar events:", error);
-      throw error;
-    }
+    });
   }
 
-  async createEvent(calendarId: string, eventData: any) {
-    const calendar = google.calendar({
-      version: "v3",
-      auth: this.oauth2Client,
-    });
-
-    try {
+  async createEvent(calendarId: string, eventData) {
+    return this.requestWithRefresh(async () => {
+      const calendar = google.calendar({
+        version: "v3",
+        auth: this.oauth2Client,
+      });
       const response = await calendar.events.insert({
         calendarId,
         requestBody: eventData,
@@ -58,9 +87,6 @@ export class GoogleCalendarService {
       });
 
       return response.data;
-    } catch (error) {
-      console.error("Error creating calendar event:", error);
-      throw error;
-    }
+    });
   }
 }
