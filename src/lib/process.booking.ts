@@ -5,12 +5,14 @@ import { sendConfirmationEmail } from "app/api/mail/send-confirmation-email";
 import { createZoomMeetingWithRetry } from "@/lib/zoom";
 
 export async function processBooking({
+  booking,
   paymentId,
   metadata,
   teacherId,
   amount,
   currency,
 }: {
+  booking?: any;
   paymentId: string;
   metadata: {
     studentName: string;
@@ -47,36 +49,14 @@ export async function processBooking({
   });
 
   if (!isAvailable) {
-    await prisma.booking.create({
+    await prisma.booking.update({
+      where: { id: booking.id },
       data: {
-        teacherId,
-        studentName: metadata.studentName,
-        studentEmail: metadata.studentEmail,
-        date: new Date(metadata.date),
-        time: metadata.time,
-        status: "failed",
-        paymentId,
-        amount,
-        currency,
+        status: "unavailable",
         notes: "Horário indisponível",
       },
     });
-    return;
   }
-
-  const booking = await prisma.booking.create({
-    data: {
-      teacherId,
-      studentName: metadata.studentName,
-      studentEmail: metadata.studentEmail,
-      date: new Date(metadata.date),
-      time: metadata.time,
-      status: "pending",
-      paymentId,
-      amount,
-      currency,
-    },
-  });
 
   const calendarEvent = await calendarService.createEvent(calendarId, {
     summary: `Aula com ${metadata.studentName}`,
@@ -104,12 +84,12 @@ export async function processBooking({
     meetingLink = calendarEvent.conferenceData?.entryPoints?.[0]?.uri || null;
   }
 
-  // Atualiza booking para "confirmed"
   await prisma.booking.update({
     where: { id: booking.id },
     data: {
       status: "confirmed",
       meetLink: meetingLink,
+      notes: "Pagamento confirmado",
     },
   });
 
