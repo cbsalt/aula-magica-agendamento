@@ -1,22 +1,12 @@
 import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
+
 import { prisma } from "./prisma";
+import { updateDataTeacherById } from "@/modules/teacher";
+import { googleConfig } from "@/config/google";
 
 export const authOptions: NextAuthOptions = {
-  providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      authorization: {
-        params: {
-          scope:
-            "openid email profile https://www.googleapis.com/auth/calendar",
-          access_type: "offline",
-          prompt: "consent",
-        },
-      },
-    }),
-  ],
+  providers: [GoogleProvider(googleConfig)],
   session: {
     strategy: "jwt",
   },
@@ -64,6 +54,7 @@ export const authOptions: NextAuthOptions = {
               googleRefreshToken: token.refreshToken as string | undefined,
             },
           });
+
           session.user.teacherId = teacher.id;
           session.user.slug = teacher.slug;
           session.user.zoomConnected = teacher.zoomConnected || false;
@@ -72,26 +63,29 @@ export const authOptions: NextAuthOptions = {
           if (!teacher.googleCalendarId && teacher.googleAccessToken) {
             try {
               const { google } = await import("googleapis");
+
               const oauth2Client = new google.auth.OAuth2(
-                process.env.GOOGLE_CLIENT_ID,
-                process.env.GOOGLE_CLIENT_SECRET,
+                googleConfig.clientId,
+                googleConfig.clientSecret,
                 process.env.NEXTAUTH_URL + "/api/auth/callback/google"
               );
+
               oauth2Client.setCredentials({
                 access_token: teacher.googleAccessToken,
                 refresh_token: teacher.googleRefreshToken,
               });
+
               const calendar = google.calendar({
                 version: "v3",
                 auth: oauth2Client,
               });
+
               const res = await calendar.calendarList.list();
               const primary = res.data.items?.find((cal) => cal.primary);
+
               if (primary && primary.id) {
-                await prisma.teacher.update({
-                  where: { id: teacher.id },
-                  data: { googleCalendarId: primary.id },
-                });
+                const data = { googleCalendarId: primary.id };
+                await updateDataTeacherById(teacher.id, data);
               }
             } catch (err) {
               console.warn("Não foi possível salvar googleCalendarId:", err);

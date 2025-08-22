@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+
 import { authOptions } from "src/lib/auth";
 import { prisma } from "src/lib/prisma";
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
+
   if (!session || !session.user?.email) {
     return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
   }
@@ -18,7 +20,6 @@ export async function GET(req: NextRequest) {
       googleAccessToken: true,
       googleCalendarId: true,
       googleRefreshToken: true,
-      // Adicione outros campos necessários
     },
   });
 

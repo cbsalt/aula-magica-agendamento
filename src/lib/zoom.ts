@@ -1,5 +1,5 @@
 import axios from "axios";
-import { prisma } from "./prisma";
+import { updateDataTeacher } from "@/modules/teacher";
 
 export class ZoomService {
   private accessToken: string;
@@ -34,14 +34,13 @@ export class ZoomService {
       );
     }
 
-    await prisma.teacher.update({
-      where: { email },
-      data: {
-        zoomAccessToken: access_token,
-        zoomRefreshToken: refresh_token,
-        zoomConnected: isValid,
-      },
-    });
+    const data = {
+      zoomAccessToken: access_token,
+      zoomRefreshToken: refresh_token,
+      zoomConnected: isValid,
+    };
+
+    await updateDataTeacher(email, data);
   }
 
   static async refreshZoomAccessToken(refreshToken: string) {
@@ -111,21 +110,19 @@ export async function createZoomMeetingWithRetry(
 ) {
   try {
     return await createZoomMeeting(teacher.zoomAccessToken, topic, start, end);
-  } catch (error: any) {
+  } catch (error) {
     if (error.response?.status === 401) {
       const tokens = await ZoomService.refreshZoomAccessToken(
         teacher.zoomRefreshToken
       );
 
-      await prisma.teacher.update({
-        where: { email: teacher.email },
-        data: {
-          zoomAccessToken: tokens.accessToken,
-          zoomRefreshToken: tokens.refreshToken,
-        },
-      });
+      const data = {
+        zoomAccessToken: tokens.accessToken,
+        zoomRefreshToken: tokens.refreshToken,
+      };
+      await updateDataTeacher(teacher.email, data);
 
-      return await createZoomMeeting(tokens.accessToken, topic, start, end);
+      return createZoomMeeting(tokens.accessToken, topic, start, end);
     }
     throw error;
   }

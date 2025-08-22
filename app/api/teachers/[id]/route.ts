@@ -1,6 +1,5 @@
-
-import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 export async function GET(
   request: NextRequest,
@@ -21,16 +20,22 @@ export async function GET(
         isActive: true,
         createdAt: true,
         googleCalendarId: true,
-      }
-    })
+      },
+    });
 
     if (!teacher || !teacher.isActive) {
-      return NextResponse.json({ error: 'Professor não encontrado' }, { status: 404 })
+      return NextResponse.json(
+        { error: "Professor não encontrado" },
+        { status: 404 }
+      );
     }
 
-    return NextResponse.json(teacher)
+    return NextResponse.json(teacher);
   } catch (error) {
-    console.error('Erro ao buscar professor:', error)
-    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
+    console.error("Erro ao buscar professor:", error);
+    return NextResponse.json(
+      { error: "Erro interno do servidor" },
+      { status: 500 }
+    );
   }
 }

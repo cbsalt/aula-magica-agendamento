@@ -56,7 +56,9 @@ export function generateSlots(start: string, end: string, dayDate: Date) {
   };
 }
 
-export function initializeSlots(workSchedules, zonedToday, totalWeeks = 0) {
+export function initializeSlots(workSchedules, totalWeeks = 0) {
+  const today = new Date();
+  const zonedToday = toZonedTime(today, "America/Sao_Paulo");
   let allSlots = [];
 
   for (let weekOffset = 0; weekOffset < totalWeeks; weekOffset++) {

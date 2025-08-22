@@ -1,18 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "src/lib/auth";
-import { prisma } from "src/lib/prisma";
+
+import { authOptions } from "@/lib/auth";
+import {
+  createSchedule,
+  findTeacherByEmail,
+  removeOldSchedule,
+} from "@/modules/teacher";
+
+type TeacherSchedule = [
+  {
+    dayOfWeek: number;
+    startTime: string;
+    endTime: string;
+  }
+];
 
 // GET: Recupera o horário de trabalho semanal do professor autenticado
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
+
   if (!session || !session.user?.email) {
     return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
   }
 
-  const teacher = await prisma.teacher.findUnique({
-    where: { email: session.user.email },
-    include: { teacherWorkSchedules: true },
+  const teacher = await findTeacherByEmail(session.user.email, {
+    teacherWorkSchedules: true,
   });
 
   if (!teacher) {
@@ -28,13 +41,12 @@ export async function GET(req: NextRequest) {
 // POST: Salva ou atualiza o horário de trabalho semanal do professor autenticado
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
+
   if (!session || !session.user?.email) {
     return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
   }
 
-  const teacher = await prisma.teacher.findUnique({
-    where: { email: session.user.email },
-  });
+  const teacher = await findTeacherByEmail(session.user.email);
 
   if (!teacher) {
     return NextResponse.json(
@@ -43,26 +55,14 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const body = await req.json();
-  // body deve ser um array de objetos: [{ dayOfWeek: 1, startTime: '09:00', endTime: '18:00' }, ...]
-  if (!Array.isArray(body)) {
+  const disponibility = (await req.json()) as Promise<TeacherSchedule>;
+
+  if (!Array.isArray(disponibility)) {
     return NextResponse.json({ error: "Formato inválido" }, { status: 400 });
   }
 
-  // Remove horários antigos
-  await prisma.teacherWorkSchedule.deleteMany({
-    where: { teacherId: teacher.id },
-  });
+  await removeOldSchedule(teacher.id);
+  const scheduleCreated = await createSchedule(teacher.id, disponibility);
 
-  // Cria novos horários
-  const created = await prisma.teacherWorkSchedule.createMany({
-    data: body.map((item: any) => ({
-      teacherId: teacher.id,
-      dayOfWeek: item.dayOfWeek,
-      startTime: item.startTime,
-      endTime: item.endTime,
-    })),
-  });
-
-  return NextResponse.json({ success: true, count: created.count });
+  return NextResponse.json({ success: true, count: scheduleCreated.count });
 }

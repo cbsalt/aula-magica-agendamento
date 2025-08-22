@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { processBooking } from "@/lib/process.booking";
 import { NextApiResponse } from "next";
+import { NextRequest, NextResponse } from "next/server";
+
+import { findBooking, updateBooking } from "@/modules/booking";
+import { processBooking } from "@/lib/process.booking";
 
 export async function POST(req: NextRequest, res: NextApiResponse) {
   try {
@@ -17,9 +18,7 @@ export async function POST(req: NextRequest, res: NextApiResponse) {
     const amount = parseFloat(capture.amount.value);
     const currency = capture.amount.currency_code;
 
-    const booking = await prisma.booking.findUnique({
-      where: { id: localBookingId },
-    });
+    const booking = await findBooking(localBookingId);
 
     if (!booking) {
       return NextResponse.json(
@@ -28,9 +27,14 @@ export async function POST(req: NextRequest, res: NextApiResponse) {
       );
     }
 
-    await prisma.booking.update({
-      where: { id: booking.id },
-      data: { status: "confirmed", paypalOrderId: orderId, amount, currency },
+    await updateBooking({
+      booking,
+      data: {
+        status: "confirmed",
+        paypalOrderId: orderId,
+        amount,
+        currency,
+      },
     });
 
     await processBooking({

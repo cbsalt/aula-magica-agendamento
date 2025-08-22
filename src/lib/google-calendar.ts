@@ -1,6 +1,7 @@
 import { google } from "googleapis";
 import { addDays } from "date-fns";
 import { prisma } from "@/lib/prisma";
+import { updateDataTeacher, updateDataTeacherById } from "@/modules/teacher";
 
 export class GoogleCalendarService {
   private oauth2Client;
@@ -40,10 +41,8 @@ export class GoogleCalendarService {
 
         // Salva novo token no DB se teacherId estiver disponível
         if (this.teacherId && newAccessToken) {
-          await prisma.teacher.update({
-            where: { id: this.teacherId },
-            data: { googleAccessToken: newAccessToken },
-          });
+          const data = { googleAccessToken: newAccessToken };
+          await updateDataTeacherById(this.teacherId, data);
         }
 
         return await fn(); // tenta de novo
@@ -80,6 +79,7 @@ export class GoogleCalendarService {
         version: "v3",
         auth: this.oauth2Client,
       });
+
       const response = await calendar.events.insert({
         calendarId,
         requestBody: eventData,

@@ -2,12 +2,19 @@ import axios from "axios";
 import { randomUUID } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
+
 import { prisma } from "./prisma";
 import { AppError } from "@/errors/AppError";
+import {
+  createBooking,
+  findBookingFirst,
+  isExpired,
+  updateBooking,
+} from "@/modules/booking";
 
-// Initialize Stripe
 export function getStripeInstance(): Stripe {
   const key = process.env.STRIPE_SECRET_KEY;
+
   if (!key) {
     throw new Error("Stripe Secret Key (STRIPE_SECRET_KEY) não está definida.");
   }
@@ -34,26 +41,23 @@ export class PaymentService {
     };
     request: NextRequest;
   }) {
-    const TEN_MINUTES = 10 * 60 * 1000;
     const bookingDate = new Date(data.metadata.date);
 
-    const existingBooking = await prisma.booking.findFirst({
-      where: {
+    const existingBooking = await findBookingFirst({
+      data: {
         teacherId: data.teacherId,
-        date: bookingDate,
         time: data.metadata.time,
+        date: bookingDate,
         status: { in: ["pending", "confirmed"] },
       },
     });
 
     if (existingBooking) {
-      const isExpired =
-        existingBooking.status === "pending" &&
-        existingBooking.createdAt.getTime() < Date.now() - TEN_MINUTES;
+      const isBookingExpired = isExpired(existingBooking);
 
-      if (isExpired) {
-        await prisma.booking.update({
-          where: { id: existingBooking.id },
+      if (isBookingExpired) {
+        await updateBooking({
+          booking: existingBooking,
           data: {
             status: "expired",
             notes: "Pagamento não concluído no prazo",
@@ -67,18 +71,11 @@ export class PaymentService {
       }
     }
 
-    const booking = await prisma.booking.create({
-      data: {
-        teacherId: data.teacherId,
-        studentName: data.metadata.studentName,
-        studentEmail: data.studentEmail,
-        date: bookingDate,
-        time: data.metadata.time,
-        status: "pending",
-        amount: data.amount,
-        currency: data.currency,
-        notes: "Aguardando pagamento",
-      },
+    const booking = await createBooking({
+      bookingData: data,
+      bookingDate,
+      notes: "Aguardando pagamento",
+      status: "pending",
     });
 
     try {
@@ -96,8 +93,8 @@ export class PaymentService {
           throw new Error("Método de pagamento não suportado");
       }
 
-      await prisma.booking.update({
-        where: { id: booking.id },
+      await updateBooking({
+        booking,
         data: { paymentId: paymentSession.id },
       });
 
