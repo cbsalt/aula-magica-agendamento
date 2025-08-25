@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { FormProvider, useForm } from "react-hook-form";
 
@@ -8,31 +8,55 @@ import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
 import { InputText } from "../Form/InputText";
 import { Textarea } from "../Form/Textarea";
-import { Dropdown } from "../Form/Dropdown";
+import useSWR from "swr";
+import {
+  getTeacherProfile,
+  updateTeacherProfile,
+} from "@/services/teacherService";
+import toast from "react-hot-toast";
 
 export const ProfileSection = () => {
   const { data: session } = useSession();
+
+  const [isSaving, setIsSaving] = useState(false);
   const methods = useForm({
     defaultValues: {
       name: "",
       email: "",
       bio: "",
-      price: "",
-      currency: "BRL",
     },
   });
+
+  const { data: teacher, mutate } = useSWR(
+    "/api/teachers/me",
+    getTeacherProfile,
+    {
+      fallbackData: session?.user,
+    }
+  );
 
   useEffect(() => {
     if (session?.user) {
       methods.reset({
-        name: session.user.name,
-        email: session.user.email,
+        name: teacher.name,
+        email: teacher.email,
+        bio: teacher.description,
       });
     }
-  }, [session, methods]);
+  }, [methods, session, teacher]);
 
-  const handleSave = (formData) => {
-    console.log("Saving profile:", formData);
+  const handleSave = async (formData) => {
+    setIsSaving(true);
+    try {
+      await updateTeacherProfile({ ...formData });
+      toast.success("Informações salvas com sucesso!");
+
+      mutate();
+    } catch (error) {
+      toast.error(error.message || "Erro ao salvar as informações");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const loadingProfile = session?.user?.name;
@@ -70,7 +94,7 @@ export const ProfileSection = () => {
             <form onSubmit={methods.handleSubmit(handleSave)}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
                 <InputText name="name" label="Nome" />
-                <InputText name="email" label="E-mail" />
+                <InputText name="email" label="E-mail" disabled />
               </div>
 
               <Textarea
@@ -79,8 +103,8 @@ export const ProfileSection = () => {
                 placeholder="Conte um pouco sobre você e sua experiência..."
               />
 
-              <Button type="submit" className="mt-4">
-                Salvar Alterações
+              <Button type="submit" className="mt-4" disabled={isSaving}>
+                {isSaving ? "Salvando..." : "Salvar Alterações"}
               </Button>
             </form>
           </FormProvider>
