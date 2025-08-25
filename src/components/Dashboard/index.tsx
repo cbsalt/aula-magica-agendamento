@@ -44,6 +44,14 @@ export default function Dashboard({ teacherFallback }) {
     fallbackData: teacherFallback,
   });
 
+  const renderTabs = {
+    profile: <ProfileSection />,
+    calendar: <CalendarSection />,
+    integrations: <IntegrationsSection />,
+    payments: <PaymentsSection initialData={{}} />,
+    "public-link": <PublicLinkSection teacher={teacher} onUpdate={mutate} />,
+  };
+
   useEffect(() => {
     if (zoomStatus === "success") {
       toast.success("Zoom conectado com sucesso");
@@ -112,15 +120,7 @@ export default function Dashboard({ teacherFallback }) {
           </div>
 
           {/* Main Content */}
-          <div className="flex-1">
-            {activeTab === "profile" && <ProfileSection />}
-            {activeTab === "calendar" && <CalendarSection />}
-            {activeTab === "integrations" && <IntegrationsSection />}
-            {activeTab === "payments" && <PaymentsSection />}
-            {activeTab === "public-link" && (
-              <PublicLinkSection teacher={teacher} onUpdate={mutate} />
-            )}
-          </div>
+          <div className="flex-1">{renderTabs[activeTab]}</div>
         </div>
       </div>
     </div>
