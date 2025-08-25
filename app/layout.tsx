@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import "./globals.css";
 import { Inter } from "next/font/google";
 import { AuthProvider } from "@/components/providers/AuthProvider";
@@ -5,7 +6,7 @@ import { I18nProvider } from "@/components/I18nProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "scheduleasier - Agendamento de Aulas",
   description: "Plataforma para agendamento e pagamento de aulas particulares",
 };

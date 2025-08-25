@@ -5,10 +5,10 @@ import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import AnimatedCard from "./animated-card";
-import { ITeacher } from "../interfaces";
+import { Teacher } from "@prisma/client";
 
 interface Props {
-  teacher: ITeacher;
+  teacher: Teacher;
   selectedDate: Date;
   selectedTime: string;
   studentData: {

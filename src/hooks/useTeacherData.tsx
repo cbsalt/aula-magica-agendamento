@@ -39,9 +39,7 @@ export function useTeacherData(weekDays: { value: number }[]) {
         // Atualiza disponibilidade semanal
         if (Array.isArray(availability)) {
           const schedule = weekDays.map((day) => {
-            const found = availability.find(
-              (d: any) => d.dayOfWeek === day.value
-            );
+            const found = availability.find((d) => d.dayOfWeek === day.value);
             return found
               ? {
                   dayOfWeek: day.value,

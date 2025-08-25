@@ -24,7 +24,7 @@ export async function fetchTeacherAvailability(
   return response.data;
 }
 
-export async function saveTeacherAvailability(data: any[]) {
+export async function saveTeacherAvailability(data) {
   const response = await api.post("/api/teachers/me/availability", data);
   return response.data;
 }

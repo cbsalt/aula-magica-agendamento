@@ -1,3 +1,5 @@
+import { PaymentConfig } from "@prisma/client";
+
 export interface ITeacher {
   id: string;
   email: string;
@@ -18,5 +20,5 @@ export interface ITeacher {
   publicLinkId: string | null;
   createdAt: string;
   updatedAt: string;
-  paymentConfig?: any | null;
+  paymentConfig?: PaymentConfig | null;
 }

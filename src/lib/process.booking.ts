@@ -4,6 +4,7 @@ import { sendConfirmationEmail } from "app/api/mail/send-confirmation-email";
 import { createZoomMeetingWithRetry } from "@/lib/zoom";
 import { findTeacherById } from "@/modules/teacher";
 import { updateBooking } from "@/modules/booking";
+import { Booking } from "@prisma/client";
 
 export async function processBooking({
   booking,
@@ -13,7 +14,7 @@ export async function processBooking({
   amount,
   currency,
 }: {
-  booking?: any;
+  booking?: Booking;
   paymentId: string;
   metadata: {
     studentName: string;

@@ -11,9 +11,9 @@ interface Props {
   selectedDate: Date;
   onChangeDate: (date: Date) => void;
   error: string;
-  teacherAvailability: any[];
+  teacherAvailability: [];
   selectedTime: string;
-  handleSlot: (slot: any) => void;
+  handleSlot: (slot) => void;
   loadingAvailability: boolean;
 }
 

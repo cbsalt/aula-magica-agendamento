@@ -16,15 +16,16 @@ import { TimeSelectionStep } from "./Steps/time-selection";
 import { StudentInfoFormData, StudentInfoStep } from "./Steps/student-info";
 import PaymentStep from "./Steps/payment";
 import { ITeacher } from "./interfaces";
+import { Teacher } from "@prisma/client";
 
 interface Props {
-  teacher: ITeacher;
+  teacher: Teacher;
 }
 
 export default function PublicBookingPage({ teacher }: Props) {
   const { t } = useTranslation();
   const [selectedDate, setSelectedDate] = useState<Date>();
-  const [teacherAvailability, setTeacherAvailability] = useState<any>([]);
+  const [teacherAvailability, setTeacherAvailability] = useState([] as []);
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [studentData, setStudentData] = useState<{
     name?: string;
@@ -53,8 +54,8 @@ export default function PublicBookingPage({ teacher }: Props) {
         const data = await fetchTeacherAvailability(teacher.id);
 
         const filteredAvailability = data.availability
-          .filter((slot: any) => slot.date === formattedDate)
-          .map((slot: any) => ({
+          .filter((slot) => slot.date === formattedDate)
+          .map((slot) => ({
             ...slot,
             time: new Date(slot.start).toLocaleTimeString("pt-BR", {
               hour: "2-digit",
@@ -110,14 +111,14 @@ export default function PublicBookingPage({ teacher }: Props) {
       } else {
         setError("Erro inesperado ao redirecionar para o pagamento.");
       }
-    } catch (error: any) {
+    } catch (error) {
       setError(error?.response?.data?.error || "Erro ao criar pagamento");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleScheduledSlot = (slot: any) => {
+  const handleScheduledSlot = (slot) => {
     const formmatedSlot = `${format(slot.start, "HH:mm")} - ${format(
       slot.end,
       "HH:mm"
