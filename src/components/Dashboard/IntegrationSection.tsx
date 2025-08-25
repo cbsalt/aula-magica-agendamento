@@ -79,8 +79,14 @@ export const IntegrationsSection = () => {
                 className="w-full sm:w-auto"
                 disabled={isConnecting}
               >
-                {isConnecting ? "Conectando..." : "Conectar com Zoom"}
+                {isConnecting ? "Conectando..." : "Conectar conta Zoom"}
               </Button>
+              <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                <p className="text-sm text-yellow-800">
+                  Caso não tenha uma conta Zoom, o link de aula será gerado
+                  automaticamente para o Google Meet.
+                </p>
+              </div>
             </div>
           )}
         </CardContent>

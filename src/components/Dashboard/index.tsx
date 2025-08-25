@@ -11,8 +11,10 @@ import { PaymentsSection } from "./PaymentSection";
 import { PublicLinkSection } from "./PublicSection";
 import { useSearchParams } from "next/navigation";
 import { User, CalendarDays, Link2, CreditCard, Share2 } from "lucide-react";
+import useSWR from "swr";
+import { getTeacherPublicLink } from "@/services/teacherService";
 
-export default function Dashboard() {
+export default function Dashboard({ teacherFallback }) {
   const { data: session } = useSession();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
@@ -35,16 +37,29 @@ export default function Dashboard() {
     window.history.replaceState({}, "", url.toString());
   };
 
+  const {
+    data: { teacher },
+    mutate,
+  } = useSWR("/api/teachers/me/public-link", getTeacherPublicLink, {
+    fallbackData: teacherFallback,
+  });
+
+  const renderTabs = {
+    profile: <ProfileSection />,
+    calendar: <CalendarSection />,
+    integrations: <IntegrationsSection />,
+    payments: <PaymentsSection initialData={{}} />,
+    "public-link": <PublicLinkSection teacher={teacher} onUpdate={mutate} />,
+  };
+
   useEffect(() => {
     if (zoomStatus === "success") {
       toast.success("Zoom conectado com sucesso");
 
-      // Remover os parâmetros da URL após o feedback
       clearUrlParams();
     }
   }, [zoomStatus]);
 
-  // Definir aba inicial com base na URL
   useEffect(() => {
     if (tabParam) {
       setActiveTab(tabParam);
@@ -105,13 +120,7 @@ export default function Dashboard() {
           </div>
 
           {/* Main Content */}
-          <div className="flex-1">
-            {activeTab === "profile" && <ProfileSection />}
-            {activeTab === "calendar" && <CalendarSection />}
-            {activeTab === "integrations" && <IntegrationsSection />}
-            {activeTab === "payments" && <PaymentsSection />}
-            {activeTab === "public-link" && <PublicLinkSection />}
-          </div>
+          <div className="flex-1">{renderTabs[activeTab]}</div>
         </div>
       </div>
     </div>

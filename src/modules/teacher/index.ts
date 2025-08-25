@@ -54,7 +54,7 @@ export function createSchedule(teacherId, disponibility) {
 }
 
 export function updateDataTeacher(email, data, include = {}) {
-  prisma.teacher.update({
+  return prisma.teacher.update({
     where: { email },
     data,
     include,

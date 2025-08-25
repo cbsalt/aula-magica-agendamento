@@ -1,41 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
 import { toast } from "react-hot-toast";
+import { generatePublicLink } from "@/services/teacherService";
 
-export const PublicLinkSection = () => {
-  const [price, setPrice] = useState(150);
-  const [currency, setCurrency] = useState("BRL");
-  const [publicUrl, setPublicUrl] = useState("");
+export const PublicLinkSection = ({ teacher, onUpdate }) => {
+  const initialPublicLink = `${process.env.NEXTAUTH_URL}/appointment/${teacher.publicLink}`;
+
+  const [price, setPrice] = useState(teacher.price || 150);
+  const [currency, setCurrency] = useState(teacher.currency || "BRL");
+  const [publicUrl, setPublicUrl] = useState(initialPublicLink || "");
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const generatePublicLink = async () => {
+  const handleGeneratePublicLink = async () => {
     setIsGenerating(true);
     try {
-      const response = await fetch("/api/teachers/me/public-link", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          price,
-          currency,
-        }),
-      });
+      const { publicUrl } = await generatePublicLink(price, currency);
 
-      if (response.ok) {
-        const data = await response.json();
-        setPublicUrl(data.publicUrl);
-        toast.success("Link público gerado com sucesso!");
-      } else {
-        const error = await response.json();
-        toast.error(`Erro: ${error.error}`);
-      }
+      setPublicUrl(publicUrl);
+      toast.success("Link público gerado com sucesso!");
+
+      onUpdate();
     } catch (error) {
       console.error("Erro ao gerar link:", error);
-      toast.error("Erro ao gerar link público");
+      toast.error(error.message || "Erro ao gerar link público");
     } finally {
       setIsGenerating(false);
     }
@@ -88,7 +78,7 @@ export const PublicLinkSection = () => {
           </div>
 
           <Button
-            onClick={generatePublicLink}
+            onClick={handleGeneratePublicLink}
             disabled={isGenerating}
             className="w-full"
           >

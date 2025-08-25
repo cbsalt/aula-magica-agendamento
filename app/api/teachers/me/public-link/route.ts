@@ -67,3 +67,44 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export async function GET(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    }
+
+    const teacher = await findTeacherByEmail(session.user.email, {
+      paymentConfig: true,
+    });
+
+    if (!teacher || !teacher.hasPublicLink) {
+      return NextResponse.json(
+        { error: "Link público não encontrado" },
+        { status: 404 }
+      );
+    }
+
+    const publicUrl = `${process.env.NEXTAUTH_URL}/appointment/${teacher.publicLinkId}`;
+
+    return NextResponse.json({
+      success: true,
+      publicUrl,
+      teacher: {
+        id: teacher.id,
+        name: teacher.name,
+        price: teacher.price,
+        currency: teacher.currency,
+        hasPublicLink: teacher.hasPublicLink,
+        publicLink: teacher.publicLinkId,
+      },
+    });
+  } catch (error) {
+    console.error("Erro ao buscar link público:", error);
+    return NextResponse.json(
+      { error: "Erro interno do servidor" },
+      { status: 500 }
+    );
+  }
+}
