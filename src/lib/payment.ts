@@ -232,7 +232,7 @@ export class PaymentService {
     };
 
     const response = await fetch(
-      "https://api-m.sandbox.paypal.com/v2/checkout/orders",
+      `${process.env.PAYPAL_API}/v2/checkout/orders`,
       {
         method: "POST",
         headers: {
@@ -261,17 +261,14 @@ export class PaymentService {
 
     const auth = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
 
-    const response = await fetch(
-      "https://api-m.sandbox.paypal.com/v1/oauth2/token",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Basic ${auth}`,
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: "grant_type=client_credentials",
-      }
-    );
+    const response = await fetch(`${process.env.PAYPAL_API}/v1/oauth2/token`, {
+      method: "POST",
+      headers: {
+        Authorization: `Basic ${auth}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: "grant_type=client_credentials",
+    });
 
     if (!response.ok) {
       throw new Error("Failed to get PayPal access token");
@@ -286,7 +283,7 @@ export class PaymentService {
       const accessToken = await this.getPayPalAccessToken();
 
       const response = await axios.post(
-        `https://api-m.sandbox.paypal.com/v2/checkout/orders/${orderId}/capture`,
+        `${process.env.PAYPAL_API}/v2/checkout/orders/${orderId}/capture`,
         {},
         {
           headers: {
