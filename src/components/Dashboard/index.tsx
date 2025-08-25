@@ -11,8 +11,10 @@ import { PaymentsSection } from "./PaymentSection";
 import { PublicLinkSection } from "./PublicSection";
 import { useSearchParams } from "next/navigation";
 import { User, CalendarDays, Link2, CreditCard, Share2 } from "lucide-react";
+import useSWR from "swr";
+import { getTeacherPublicLink } from "@/services/teacherService";
 
-export default function Dashboard() {
+export default function Dashboard({ teacherFallback }) {
   const { data: session } = useSession();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
@@ -35,16 +37,21 @@ export default function Dashboard() {
     window.history.replaceState({}, "", url.toString());
   };
 
+  const {
+    data: { teacher },
+    mutate,
+  } = useSWR("/api/teachers/me/public-link", getTeacherPublicLink, {
+    fallbackData: teacherFallback,
+  });
+
   useEffect(() => {
     if (zoomStatus === "success") {
       toast.success("Zoom conectado com sucesso");
 
-      // Remover os parâmetros da URL após o feedback
       clearUrlParams();
     }
   }, [zoomStatus]);
 
-  // Definir aba inicial com base na URL
   useEffect(() => {
     if (tabParam) {
       setActiveTab(tabParam);
@@ -110,7 +117,9 @@ export default function Dashboard() {
             {activeTab === "calendar" && <CalendarSection />}
             {activeTab === "integrations" && <IntegrationsSection />}
             {activeTab === "payments" && <PaymentsSection />}
-            {activeTab === "public-link" && <PublicLinkSection />}
+            {activeTab === "public-link" && (
+              <PublicLinkSection teacher={teacher} onUpdate={mutate} />
+            )}
           </div>
         </div>
       </div>

@@ -17,6 +17,7 @@ export async function GET(req: NextRequest) {
       id: true,
       email: true,
       name: true,
+      description: true,
       googleAccessToken: true,
       googleCalendarId: true,
       googleRefreshToken: true,
