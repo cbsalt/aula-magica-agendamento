@@ -1,177 +1,258 @@
 "use client";
 
 import { useState } from "react";
+import { useForm, FormProvider } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
 import { toast } from "react-hot-toast";
+import { saveTeacherPaymentConfig } from "@/services/teacherService";
+import { PaymentFormData, paymentSchema } from "@/lib/validation";
 
-export const PaymentsSection = () => {
-  const [paymentConfig, setPaymentConfig] = useState({
-    receiveViaStripe: false,
-    stripeAccountId: "",
-    receiveViaPayPal: false,
-    paypalEmail: "",
-  });
+export const PaymentsSection = ({ initialData }) => {
   const [isSaving, setIsSaving] = useState(false);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
-    setPaymentConfig((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
-  };
+  const methods = useForm<PaymentFormData>({
+    mode: "onChange",
+    resolver: zodResolver(paymentSchema),
+    defaultValues: {
+      receiveViaStripe: initialData?.receiveViaStripe || false,
+      stripeAccountId: initialData?.stripeAccountId || "",
+      receiveViaBank: initialData?.receiveViaBank || false,
+      bankName: initialData?.bankName || "",
+      bankAgency: initialData?.bankAgency || "",
+      bankAccount: initialData?.bankAccount || "",
+      accountHolder: initialData?.accountHolder || "",
+      pixKey: initialData?.pixKey || "",
+    },
+  });
 
-  const savePaymentConfig = async () => {
-    if (!paymentConfig.receiveViaStripe && !paymentConfig.receiveViaPayPal) {
-      toast.error("Selecione pelo menos uma forma de recebimento");
-      return;
-    }
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors, isValid },
+    setValue,
+    trigger,
+  } = methods;
 
-    if (paymentConfig.receiveViaStripe && !paymentConfig.stripeAccountId) {
-      toast.error("Informe o Stripe Account ID");
-      return;
-    }
+  const receiveViaStripe = watch("receiveViaStripe");
+  const receiveViaBank = watch("receiveViaBank");
 
-    if (paymentConfig.receiveViaPayPal && !paymentConfig.paypalEmail) {
-      toast.error("Informe o e-mail do PayPal");
-      return;
-    }
+  const inputClass =
+    "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500";
+  const errorClass = "text-xs text-red-600 mt-1";
 
+  const onSubmit = async (data: PaymentFormData) => {
     setIsSaving(true);
     try {
-      const response = await fetch("/api/teachers/me/payment-config", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...paymentConfig,
-          isActive: true,
-        }),
-      });
-
-      if (response.ok) {
-        toast.success("Configuração de pagamento salva com sucesso!");
-      } else {
-        const error = await response.json();
-        toast.error(`Erro: ${error.error}`);
-      }
-    } catch (error) {
-      console.error("Erro ao salvar configuração:", error);
-      toast.error("Erro ao salvar configuração");
+      await saveTeacherPaymentConfig(data);
+      toast.success("Configuração de pagamento salva com sucesso!");
+    } catch (err) {
+      console.error(err);
+      toast.error(err?.message || "Erro ao salvar configuração");
     } finally {
       setIsSaving(false);
     }
   };
 
+  const handleCheckboxChange = async (
+    field: "receiveViaStripe" | "receiveViaBank",
+    checked: boolean
+  ) => {
+    setValue(field, checked, { shouldValidate: false });
+    if (!checked) {
+      await handleCloseOption(field);
+    }
+  };
+
+  const handleCloseOption = async (
+    option: "receiveViaStripe" | "receiveViaBank"
+  ) => {
+    if (option === "receiveViaStripe") {
+      setValue("receiveViaStripe", false, { shouldValidate: true });
+      setValue("stripeAccountId", "", { shouldValidate: true });
+    } else if (option === "receiveViaBank") {
+      setValue("receiveViaBank", false, { shouldValidate: true });
+      [
+        "bankName",
+        "bankAgency",
+        "bankAccount",
+        "accountHolder",
+        "pixKey",
+      ].forEach((field) =>
+        setValue(field as keyof PaymentFormData, "", { shouldValidate: true })
+      );
+    }
+    await trigger();
+  };
+
+  const isAtLeastOneOptionSelected = receiveViaStripe || receiveViaBank;
+  const isSubmitDisabled = isSaving || !isValid || !isAtLeastOneOptionSelected;
+
   return (
-    <Card>
-      <CardContent className="p-6">
-        <h2 className="text-xl font-semibold mb-6">
-          Configuração de Recebimento
-        </h2>
-        <p className="text-gray-600 mb-6">
-          Configure como deseja receber os pagamentos dos alunos. A plataforma
-          processará os pagamentos e repassará os valores para você
-          automaticamente.
-        </p>
+    <FormProvider {...methods}>
+      <Card>
+        <CardContent className="p-6">
+          <h2 className="text-xl font-semibold mb-6">
+            Configuração de Recebimento
+          </h2>
+          <p className="text-gray-600 mb-6">
+            Configure como deseja receber os pagamentos dos alunos. A plataforma
+            processará os pagamentos e repassará os valores automaticamente.
+          </p>
 
-        <div className="space-y-6">
-          {/* Stripe Connect */}
-          <div className="border rounded-lg p-4">
-            <div className="flex items-center mb-4">
-              <input
-                type="checkbox"
-                name="receiveViaStripe"
-                checked={paymentConfig.receiveViaStripe}
-                onChange={handleInputChange}
-                className="mr-3"
-              />
-              <div>
-                <h3 className="font-medium">Receber via Stripe Connect</h3>
-                <p className="text-sm text-gray-600">
-                  Receba diretamente na sua conta Stripe
-                </p>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            {/* Stripe */}
+            <div className="border rounded-lg p-4">
+              <div className="flex items-center mb-4">
+                <input
+                  type="checkbox"
+                  {...register("receiveViaStripe")}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      handleCheckboxChange("receiveViaStripe", true);
+                    } else {
+                      handleCloseOption("receiveViaStripe");
+                    }
+                  }}
+                  checked={receiveViaStripe}
+                  className="mr-3"
+                />
+                <div>
+                  <h3 className="font-medium">Receber via Stripe Connect</h3>
+                  <p className="text-sm text-gray-600">
+                    Receba diretamente na sua conta Stripe
+                  </p>
+                </div>
               </div>
+
+              {receiveViaStripe && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Stripe Account ID
+                  </label>
+                  <input
+                    {...register("stripeAccountId")}
+                    placeholder="acct_xxxxxxxxxx"
+                    className={inputClass}
+                  />
+                  {errors.stripeAccountId?.message && (
+                    <p className={errorClass}>
+                      {errors.stripeAccountId.message}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
-            {paymentConfig.receiveViaStripe && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Stripe Account ID
-                </label>
+            {/* Banco / PIX */}
+            <div className="border rounded-lg p-4">
+              <div className="flex items-center mb-4">
                 <input
-                  name="stripeAccountId"
-                  value={paymentConfig.stripeAccountId}
-                  onChange={handleInputChange}
-                  placeholder="acct_xxxxxxxxxx"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  type="checkbox"
+                  {...register("receiveViaBank")}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      handleCheckboxChange("receiveViaBank", true);
+                    } else {
+                      handleCloseOption("receiveViaBank");
+                    }
+                  }}
+                  checked={receiveViaBank}
+                  className="mr-3"
                 />
-                <p className="text-xs text-gray-500 mt-1">
-                  Encontre seu Account ID no dashboard do Stripe
-                </p>
+                <div>
+                  <h3 className="font-medium">
+                    Receber via Transferência Bancária / PIX
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    Receba diretamente em sua conta bancária ou via PIX
+                  </p>
+                </div>
               </div>
-            )}
-          </div>
 
-          {/* PayPal */}
-          <div className="border rounded-lg p-4">
-            <div className="flex items-center mb-4">
-              <input
-                type="checkbox"
-                name="receiveViaPayPal"
-                checked={paymentConfig.receiveViaPayPal}
-                onChange={handleInputChange}
-                className="mr-3"
-              />
-              <div>
-                <h3 className="font-medium">Receber via PayPal</h3>
-                <p className="text-sm text-gray-600">
-                  Receba diretamente na sua conta PayPal
-                </p>
-              </div>
+              {receiveViaBank && (
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Banco
+                    </label>
+                    <input {...register("bankName")} className={inputClass} />
+                    {errors.bankName?.message && (
+                      <p className={errorClass}>{errors.bankName.message}</p>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Agência
+                      </label>
+                      <input
+                        {...register("bankAgency")}
+                        className={inputClass}
+                      />
+                      {errors.bankAgency?.message && (
+                        <p className={errorClass}>
+                          {errors.bankAgency.message}
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Conta Corrente
+                      </label>
+                      <input
+                        {...register("bankAccount")}
+                        className={inputClass}
+                      />
+                      {errors.bankAccount?.message && (
+                        <p className={errorClass}>
+                          {errors.bankAccount.message}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Titular da Conta
+                    </label>
+                    <input
+                      {...register("accountHolder")}
+                      className={inputClass}
+                    />
+                    {errors.accountHolder?.message && (
+                      <p className={errorClass}>
+                        {errors.accountHolder.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      PIX (CPF, CNPJ ou e-mail)
+                    </label>
+                    <input {...register("pixKey")} className={inputClass} />
+                    {errors.pixKey?.message && (
+                      <p className={errorClass}>{errors.pixKey.message}</p>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
-            {paymentConfig.receiveViaPayPal && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  E-mail do PayPal
-                </label>
-                <input
-                  name="paypalEmail"
-                  type="email"
-                  value={paymentConfig.paypalEmail}
-                  onChange={handleInputChange}
-                  placeholder="seu@paypal.com"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  E-mail da conta PayPal onde receberá os pagamentos
-                </p>
-              </div>
-            )}
-          </div>
-
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <h4 className="font-medium text-blue-800 mb-2">Como funciona?</h4>
-            <ul className="text-sm text-blue-700 space-y-1">
-              <li>• Os alunos escolhem como querem pagar (cartão ou PayPal)</li>
-              <li>• A plataforma processa o pagamento</li>
-              <li>• O valor é repassado automaticamente para você</li>
-              <li>• Você pode configurar múltiplas formas de recebimento</li>
-            </ul>
-          </div>
-
-          <Button
-            onClick={savePaymentConfig}
-            disabled={isSaving}
-            className="w-full"
-          >
-            {isSaving ? "Salvando..." : "Salvar Configuração"}
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+            <Button
+              type="submit"
+              disabled={isSubmitDisabled}
+              className="w-full"
+            >
+              {isSaving ? "Salvando..." : "Salvar Configuração"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </FormProvider>
   );
 };
