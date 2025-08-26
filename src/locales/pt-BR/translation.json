@@ -81,9 +81,18 @@
     "smartBooking": "Agendamento Inteligente",
     "smartBookingDesc": "Conecte seu Google Calendar e deixe os alunos verem apenas seus horários livres.",
     "autoPayments": "Pagamentos Automáticos",
-    "autoPaymentsDesc": "Receba pagamentos via Stripe ou PayPal de forma segura e automática.",
+    "autoPaymentsDesc": "Receba pagamentos via transferência bancária ou PayPal de forma segura e automática.",
     "onlineLessons": "Aulas Online",
-    "onlineLessonsDesc": "Integração com Zoom para criar links de reunião automaticamente."
+    "onlineLessonsDesc": "Geração automática de links de videochamada.",
+    "trustedByTeachers": "Recomendado por professores",
+    "ctaTitle": "Comece a ensinar hoje mesmo",
+    "ctaSubtitle": "Junte-se a milhares de professores que já usam nossa plataforma",
+    "createAccount": "Criar minha conta",
+    "statsTeachers": "500+ professores",
+    "statsLessons": "10.000+ aulas",
+    "statsSatisfaction": "99% satisfação",
+    "featureSectionTitle": "Tudo que você precisa em uma plataforma",
+    "featureSectionSubtitle": "Foco no que importa: ensinar. Deixe a burocracia conosco."
   },
   "confirmation": {
     "title": "Agendamento Confirmado!",
