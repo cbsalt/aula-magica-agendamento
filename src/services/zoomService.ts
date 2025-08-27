@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export function getZoomOAuthUrl(): string {
-  const clientId = process.env.NEXT_PUBLIC_ZOOM_CLIENT_ID;
+  const clientId = process.env.ZOOM_CLIENT_ID;
   if (!clientId) {
     throw new Error(
       "ZOOM_CLIENT_ID não está definido nas variáveis de ambiente"
