@@ -94,7 +94,7 @@ export async function processBooking({
 
   const formattedDate = formatDateForEmail(metadata.date, metadata.time);
 
-  await sendConfirmationEmail(
+  sendConfirmationEmail(
     metadata.studentEmail,
     metadata.studentName,
     formattedDate,
