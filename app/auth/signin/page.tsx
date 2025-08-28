@@ -13,22 +13,24 @@ export default function SignIn() {
   useEffect(() => {
     const checkSession = async () => {
       const session = await getSession();
+
       if (session) {
         router.push("/dashboard");
       }
     };
+
     checkSession();
   }, [router]);
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
+
     try {
-      await signIn('google', {
-        callbackUrl: '/dashboard',
-        redirect: true
+      await signIn("google", {
+        callbackUrl: "/dashboard",
+        redirect: true,
       });
     } catch (error) {
-      console.error('Erro no login:', error);
       setLoading(false);
     }
   };

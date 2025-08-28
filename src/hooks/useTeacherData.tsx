@@ -21,7 +21,7 @@ const defaultSchedule = weekDays.map((day) => ({
   endTime: "",
 }));
 
-export function useTeacherData(weekDays: { value: number }[]) {
+export function useTeacherData() {
   const [isConnected, setIsConnected] = useState(false);
   const [workSchedule, setWorkSchedule] = useState(defaultSchedule);
   const [loading, setLoading] = useState(true);
@@ -48,6 +48,7 @@ export function useTeacherData(weekDays: { value: number }[]) {
                 }
               : { dayOfWeek: day.value, startTime: "", endTime: "" };
           });
+
           setWorkSchedule(schedule);
         }
 
@@ -67,7 +68,7 @@ export function useTeacherData(weekDays: { value: number }[]) {
     return () => {
       source.cancel("Componente desmontado");
     };
-  }, [weekDays]);
+  }, []);
 
   return {
     workSchedule,
@@ -75,5 +76,6 @@ export function useTeacherData(weekDays: { value: number }[]) {
     isConnected,
     setIsConnected,
     loading,
+    weekDays,
   };
 }

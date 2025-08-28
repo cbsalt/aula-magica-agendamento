@@ -1,18 +1,18 @@
-import { useCallback, useEffect, useState } from "react";
-import { signIn, useSession } from "next-auth/react";
-import toast from "react-hot-toast";
+import { startOfDay } from "date-fns";
 import { Calendar, CircleCheck } from "lucide-react";
+import { signIn, useSession } from "next-auth/react";
+import { useCallback, useEffect, useState } from "react";
+import toast from "react-hot-toast";
 
-import { useTeacherData, weekDays } from "@/hooks/useTeacherData";
+import { useTeacherData } from "@/hooks/useTeacherData";
 import {
   fetchTeacherAvailability,
   saveTeacherAvailability,
 } from "@/services/teacherService";
 import { Availability } from "../Partials/Availability";
-import { Card, CardContent } from "../ui/card";
-import { Button } from "../ui/button";
 import { Weekday } from "../Partials/Weekday";
-import { startOfDay } from "date-fns";
+import { Button } from "../ui/button";
+import { Card, CardContent } from "../ui/card";
 
 export const CalendarSection = () => {
   const { data: session } = useSession();
@@ -27,7 +27,8 @@ export const CalendarSection = () => {
     isConnected,
     setIsConnected,
     loading,
-  } = useTeacherData(weekDays);
+    weekDays,
+  } = useTeacherData();
 
   const filterCurrentWeek = (arr) => {
     const today = startOfDay(new Date());
@@ -97,7 +98,6 @@ export const CalendarSection = () => {
 
       toast.success("Horários salvos com sucesso!");
     } catch (err) {
-      console.error(err);
       toast.error("Erro ao salvar horários.");
     } finally {
       setSaving(false);

@@ -2,6 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useSession, signOut } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
+import { User, CalendarDays, Link2, CreditCard, Share2 } from "lucide-react";
+import useSWR from "swr";
+
 import { Button } from "../ui/button";
 import toast, { Toaster } from "react-hot-toast";
 import { ProfileSection } from "./ProfileSection";
@@ -9,9 +13,6 @@ import { CalendarSection } from "./CalendarSection";
 import { IntegrationsSection } from "./IntegrationSection";
 import { PaymentsSection } from "./PaymentSection";
 import { PublicLinkSection } from "./PublicSection";
-import { useSearchParams } from "next/navigation";
-import { User, CalendarDays, Link2, CreditCard, Share2 } from "lucide-react";
-import useSWR from "swr";
 import { getTeacherPublicLink } from "@/services/teacherService";
 
 export default function Dashboard({ teacherFallback }) {
@@ -42,6 +43,7 @@ export default function Dashboard({ teacherFallback }) {
     mutate,
   } = useSWR("/api/teachers/me/public-link", getTeacherPublicLink, {
     fallbackData: teacherFallback,
+    revalidateOnFocus: false,
   });
 
   const renderTabs = {
