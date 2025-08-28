@@ -1,4 +1,3 @@
-// src/lib/process.booking.ts
 import { GoogleCalendarService } from "@/lib/google-calendar";
 import { sendConfirmationEmail } from "app/api/mail/send-confirmation-email";
 import { createZoomMeetingWithRetry } from "@/lib/zoom";
@@ -95,20 +94,12 @@ export async function processBooking({
 
   const formattedDate = formatDateForEmail(metadata.date, metadata.time);
 
-  // Envia email de confirmação
-  // await sendConfirmationEmail(
-  //   metadata.studentEmail,
-  //   metadata.studentName,
-  //   formattedDate,
-  //   meetingLink
-  // );
-
-  // await sendTestEmail(
-  //   metadata.studentEmail,
-  //   metadata.studentName,
-  //   formattedDate,
-  //   meetingLink
-  // );
+  sendConfirmationEmail(
+    metadata.studentEmail,
+    metadata.studentName,
+    formattedDate,
+    meetingLink
+  );
 }
 
 function formatDateForEmail(date: string, time: string, locale = "en-US") {
