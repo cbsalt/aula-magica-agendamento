@@ -7,7 +7,7 @@ import { toast } from "react-hot-toast";
 import { generatePublicLink } from "@/services/teacherService";
 
 export const PublicLinkSection = ({ teacher, onUpdate }) => {
-  const initialPublicLink = `${process.env.NEXTAUTH_URL}/appointment/${teacher.publicLink}`;
+  const initialPublicLink = teacher.publicLink;
 
   const [price, setPrice] = useState(teacher.price || 150);
   const [currency, setCurrency] = useState(teacher.currency || "BRL");

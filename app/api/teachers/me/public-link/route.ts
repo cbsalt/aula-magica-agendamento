@@ -79,25 +79,20 @@ export async function GET(request: NextRequest) {
       paymentConfig: true,
     });
 
-    if (!teacher || !teacher.hasPublicLink) {
-      return NextResponse.json(
-        { error: "Link público não encontrado" },
-        { status: 404 }
-      );
-    }
-
-    const publicUrl = `${process.env.NEXTAUTH_URL}/appointment/${teacher.publicLinkId}`;
+    const publicLink = teacher.hasPublicLink
+      ? `${process.env.NEXTAUTH_URL}/appointment/${teacher.publicLinkId}`
+      : "";
 
     return NextResponse.json({
       success: true,
-      publicUrl,
+      publicLink,
       teacher: {
         id: teacher.id,
         name: teacher.name,
         price: teacher.price,
         currency: teacher.currency,
         hasPublicLink: teacher.hasPublicLink,
-        publicLink: teacher.publicLinkId,
+        publicLink,
       },
     });
   } catch (error) {
