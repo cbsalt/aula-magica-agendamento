@@ -1,6 +1,6 @@
 -- CreateTable
 CREATE TABLE "accounts" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "user_id" TEXT NOT NULL,
     "type" TEXT NOT NULL,
     "provider" TEXT NOT NULL,
@@ -13,42 +13,46 @@ CREATE TABLE "accounts" (
     "id_token" TEXT,
     "session_state" TEXT,
     "refresh_token_expires_in" INTEGER,
-    CONSTRAINT "accounts_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+
+    CONSTRAINT "accounts_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "sessions" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "session_token" TEXT NOT NULL,
     "user_id" TEXT NOT NULL,
-    "expires" DATETIME NOT NULL,
-    CONSTRAINT "sessions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    "expires" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "sessions_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "users" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "name" TEXT,
     "email" TEXT NOT NULL,
-    "email_verified" DATETIME,
-    "image" TEXT
+    "email_verified" TIMESTAMP(3),
+    "image" TEXT,
+
+    CONSTRAINT "users_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "verificationtokens" (
     "identifier" TEXT NOT NULL,
     "token" TEXT NOT NULL,
-    "expires" DATETIME NOT NULL
+    "expires" TIMESTAMP(3) NOT NULL
 );
 
 -- CreateTable
 CREATE TABLE "teachers" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "photo" TEXT,
     "description" TEXT,
-    "price" REAL NOT NULL DEFAULT 150,
+    "price" DOUBLE PRECISION NOT NULL DEFAULT 150,
     "currency" TEXT NOT NULL DEFAULT 'BRL',
     "slug" TEXT NOT NULL,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
@@ -57,57 +61,64 @@ CREATE TABLE "teachers" (
     "googleCalendarId" TEXT,
     "zoomAccessToken" TEXT,
     "zoomRefreshToken" TEXT,
-    "zoomEmail" TEXT,
-    "zoomPassword" TEXT,
+    "zoomConnected" BOOLEAN,
     "has_public_link" BOOLEAN NOT NULL DEFAULT false,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL
+    "public_link_id" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "teachers_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "payment_configs" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "teacher_id" TEXT NOT NULL,
     "receive_via_stripe" BOOLEAN NOT NULL DEFAULT false,
     "stripe_account_id" TEXT,
     "receive_via_paypal" BOOLEAN NOT NULL DEFAULT false,
     "paypalEmail" TEXT,
     "is_active" BOOLEAN NOT NULL DEFAULT false,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
-    CONSTRAINT "payment_configs_teacher_id_fkey" FOREIGN KEY ("teacher_id") REFERENCES "teachers" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "payment_configs_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "bookings" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "teacher_id" TEXT NOT NULL,
     "student_name" TEXT NOT NULL,
     "student_email" TEXT NOT NULL,
-    "date" DATETIME NOT NULL,
+    "date" TIMESTAMP(3) NOT NULL,
     "time" TEXT NOT NULL,
     "status" TEXT NOT NULL DEFAULT 'pending',
+    "notes" TEXT,
     "payment_id" TEXT,
+    "paypal_order_id" TEXT,
     "paymentStatus" TEXT NOT NULL DEFAULT 'pending',
-    "amount" REAL NOT NULL,
+    "amount" DOUBLE PRECISION NOT NULL,
     "currency" TEXT NOT NULL,
     "zoom_link" TEXT,
     "meet_link" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
-    CONSTRAINT "bookings_teacher_id_fkey" FOREIGN KEY ("teacher_id") REFERENCES "teachers" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "bookings_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "teacher_work_schedules" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "teacher_id" TEXT NOT NULL,
     "dayOfWeek" INTEGER NOT NULL,
     "startTime" TEXT NOT NULL,
     "endTime" TEXT NOT NULL,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
-    CONSTRAINT "teacher_work_schedules_teacher_id_fkey" FOREIGN KEY ("teacher_id") REFERENCES "teachers" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "teacher_work_schedules_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -132,7 +143,28 @@ CREATE UNIQUE INDEX "teachers_email_key" ON "teachers"("email");
 CREATE UNIQUE INDEX "teachers_slug_key" ON "teachers"("slug");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "teachers_public_link_id_key" ON "teachers"("public_link_id");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "payment_configs_teacher_id_key" ON "payment_configs"("teacher_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "teacher_work_schedules_teacher_id_dayOfWeek_startTime_endTime_key" ON "teacher_work_schedules"("teacher_id", "dayOfWeek", "startTime", "endTime");
+CREATE UNIQUE INDEX "bookings_payment_id_key" ON "bookings"("payment_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "teacher_work_schedules_teacher_id_dayOfWeek_startTime_endTi_key" ON "teacher_work_schedules"("teacher_id", "dayOfWeek", "startTime", "endTime");
+
+-- AddForeignKey
+ALTER TABLE "accounts" ADD CONSTRAINT "accounts_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "sessions" ADD CONSTRAINT "sessions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "payment_configs" ADD CONSTRAINT "payment_configs_teacher_id_fkey" FOREIGN KEY ("teacher_id") REFERENCES "teachers"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "bookings" ADD CONSTRAINT "bookings_teacher_id_fkey" FOREIGN KEY ("teacher_id") REFERENCES "teachers"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "teacher_work_schedules" ADD CONSTRAINT "teacher_work_schedules_teacher_id_fkey" FOREIGN KEY ("teacher_id") REFERENCES "teachers"("id") ON DELETE CASCADE ON UPDATE CASCADE;
