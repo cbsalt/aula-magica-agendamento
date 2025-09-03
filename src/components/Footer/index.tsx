@@ -18,6 +18,12 @@ export default function Footer() {
           <Link href="/terms" className="hover:underline">
             Termos de Serviço
           </Link>
+          <Link href="/support" className="hover:underline">
+            Suporte
+          </Link>
+          <Link href="/help/zoom" className="hover:underline">
+            Integração Zoom
+          </Link>
           <a
             href="mailto:contato@scheduleasier.com"
             className="hover:underline"
