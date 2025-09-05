@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import Dashboard from "@/components/Dashboard";
 
 import { findTeacherByEmail } from "@/modules/teacher";
+import Footer from "@/components/Footer";
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
@@ -16,5 +17,10 @@ export default async function DashboardPage() {
     paymentConfig: true,
   });
 
-  return <Dashboard teacherFallback={teacher} />;
+  return (
+    <>
+      <Dashboard teacherFallback={teacher} />
+      <Footer />
+    </>
+  );
 }

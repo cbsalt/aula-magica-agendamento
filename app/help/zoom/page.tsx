@@ -1,13 +1,15 @@
 import Footer from "@/components/Footer";
+import { Plug, Calendar, Trash2, LifeBuoy } from "lucide-react";
 
 export default function Documentation() {
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
       <main className="flex-grow max-w-4xl mx-auto px-4 py-12">
         <h1 className="text-3xl font-bold mb-6">Documentação do Aplicativo</h1>
-        <p className="mb-4">Última atualização: 2 de setembro de 2025</p>
+        <p className="mb-4">Última atualização: 4 de setembro de 2025</p>
 
         <h2 className="text-2xl font-semibold mt-6 mb-2 flex items-center gap-2">
+          <Plug className="w-6 h-6 text-blue-600" />
           1. Adicionando o Zoom ao Scheduleasier
         </h2>
         <ol className="list-decimal list-inside mb-4 space-y-1">
@@ -25,7 +27,9 @@ export default function Documentation() {
           </li>
           <li>Após autorizar, a integração estará ativa e pronta para uso.</li>
         </ol>
-        <p className="mb-4 font-semibold">Problemas comuns:</p>
+        <p className="mb-4 font-semibold flex items-center gap-2">
+          <LifeBuoy className="w-5 h-5 text-indigo-600" /> Problemas comuns:
+        </p>
         <ul className="list-disc list-inside mb-4">
           <li>
             Se o botão <strong>Conectar</strong> não funcionar, verifique se
@@ -35,33 +39,61 @@ export default function Documentation() {
             Se sua organização restringe apps externos, peça ao administrador do
             Zoom para liberar o Scheduleasier.
           </li>
+          <li>
+            Se o problema persistir, entre em contato com nosso suporte em{" "}
+            <a
+              href="mailto:contato@scheduleasier.com"
+              className="text-blue-600 hover:underline"
+            >
+              contato@scheduleasier.com
+            </a>
+            .
+          </li>
         </ul>
 
         <h2 className="text-2xl font-semibold mt-6 mb-2 flex items-center gap-2">
+          <Calendar className="w-6 h-6 text-green-600" />
           2. Uso do App
         </h2>
-        <ul className="list-disc list-inside mb-4">
-          <li>
-            <strong>Agendamento automático de links:</strong> sempre que for
-            criado um agendamento no Scheduleasier, um link de reunião Zoom é
-            gerado automaticamente.
-          </li>
-          <li>
-            <strong>Sincronização de eventos:</strong> todas as reuniões criadas
-            ficam sincronizadas no seu calendário também no Zoom.
-          </li>
-          <li>
-            <strong>Lembretes automáticos:</strong> notificações por e-mail são
-            enviadas para os participantes quando o pagamento é confirmado.
-          </li>
-        </ul>
-        <p className="mb-4 font-semibold">Pré-requisitos:</p>
-        <ul className="list-disc list-inside mb-4">
-          <li>Conta Zoom válida.</li>
-          <li>App Scheduleasier autorizado na sua conta Zoom.</li>
-        </ul>
+
+        <h3 className="text-xl font-semibold mt-4 mb-2">
+          Agendamento automático de links
+        </h3>
+        <p className="mb-2">
+          Quando o professor gera um link único e o aluno agenda uma aula, o
+          Scheduleasier cria automaticamente uma reunião no Zoom associada ao
+          agendamento.
+        </p>
+        <p className="mb-4">
+          <strong>Pré-requisito:</strong> integração com Zoom autorizada.
+        </p>
+
+        <h3 className="text-xl font-semibold mt-4 mb-2">
+          Sincronização de eventos
+        </h3>
+        <p className="mb-2">
+          Todas as reuniões criadas no Scheduleasier ficam sincronizadas também
+          no seu Zoom, garantindo que você veja os compromissos em ambas as
+          plataformas.
+        </p>
+        <p className="mb-4">
+          <strong>Pré-requisito:</strong> conta Zoom válida.
+        </p>
+
+        <h3 className="text-xl font-semibold mt-4 mb-2">
+          Lembretes automáticos
+        </h3>
+        <p className="mb-2">
+          O aluno recebe notificações por e-mail assim que o pagamento é
+          confirmado. Se a integração com Zoom estiver ativa, o link enviado no
+          e-mail será da reunião Zoom.
+        </p>
+        <p className="mb-4">
+          <strong>Pré-requisito:</strong> agendamento pago e integração ativa.
+        </p>
 
         <h2 className="text-2xl font-semibold mt-6 mb-2 flex items-center gap-2">
+          <Trash2 className="w-6 h-6 text-red-600" />
           3. Removendo a integração com Zoom
         </h2>
         <ol className="list-decimal list-inside mb-4 space-y-1">
