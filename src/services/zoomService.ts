@@ -7,7 +7,7 @@ export function getZoomOAuthUrl(): string {
       "ZOOM_CLIENT_ID não está definido nas variáveis de ambiente"
     );
   }
-  const redirectUri = `${window.location.origin}/api/zoom/connect`;
+  const redirectUri = `${process.env.NEXTAUTH_URL}/api/zoom/connect`;
 
   const params = new URLSearchParams({
     response_type: "code",

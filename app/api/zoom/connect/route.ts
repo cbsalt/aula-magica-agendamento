@@ -7,11 +7,11 @@ import { ZoomService } from "@/lib/zoom";
 
 export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get("code");
-  const redirectUri = `${req.nextUrl.origin}/api/zoom/connect`;
+  const redirectUri = `${process.env.NEXTAUTH_URL}/api/zoom/connect`;
 
   if (!code) {
     return NextResponse.redirect(
-      `${req.nextUrl.origin}/dashboard?error=missing_code`
+      `${process.env.NEXTAUTH_URL}/dashboard?error=missing_code`
     );
   }
 
