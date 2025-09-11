@@ -8,6 +8,7 @@ export default function Documentation() {
         <h1 className="text-3xl font-bold mb-6">Documentação do Aplicativo</h1>
         <p className="mb-4">Última atualização: 4 de setembro de 2025</p>
 
+        {/* 1. Adicionando o App */}
         <h2 className="text-2xl font-semibold mt-6 mb-2 flex items-center gap-2">
           <Plug className="w-6 h-6 text-blue-600" />
           1. Adicionando o Zoom ao Scheduleasier
@@ -25,10 +26,16 @@ export default function Documentation() {
             Você será redirecionado para o Zoom para autorizar o Scheduleasier a
             acessar sua conta.
           </li>
+          <li>
+            Na tela de consentimento do Zoom, clique em <strong>Allow</strong>.
+            A permissão <em>Create a meeting for a user</em> será solicitada
+            para que o app possa criar reuniões automaticamente em seu nome.
+          </li>
           <li>Após autorizar, a integração estará ativa e pronta para uso.</li>
         </ol>
+
         <p className="mb-4 font-semibold flex items-center gap-2">
-          <LifeBuoy className="w-5 h-5 text-indigo-600" /> Problemas comuns:
+          <LifeBuoy className="w-5 h-5 text-indigo-600" /> Solução de problemas:
         </p>
         <ul className="list-disc list-inside mb-4">
           <li>
@@ -41,16 +48,14 @@ export default function Documentation() {
           </li>
           <li>
             Se o problema persistir, entre em contato com nosso suporte em{" "}
-            <a
-              href="mailto:contato@scheduleasier.com"
-              className="text-blue-600 hover:underline"
-            >
+            <a href="#suporte" className="text-blue-600 hover:underline">
               contato@scheduleasier.com
             </a>
             .
           </li>
         </ul>
 
+        {/* 2. Uso do App */}
         <h2 className="text-2xl font-semibold mt-6 mb-2 flex items-center gap-2">
           <Calendar className="w-6 h-6 text-green-600" />
           2. Uso do App
@@ -92,6 +97,7 @@ export default function Documentation() {
           <strong>Pré-requisito:</strong> agendamento pago e integração ativa.
         </p>
 
+        {/* 3. Removendo o App */}
         <h2 className="text-2xl font-semibold mt-6 mb-2 flex items-center gap-2">
           <Trash2 className="w-6 h-6 text-red-600" />
           3. Removendo a integração com Zoom
@@ -128,6 +134,28 @@ export default function Documentation() {
             Nenhuma reunião ou dado pessoal é mantido, exceto registros de
             auditoria exigidos por lei.
           </li>
+        </ul>
+
+        {/* 4. Suporte */}
+        <h2
+          id="suporte"
+          className="text-2xl font-semibold mt-6 mb-2 flex items-center gap-2"
+        >
+          <LifeBuoy className="w-5 h-5 text-indigo-600" />
+          4. Suporte
+        </h2>
+        <ul className="list-disc list-inside mb-4">
+          <li>
+            E-mail:{" "}
+            <a
+              href="mailto:contato@scheduleasier.com"
+              className="text-blue-600 hover:underline"
+            >
+              contato@scheduleasier.com
+            </a>
+          </li>
+          <li>Horário de atendimento: Seg a Sex, 9h às 18h (Brasil)</li>
+          <li>SLA de primeira resposta: até 24h úteis</li>
         </ul>
       </main>
       <Footer />
