@@ -2,7 +2,7 @@ import { NextApiResponse } from "next";
 import { NextRequest, NextResponse } from "next/server";
 
 import { findBooking, updateBooking } from "@/modules/booking";
-import { processBooking } from "@/lib/process.booking";
+import { processBooking, processBatchBooking } from "@/lib/process.booking";
 
 export async function POST(req: NextRequest) {
   try {
@@ -37,19 +37,29 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    await processBooking({
-      booking,
-      paymentId: localBookingId,
-      teacherId: booking.teacherId,
-      metadata: {
-        studentName: booking.studentName,
-        studentEmail: booking.studentEmail,
-        date: booking.date.toISOString().split("T")[0],
-        time: booking.time,
-      },
-      amount,
-      currency,
-    });
+    if (booking.batchId) {
+      processBatchBooking({
+        masterBooking: booking,
+        paymentId: localBookingId,
+        teacherId: booking.teacherId,
+        amount,
+        currency,
+      });
+    } else {
+      processBooking({
+        booking,
+        paymentId: localBookingId,
+        teacherId: booking.teacherId,
+        metadata: {
+          studentName: booking.studentName,
+          studentEmail: booking.studentEmail,
+          date: booking.date.toISOString().split("T")[0],
+          time: booking.time,
+        },
+        amount,
+        currency,
+      });
+    }
 
     return new NextResponse(null, { status: 200 });
   } catch (err) {

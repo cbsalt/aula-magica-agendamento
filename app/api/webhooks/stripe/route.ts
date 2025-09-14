@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStripeInstance } from "@/lib/payment";
-import { processBooking } from "@/lib/process.booking";
+import { processBatchBooking, processBooking } from "@/lib/process.booking";
 import { prisma } from "@/lib/prisma";
 
 export const config = {
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
 
-    const booking = await prisma.booking.findUnique({
+    const booking = await prisma.booking.findFirst({
       where: { paymentId: session.id },
     });
 
@@ -48,21 +48,31 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    processBooking({
-      booking,
-      paymentId: session.id,
-      teacherId: session.metadata.teacherId,
-      metadata: {
-        studentName: session.metadata.studentName,
-        studentEmail: session.metadata.studentEmail,
-        date: session.metadata.date,
-        time: session.metadata.time,
-      },
-      amount: session.amount_total / 100,
-      currency: session.currency,
-    }).catch((err) => {
-      console.error("Erro ao processar booking:", err);
-    });
+    if (booking.batchId) {
+      processBatchBooking({
+        masterBooking: booking,
+        paymentId: session.id,
+        teacherId: booking.teacherId,
+        amount: session.amount_total / 100,
+        currency: session.currency,
+      });
+    } else {
+      processBooking({
+        booking,
+        paymentId: session.id,
+        teacherId: session.metadata.teacherId,
+        metadata: {
+          studentName: session.metadata.studentName,
+          studentEmail: session.metadata.studentEmail,
+          date: session.metadata.date,
+          time: session.metadata.time,
+        },
+        amount: session.amount_total / 100,
+        currency: session.currency,
+      }).catch((err) => {
+        console.error("Erro ao processar booking:", err);
+      });
+    }
   }
 
   return NextResponse.json({ received: true });
