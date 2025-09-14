@@ -121,7 +121,7 @@ export async function sendBatchConfirmationEmail(
         <div style="background-color:#f8f9fa; padding: 16px; border-radius: 4px; margin: 20px 0;">
           <h3 style="margin: 0 0 8px 0; color: #1a73e8;">Resumo do Pagamento</h3>
           <p style="margin: 0; font-size: 18px; font-weight: bold;">
-            Total: ${totalAmount.toFixed(2)} ${currency}
+            Total: ${totalAmount.toFixed(2)} ${currency.toUpperCase()}
           </p>
           <p style="margin: 4px 0 0 0; color: #666; font-size: 14px;">
             ${bookings.length} ${
