@@ -132,11 +132,15 @@ model Booking {
   notes  String?
 
   // Payment
-  paymentId     String? @unique @map("payment_id")
+  paymentId     String? @map("payment_id")
   paypalOrderId String? @map("paypal_order_id")
   paymentStatus String  @default("pending") // pending, paid, failed, refunded
   amount        Float
   currency      String
+
+  // Batch processing
+  batchId       String? @map("batch_id") // ID para agrupar múltiplos agendamentos
+  isBatchMaster Boolean @default(false) @map("is_batch_master") // Se é o agendamento principal do lote
 
   // Meeting Links
   zoomLink String? @map("zoom_link")
