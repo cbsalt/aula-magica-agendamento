@@ -1,8 +1,39 @@
-import { t } from "i18next";
-import { ArrowRight, Clock } from "lucide-react";
+import { useSelectedTimes } from "@/hooks/useSelectedTimes";
 import { formatDateString } from "@/utils";
+import { toZonedTime } from "date-fns-tz";
+import { t } from "i18next";
+import { ArrowRight, Clock, X } from "lucide-react";
 
-export function TeacherAvailability({ day, handleSlot, selectedTime }) {
+interface Props {
+  day;
+  handleSlot: (slot: { date: Date; time: string }) => void;
+  selectedTimes: Array<{ date: Date; time: string }>;
+}
+
+const TIMEZONE = "America/Sao_Paulo";
+
+export function TeacherAvailability({ day, handleSlot, selectedTimes }: Props) {
+  const { isTimeSlotSelected } = useSelectedTimes();
+
+  const getZonedSlotDate = (dayDate: Date, slotStart: string) => {
+    const [hours, minutes] = slotStart.split(":").map(Number);
+    const zonedDate = toZonedTime(dayDate, TIMEZONE);
+    zonedDate.setHours(hours, minutes, 0, 0);
+    return zonedDate;
+  };
+
+  const isSlotSelected = (slot) => {
+    const start = formatDateString(slot.start);
+    const zonedDate = getZonedSlotDate(day.date, start);
+    return isTimeSlotSelected({ date: zonedDate, time: start });
+  };
+
+  const handleSlotClick = (slot) => {
+    const start = formatDateString(slot.start);
+    const zonedDate = getZonedSlotDate(day.date, start);
+    handleSlot({ date: zonedDate, time: start });
+  };
+
   return (
     <div className="space-y-2">
       <h4 className="text-1xl font-semibold text-gray-800">
@@ -13,13 +44,12 @@ export function TeacherAvailability({ day, handleSlot, selectedTime }) {
         {day.slots.map((slot, i) => {
           const start = formatDateString(slot.start);
           const end = formatDateString(slot.end);
-
-          const isSelected = selectedTime === start;
+          const isSelected = isSlotSelected(slot);
 
           return (
             <button
               key={i}
-              onClick={() => handleSlot(slot)}
+              onClick={() => handleSlotClick(slot)}
               className={`flex w-[180px] items-center gap-2 justify-center py-2 rounded-md border text-sm font-medium transition-colors ${
                 isSelected
                   ? "bg-primary text-white border-primary"
@@ -32,6 +62,8 @@ export function TeacherAvailability({ day, handleSlot, selectedTime }) {
 
               <ArrowRight className="h-4 w-4" />
               <span>{end}</span>
+
+              {isSelected && <X className="h-4 w-4 ml-1" />}
             </button>
           );
         })}
