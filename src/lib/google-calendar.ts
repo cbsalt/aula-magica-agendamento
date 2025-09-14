@@ -73,7 +73,7 @@ export class GoogleCalendarService {
     });
   }
 
-  async createEvent(calendarId: string, eventData) {
+  async createEvent(eventData) {
     return this.requestWithRefresh(async () => {
       const calendar = google.calendar({
         version: "v3",
@@ -81,7 +81,7 @@ export class GoogleCalendarService {
       });
 
       const response = await calendar.events.insert({
-        calendarId,
+        calendarId: "primary",
         requestBody: eventData,
         conferenceDataVersion: 1,
       });
