@@ -109,6 +109,12 @@
     "creditCardDesc": "Pay securely with your card",
     "paypal": "PayPal",
     "paypalDesc": "Pay with your PayPal account",
+    "selectedTimes": "Selected Times",
+    "total": "Total",
+    "lesson": "lesson",
+    "lessons": "lessons",
+    "continue": "Continue",
+    "clear": "Clear",
     "noAvailableTimes": "No available times",
     "back": "Back",
     "errors": {

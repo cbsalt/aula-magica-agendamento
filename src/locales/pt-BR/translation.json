@@ -131,6 +131,12 @@
     "creditCardDesc": "Pague com cartão de forma segura",
     "paypal": "PayPal",
     "paypalDesc": "Pague com sua conta PayPal",
+    "selectedTimes": "Horários Selecionados",
+    "total": "Total",
+    "lesson": "aula",
+    "lessons": "aulas",
+    "continue": "Continuar",
+    "clear": "Limpar",
     "noAvailableTimes": "Nenhum horário disponível",
     "back": "Voltar",
     "errors": {
