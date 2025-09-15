@@ -95,13 +95,10 @@ CREATE TABLE "bookings" (
     "time" TEXT NOT NULL,
     "status" TEXT NOT NULL DEFAULT 'pending',
     "notes" TEXT,
-    "payment_id" TEXT,
     "paypal_order_id" TEXT,
     "paymentStatus" TEXT NOT NULL DEFAULT 'pending',
     "amount" DOUBLE PRECISION NOT NULL,
     "currency" TEXT NOT NULL,
-    "batch_id" TEXT,
-    "is_batch_master" BOOLEAN NOT NULL DEFAULT false,
     "zoom_link" TEXT,
     "meet_link" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -149,9 +146,6 @@ CREATE UNIQUE INDEX "teachers_public_link_id_key" ON "teachers"("public_link_id"
 
 -- CreateIndex
 CREATE UNIQUE INDEX "payment_configs_teacher_id_key" ON "payment_configs"("teacher_id");
-
--- CreateIndex
-CREATE UNIQUE INDEX "bookings_payment_id_key" ON "bookings"("payment_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "teacher_work_schedules_teacher_id_dayOfWeek_startTime_endTi_key" ON "teacher_work_schedules"("teacher_id", "dayOfWeek", "startTime", "endTime");
