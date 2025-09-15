@@ -2,15 +2,16 @@ import { CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
-import { format } from "date-fns";
+import { addHours, format, parse, parseISO, setHours } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import AnimatedCard from "./animated-card";
 import { Teacher } from "@prisma/client";
+import { addOneHour } from "@/utils";
+import { ArrowRight } from "lucide-react";
 
 interface Props {
   teacher: Teacher;
-  selectedDate: Date;
-  selectedTime: string;
+  selectedTimes: Array<{ date: Date; time: string }>;
   studentData: {
     name?: string;
     email?: string;
@@ -23,8 +24,7 @@ interface Props {
 
 export default function PaymentStep({
   teacher,
-  selectedDate,
-  selectedTime,
+  selectedTimes,
   studentData,
   studentPaymentMethod,
   setStudentPaymentMethod,
@@ -32,6 +32,8 @@ export default function PaymentStep({
   loading,
 }: Props) {
   const { t } = useTranslation();
+
+  const totalAmount = teacher.price * selectedTimes.length;
 
   return (
     <AnimatedCard>
@@ -45,22 +47,63 @@ export default function PaymentStep({
           <p>
             <strong>{t("publicBooking.teacher")}</strong> {teacher.name}
           </p>
-          <p>
-            <strong>{t("publicBooking.date")}</strong>{" "}
-            {format(selectedDate, "dd/MM/yyyy", { locale: ptBR })}
-          </p>
-          <p>
-            <strong>{t("publicBooking.time")}</strong> {selectedTime}
-          </p>
+
+          <div className="mt-3">
+            <strong>{t("publicBooking.selectedTimes")}</strong>
+            <div className="mt-2 space-y-1">
+              {selectedTimes.map((timeSlot, index) => {
+                const endTime = addOneHour(timeSlot.time);
+
+                return (
+                  <div
+                    key={index}
+                    className="flex justify-between items-center rounded-xl border p-4 mb-2 bg-white shadow-sm"
+                  >
+                    {/* Coluna da data + horário */}
+                    <div className="flex flex-col">
+                      <span className="text-sm text-gray-500">
+                        {format(timeSlot.date, "dd/MM/yyyy", { locale: ptBR })}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg font-medium">
+                          {timeSlot.time}
+                        </span>
+                        <ArrowRight className="w-5 h-5 text-gray-400" />
+                        <span className="text-lg font-medium">{endTime}</span>
+                      </div>
+                    </div>
+
+                    {/* Coluna do preço */}
+                    <span className="text-lg font-semibold text-gray-700">
+                      {teacher.currency} {teacher.price.toFixed(2)}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="mt-3 pt-3 border-t border-gray-300">
+            <div className="flex justify-between items-center font-semibold">
+              <span>{t("publicBooking.total")}</span>
+              <span>
+                {totalAmount.toFixed(2)} {teacher.currency}
+              </span>
+            </div>
+            <div className="text-xs text-gray-500 mt-1">
+              {selectedTimes.length}{" "}
+              {selectedTimes.length === 1
+                ? t("publicBooking.lesson")
+                : t("publicBooking.lessons")}{" "}
+              × {teacher.price.toFixed(2)} {teacher.currency}
+            </div>
+          </div>
+
           <p>
             <strong>{t("publicBooking.student")}</strong> {studentData.name}
           </p>
           <p>
             <strong>{t("publicBooking.email")}</strong> {studentData.email}
-          </p>
-          <p>
-            <strong>{t("publicBooking.value")}</strong>{" "}
-            {teacher.price.toFixed(2)} {teacher.currency}
           </p>
         </div>
 
@@ -95,10 +138,14 @@ export default function PaymentStep({
           ))}
         </div>
 
-        <Button onClick={handleBooking} disabled={loading} className="w-full">
+        <Button
+          onClick={handleBooking}
+          disabled={loading || selectedTimes.length === 0}
+          className="w-full"
+        >
           {loading
             ? t("payment.processing")
-            : `${t("payment.pay")} ${teacher.price.toFixed(2)} ${
+            : `${t("payment.pay")} ${totalAmount.toFixed(2)} ${
                 teacher.currency
               }`}
         </Button>

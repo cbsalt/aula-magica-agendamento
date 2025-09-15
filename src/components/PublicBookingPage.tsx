@@ -1,32 +1,35 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { format } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { fetchTeacherAvailability } from "@/services/teacherService";
+import { format } from "date-fns";
 import { motion } from "framer-motion";
+import { useCallback, useEffect, useState } from "react";
 
 import LanguageSelector from "@/components/LanguageSelector";
-import { useTranslation } from "react-i18next";
+import { SelectedTimesProvider } from "@/contexts/SelectedTimesContext";
+import { useSelectedTimes } from "@/hooks/useSelectedTimes";
 import { createBooking } from "@/services/paymentService";
-import DateSelectionStep from "./Steps/date-selection";
-import { TimeSelectionStep } from "./Steps/time-selection";
-import { StudentInfoFormData, StudentInfoStep } from "./Steps/student-info";
-import PaymentStep from "./Steps/payment";
-import { ITeacher } from "./interfaces";
 import { Teacher } from "@prisma/client";
+import { useTranslation } from "react-i18next";
+import SelectedTimesDrawer from "./SelectedTimesDrawer";
+import DateSelectionStep from "./Steps/date-selection";
+import PaymentStep from "./Steps/payment";
+import { StudentInfoFormData, StudentInfoStep } from "./Steps/student-info";
+import { TimeSelectionStep } from "./Steps/time-selection";
 
 interface Props {
   teacher: Teacher;
 }
 
-export default function PublicBookingPage({ teacher }: Props) {
+function PublicBookingPageContent({ teacher }: Props) {
   const { t } = useTranslation();
+  const { selectedTimes, addTimeSlot, removeTimeSlot, isTimeSlotSelected } =
+    useSelectedTimes();
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [teacherAvailability, setTeacherAvailability] = useState([] as []);
-  const [selectedTime, setSelectedTime] = useState<string>("");
   const [studentData, setStudentData] = useState<{
     name?: string;
     email?: string;
@@ -54,13 +57,16 @@ export default function PublicBookingPage({ teacher }: Props) {
         const data = await fetchTeacherAvailability(teacher.id);
 
         const filteredAvailability = data.availability
-          .filter((slot) => slot.date === formattedDate)
-          .map((slot) => ({
-            ...slot,
-            time: new Date(slot.start).toLocaleTimeString("pt-BR", {
-              hour: "2-digit",
-              minute: "2-digit",
-            }),
+          .filter((day) => day.date === formattedDate)
+          .map((day) => ({
+            ...day,
+            slots: day.slots.map((slot) => ({
+              ...slot,
+              time: new Date(slot.start).toLocaleTimeString("pt-BR", {
+                hour: "2-digit",
+                minute: "2-digit",
+              }),
+            })),
           }));
 
         setTeacherAvailability(filteredAvailability);
@@ -81,7 +87,6 @@ export default function PublicBookingPage({ teacher }: Props) {
 
   const handleDateSelect = (date: Date | undefined) => {
     setSelectedDate(date);
-    setSelectedTime("");
     setStep("time");
   };
 
@@ -95,19 +100,34 @@ export default function PublicBookingPage({ teacher }: Props) {
     setError(null);
 
     try {
-      const payload = {
-        teacherId: teacher.id,
-        studentName: studentData.name,
-        studentEmail: studentData.email,
-        date: format(selectedDate, "yyyy-MM-dd"),
-        time: selectedTime,
-        studentPaymentMethod,
-      };
+      let payload;
+
+      if (selectedTimes.length > 1) {
+        payload = {
+          teacherId: teacher.id,
+          studentName: studentData.name,
+          studentEmail: studentData.email,
+          timeSlots: selectedTimes.map((timeSlot) => ({
+            date: format(timeSlot.date, "yyyy-MM-dd"),
+            time: timeSlot.time,
+          })),
+          studentPaymentMethod,
+        };
+      } else {
+        payload = {
+          teacherId: teacher.id,
+          studentName: studentData.name,
+          studentEmail: studentData.email,
+          date: format(selectedDate, "yyyy-MM-dd"),
+          time: selectedTimes[0]?.time || "",
+          studentPaymentMethod,
+        };
+      }
 
       const result = await createBooking(payload);
 
       if (result.paymentUrl) {
-        window.location.href = result.paymentUrl; // redireciona para o Stripe Checkout
+        window.location.href = result.paymentUrl;
       } else {
         setError("Erro inesperado ao redirecionar para o pagamento.");
       }
@@ -118,14 +138,12 @@ export default function PublicBookingPage({ teacher }: Props) {
     }
   };
 
-  const handleScheduledSlot = (slot) => {
-    const formmatedSlot = `${format(slot.start, "HH:mm")} - ${format(
-      slot.end,
-      "HH:mm"
-    )}`;
-
-    setSelectedTime(formmatedSlot);
-    setStep("info");
+  const handleScheduledSlot = (slot: { date: Date; time: string }) => {
+    if (isTimeSlotSelected(slot)) {
+      removeTimeSlot(slot);
+    } else {
+      addTimeSlot(slot);
+    }
   };
 
   return (
@@ -206,11 +224,10 @@ export default function PublicBookingPage({ teacher }: Props) {
               selectedDate={selectedDate}
               onChangeDate={(newDate) => {
                 setSelectedDate(newDate);
-                setSelectedTime("");
               }}
               error={error}
               teacherAvailability={teacherAvailability}
-              selectedTime={selectedTime}
+              selectedTimes={selectedTimes}
               handleSlot={handleScheduledSlot}
               loadingAvailability={loadingAvailability}
             />
@@ -223,8 +240,7 @@ export default function PublicBookingPage({ teacher }: Props) {
           {step === "payment" && (
             <PaymentStep
               teacher={teacher}
-              selectedDate={selectedDate}
-              selectedTime={selectedTime}
+              selectedTimes={selectedTimes}
               studentData={studentData}
               studentPaymentMethod={studentPaymentMethod}
               setStudentPaymentMethod={setStudentPaymentMethod}
@@ -250,6 +266,19 @@ export default function PublicBookingPage({ teacher }: Props) {
           )}
         </div>
       </div>
+
+      <SelectedTimesDrawer
+        teacher={teacher}
+        onContinue={() => setStep("info")}
+      />
     </div>
+  );
+}
+
+export default function PublicBookingPage({ teacher }: Props) {
+  return (
+    <SelectedTimesProvider>
+      <PublicBookingPageContent teacher={teacher} />
+    </SelectedTimesProvider>
   );
 }

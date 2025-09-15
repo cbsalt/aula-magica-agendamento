@@ -12,8 +12,8 @@ interface Props {
   onChangeDate: (date: Date) => void;
   error: string;
   teacherAvailability: [];
-  selectedTime: string;
-  handleSlot: (slot) => void;
+  selectedTimes: Array<{ date: Date; time: string }>;
+  handleSlot: (slot: { date: Date; time: string }) => void;
   loadingAvailability: boolean;
 }
 
@@ -22,7 +22,7 @@ export function TimeSelectionStep({
   onChangeDate,
   error,
   teacherAvailability,
-  selectedTime,
+  selectedTimes,
   handleSlot,
   loadingAvailability,
 }: Props) {
@@ -92,7 +92,7 @@ export function TimeSelectionStep({
             <TeacherAvailability
               key={day}
               day={day}
-              selectedTime={selectedTime}
+              selectedTimes={selectedTimes}
               handleSlot={handleSlot}
             />
           ))}

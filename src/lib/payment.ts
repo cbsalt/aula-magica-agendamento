@@ -7,9 +7,11 @@ import { prisma } from "./prisma";
 import { AppError } from "@/errors/AppError";
 import {
   createBooking,
+  createBatchBookings,
   findBookingFirst,
   isExpired,
   updateBooking,
+  findBookingsByBatchId,
 } from "@/modules/booking";
 
 export function getStripeInstance(): Stripe {
@@ -39,73 +41,142 @@ export class PaymentService {
       date: string;
       time: string;
     };
+    timeSlots?: Array<{ date: Date; time: string }>;
     request: NextRequest;
   }) {
-    const bookingDate = new Date(data.metadata.date);
+    const isBatchProcessing = data.timeSlots && data.timeSlots.length > 1;
 
-    const existingBooking = await findBookingFirst({
-      data: {
-        teacherId: data.teacherId,
-        time: data.metadata.time,
-        date: bookingDate,
-        status: { in: ["pending", "confirmed"] },
-      },
-    });
-
-    if (existingBooking) {
-      const isBookingExpired = isExpired(existingBooking);
-
-      if (isBookingExpired) {
-        await updateBooking({
-          booking: existingBooking,
+    if (isBatchProcessing) {
+      for (const timeSlot of data.timeSlots) {
+        const existingBooking = await findBookingFirst({
           data: {
-            status: "expired",
-            notes: "Pagamento não concluído no prazo",
+            teacherId: data.teacherId,
+            time: timeSlot.time,
+            date: timeSlot.date,
+            status: { in: ["pending", "confirmed"] },
           },
         });
-      } else {
-        throw new AppError(
-          "Conflito: esse horário foi bloqueado recentemente. Tente outro ou volte em alguns minutos.",
-          409
-        );
-      }
-    }
 
-    const booking = await createBooking({
-      bookingData: data,
-      bookingDate,
-      notes: "Aguardando pagamento",
-      status: "pending",
-    });
+        if (existingBooking) {
+          const isBookingExpired = isExpired(existingBooking);
 
-    try {
-      // A plataforma processa o pagamento do aluno
-      let paymentSession;
-
-      switch (data.studentPaymentMethod) {
-        case "creditCard":
-          paymentSession = await this.createStripePayment(data);
-          break;
-        case "paypal":
-          paymentSession = await this.createPayPalPayment(data, booking.id);
-          break;
-        default:
-          throw new Error("Método de pagamento não suportado");
+          if (isBookingExpired) {
+            await updateBooking({
+              booking: existingBooking,
+              data: {
+                status: "expired",
+                notes: "Pagamento não concluído no prazo",
+              },
+            });
+          } else {
+            throw new AppError(
+              `Conflito: o horário ${
+                timeSlot.time
+              } em ${timeSlot.date.toLocaleDateString()} foi bloqueado recentemente. Tente outro ou volte em alguns minutos.`,
+              409
+            );
+          }
+        }
       }
 
-      await updateBooking({
-        booking,
-        data: { paymentId: paymentSession.id },
+      const { bookings, batchId } = await createBatchBookings({
+        bookingData: data,
+        timeSlots: data.timeSlots,
+        notes: "Aguardando pagamento",
+        status: "pending",
       });
 
-      // Após o pagamento ser confirmado, a plataforma repassa para o professor
-      // Esta lógica seria implementada nos webhooks de confirmação
-      // await this.scheduleTeacherPayout(data);
+      const masterBooking = bookings[0];
 
-      return paymentSession;
-    } catch (error) {
-      await prisma.booking.delete({ where: { id: booking.id } });
-      throw error;
+      try {
+        let paymentSession;
+
+        switch (data.studentPaymentMethod) {
+          case "creditCard":
+            paymentSession = await this.createStripePayment(data);
+            break;
+          case "paypal":
+            paymentSession = await this.createPayPalPayment(
+              data,
+              masterBooking.id
+            );
+            break;
+          default:
+            throw new Error("Método de pagamento não suportado");
+        }
+
+        await prisma.booking.updateMany({
+          where: { batchId },
+          data: { paymentId: paymentSession.id },
+        });
+
+        return paymentSession;
+      } catch (error) {
+        await prisma.booking.deleteMany({ where: { batchId } });
+        throw error;
+      }
+    } else {
+      const bookingDate = new Date(data.metadata.date);
+
+      const existingBooking = await findBookingFirst({
+        data: {
+          teacherId: data.teacherId,
+          time: data.metadata.time,
+          date: bookingDate,
+          status: { in: ["pending", "confirmed"] },
+        },
+      });
+
+      if (existingBooking) {
+        const isBookingExpired = isExpired(existingBooking);
+
+        if (isBookingExpired) {
+          await updateBooking({
+            booking: existingBooking,
+            data: {
+              status: "expired",
+              notes: "Pagamento não concluído no prazo",
+            },
+          });
+        } else {
+          throw new AppError(
+            "Conflito: esse horário foi bloqueado recentemente. Tente outro ou volte em alguns minutos.",
+            409
+          );
+        }
+      }
+
+      const booking = await createBooking({
+        bookingData: data,
+        bookingDate,
+        notes: "Aguardando pagamento",
+        status: "pending",
+      });
+
+      try {
+        let paymentSession;
+
+        switch (data.studentPaymentMethod) {
+          case "creditCard":
+            paymentSession = await this.createStripePayment(data);
+            break;
+          case "paypal":
+            paymentSession = await this.createPayPalPayment(data, booking.id);
+            break;
+          default:
+            throw new Error("Método de pagamento não suportado");
+        }
+
+        await updateBooking({
+          booking,
+          data: { paymentId: paymentSession.id },
+        });
+
+        return paymentSession;
+      } catch (error) {
+        await prisma.booking.delete({ where: { id: booking.id } });
+        throw error;
+      }
     }
   }
 

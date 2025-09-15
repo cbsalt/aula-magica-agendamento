@@ -1,8 +1,11 @@
 import { GoogleCalendarService } from "@/lib/google-calendar";
-import { sendConfirmationEmail } from "app/api/mail/send-confirmation-email";
+import {
+  sendConfirmationEmail,
+  sendBatchConfirmationEmail,
+} from "app/api/mail/send-confirmation-email";
 import { createZoomMeetingWithRetry } from "@/lib/zoom";
 import { findTeacherById } from "@/modules/teacher";
-import { updateBooking } from "@/modules/booking";
+import { updateBooking, findBookingsByBatchId } from "@/modules/booking";
 import { Booking } from "@prisma/client";
 
 export async function processBooking({
@@ -57,7 +60,7 @@ export async function processBooking({
     });
   }
 
-  const calendarEvent = await calendarService.createEvent(calendarId, {
+  const calendarEvent = await calendarService.createEvent({
     summary: `Aula com ${metadata.studentName}`,
     description: `Aluno: ${metadata.studentName}\nEmail: ${metadata.studentEmail}`,
     start: { dateTime: slotStart },
@@ -100,6 +103,165 @@ export async function processBooking({
     formattedDate,
     meetingLink
   );
+}
+
+export async function processBatchBooking({
+  masterBooking,
+  paymentId,
+  teacherId,
+  amount,
+  currency,
+}: {
+  masterBooking: Booking;
+  paymentId: string;
+  teacherId: string;
+  amount: number;
+  currency: string;
+}) {
+  const teacher = await findTeacherById(teacherId);
+  if (!teacher) return;
+
+  const batchBookings = await findBookingsByBatchId(masterBooking.batchId);
+  if (batchBookings.length === 0) return;
+
+  const calendarService = new GoogleCalendarService(
+    teacher.googleAccessToken,
+    teacher.googleRefreshToken,
+    teacherId
+  );
+
+  const calendarId = teacher.email;
+  const events = await calendarService.getEvents(calendarId);
+  const processedBookings = [];
+  let meetingLink: string | null = null;
+
+  const createMeetingLink = async (slotStart: Date, slotEnd: Date) => {
+    try {
+      if (teacher.zoomAccessToken && teacher.zoomRefreshToken) {
+        return await createZoomMeetingWithRetry(
+          teacher,
+          `Aulas com ${masterBooking.studentName}`,
+          slotStart,
+          slotEnd
+        );
+      } else {
+        const calendarEvent = await calendarService.createEvent({
+          summary: `Aula com ${masterBooking.studentName}`,
+          description: `Aluno: ${masterBooking.studentName}\nEmail: ${masterBooking.studentEmail}`,
+          start: { dateTime: slotStart },
+          end: { dateTime: slotEnd },
+          conferenceData: {
+            createRequest: {
+              requestId: `meet-${Date.now()}-${masterBooking.id}`,
+              conferenceSolutionKey: { type: "hangoutsMeet" },
+            },
+          },
+        });
+        return calendarEvent.conferenceData?.entryPoints?.[0]?.uri || null;
+      }
+    } catch (error) {
+      console.error("Erro ao criar link de reunião:", error);
+      throw new Error("Falha ao criar link da reunião");
+    }
+  };
+
+  const isTimeSlotAvailable = (slotStart: Date, slotEnd: Date) => {
+    return !events.some((event) => {
+      const eventStart = new Date(event.start.dateTime || event.start.date);
+      const eventEnd = new Date(event.end.dateTime || event.end.date);
+      return slotStart < eventEnd && slotEnd > eventStart;
+    });
+  };
+
+  for (const booking of batchBookings) {
+    const slotStart = new Date(
+      `${booking.date.toISOString().split("T")[0]}T${booking.time}`
+    );
+    const slotEnd = new Date(slotStart.getTime() + 60 * 60 * 1000);
+
+    if (!isTimeSlotAvailable(slotStart, slotEnd)) {
+      await updateBooking({
+        booking,
+        data: {
+          status: "unavailable",
+          notes: "Horário indisponível",
+        },
+      });
+      continue;
+    }
+
+    try {
+      if (!meetingLink) {
+        meetingLink = await createMeetingLink(slotStart, slotEnd);
+      }
+
+      const calendarEvent = await calendarService.createEvent({
+        summary: `Aula com ${booking.studentName}`,
+        description: `Aluno: ${booking.studentName}\nEmail: ${booking.studentEmail}\nLink da aula: ${meetingLink}`,
+        location: meetingLink || undefined,
+        start: { dateTime: slotStart },
+        end: { dateTime: slotEnd },
+      });
+
+      await updateBooking({
+        booking,
+        data: {
+          status: "confirmed",
+          meetLink: meetingLink,
+          notes: "Pagamento confirmado",
+        },
+      });
+
+      // Adicionar à lista de processados
+      processedBookings.push({
+        ...booking,
+        meetingLink,
+        slotStart,
+        slotEnd,
+        calendarEventId: calendarEvent.id,
+      });
+    } catch (error) {
+      console.error(`Erro ao processar booking ${booking.id}:`, error);
+
+      await updateBooking({
+        booking,
+        data: {
+          status: "error",
+          notes:
+            error instanceof Error ? error.message : "Erro no processamento",
+        },
+      });
+    }
+  }
+
+  if (processedBookings.length > 0) {
+    const formattedBookings = processedBookings.map((booking) => {
+      let timeStr = booking.time;
+
+      if (timeStr.length === 4 && !timeStr.includes(":")) {
+        timeStr = `${timeStr.slice(0, 2)}:${timeStr.slice(2)}`;
+      }
+
+      const dateStr = booking.date.toISOString().split("T")[0];
+
+      return {
+        formattedDateTime: formatDateForEmail(dateStr, timeStr, "pt-BR"),
+        date: dateStr,
+        time: timeStr,
+        meetingLink: booking.meetingLink,
+      };
+    });
+
+    await sendBatchConfirmationEmail(
+      masterBooking.studentEmail,
+      masterBooking.studentName,
+      formattedBookings,
+      amount,
+      currency
+    );
+  }
+
+  return processedBookings;
 }
 
 function formatDateForEmail(date: string, time: string, locale = "en-US") {

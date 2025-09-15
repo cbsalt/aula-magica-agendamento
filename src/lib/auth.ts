@@ -52,6 +52,7 @@ export const authOptions: NextAuthOptions = {
                 Math.random().toString(36).substr(2, 9),
               googleAccessToken: token.accessToken as string | undefined,
               googleRefreshToken: token.refreshToken as string | undefined,
+              googleCalendarId: "primary",
             },
           });
 
@@ -59,37 +60,10 @@ export const authOptions: NextAuthOptions = {
           session.user.slug = teacher.slug;
           session.user.zoomConnected = teacher.zoomConnected || false;
 
-          // Buscar e salvar o googleCalendarId se não estiver preenchido
-          if (!teacher.googleCalendarId && teacher.googleAccessToken) {
-            try {
-              const { google } = await import("googleapis");
-
-              const oauth2Client = new google.auth.OAuth2(
-                googleConfig.clientId,
-                googleConfig.clientSecret,
-                process.env.NEXTAUTH_URL + "/api/auth/callback/google"
-              );
-
-              oauth2Client.setCredentials({
-                access_token: teacher.googleAccessToken,
-                refresh_token: teacher.googleRefreshToken,
-              });
-
-              const calendar = google.calendar({
-                version: "v3",
-                auth: oauth2Client,
-              });
-
-              const res = await calendar.calendarList.list();
-              const primary = res.data.items?.find((cal) => cal.primary);
-
-              if (primary && primary.id) {
-                const data = { googleCalendarId: primary.id };
-                await updateDataTeacherById(teacher.id, data);
-              }
-            } catch (err) {
-              console.warn("Não foi possível salvar googleCalendarId:", err);
-            }
+          if (!teacher.googleCalendarId) {
+            await updateDataTeacherById(teacher.id, {
+              googleCalendarId: "primary",
+            });
           }
         } catch (error) {
           console.error("Error creating/updating teacher in session:", error);
