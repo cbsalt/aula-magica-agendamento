@@ -69,31 +69,30 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         paymentUrl: paymentSession.url,
       });
-    } else {
-      const [startTime] = bookingData.time.split(" - ");
+    }
+    const [startTime] = bookingData.time.split(" - ");
 
-      const paymentService = new PaymentService();
-      const paymentSession = await paymentService.createPayment({
-        amount: teacher.price,
-        currency: teacher.currency,
+    const paymentService = new PaymentService();
+    const paymentSession = await paymentService.createPayment({
+      amount: teacher.price,
+      currency: teacher.currency,
+      teacherId: teacher.id,
+      studentEmail: bookingData.studentEmail,
+      studentPaymentMethod: bookingData.studentPaymentMethod,
+      paymentConfig: teacher.paymentConfig,
+      metadata: {
         teacherId: teacher.id,
         studentEmail: bookingData.studentEmail,
-        studentPaymentMethod: bookingData.studentPaymentMethod,
-        paymentConfig: teacher.paymentConfig,
-        metadata: {
-          teacherId: teacher.id,
-          studentEmail: bookingData.studentEmail,
-          studentName: bookingData.studentName,
-          date: bookingData.date,
-          time: startTime,
-        },
-        request: request,
-      });
+        studentName: bookingData.studentName,
+        date: bookingData.date,
+        time: startTime,
+      },
+      request: request,
+    });
 
-      return NextResponse.json({
-        paymentUrl: paymentSession.url,
-      });
-    }
+    return NextResponse.json({
+      paymentUrl: paymentSession.url,
+    });
   } catch (error) {
     console.error("Erro ao criar agendamento:", error);
     if (error instanceof AppError) {

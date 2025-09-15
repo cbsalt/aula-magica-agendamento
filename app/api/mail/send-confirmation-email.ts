@@ -1,3 +1,4 @@
+import { handleFormatDate } from "@/utils";
 import { EmailParams, MailerSend, Recipient, Sender } from "mailersend";
 
 export const mailerSend = new MailerSend({
@@ -78,15 +79,7 @@ export async function sendBatchConfirmationEmail(
 
   const bookingsHtml = bookings
     .map((booking, index) => {
-      const formattedDate = new Intl.DateTimeFormat("pt-BR", {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: true,
-      }).format(new Date(`${booking.date}T${booking.time}`));
+      const formattedDate = handleFormatDate(booking);
 
       return `
       <div style="border: 1px solid #e0e0e0; border-radius: 4px; padding: 12px; margin-bottom: 12px;">
@@ -141,15 +134,7 @@ export async function sendBatchConfirmationEmail(
 
   const bookingsText = bookings
     .map((booking, index) => {
-      const formattedDate = new Intl.DateTimeFormat("pt-BR", {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: true,
-      }).format(new Date(`${booking.date}T${booking.time}`));
+      const formattedDate = handleFormatDate(booking);
 
       return `Aula ${index + 1}: ${formattedDate}${
         booking.meetingLink ? `\nLink: ${booking.meetingLink}` : ""
