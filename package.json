@@ -8,7 +8,7 @@
     "build": "prisma migrate deploy && next build",
     "start": "next start",
     "lint": "eslint .",
-    "postinstall": "prisma migrate reset && prisma generate"
+    "postinstall": "prisma migrate reset --force && prisma generate"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",
