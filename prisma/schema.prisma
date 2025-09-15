@@ -143,7 +143,6 @@ model Booking {
   isBatchMaster Boolean @default(false) @map("is_batch_master") // Se é o agendamento principal do lote
 
   // Meeting Links
-  zoomLink String? @map("zoom_link")
   meetLink String? @map("meet_link")
 
   // Relationships
