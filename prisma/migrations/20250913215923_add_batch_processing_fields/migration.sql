@@ -151,6 +151,9 @@ CREATE UNIQUE INDEX "teachers_public_link_id_key" ON "teachers"("public_link_id"
 CREATE UNIQUE INDEX "payment_configs_teacher_id_key" ON "payment_configs"("teacher_id");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "bookings_payment_id_key" ON "bookings"("payment_id");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "teacher_work_schedules_teacher_id_dayOfWeek_startTime_endTi_key" ON "teacher_work_schedules"("teacher_id", "dayOfWeek", "startTime", "endTime");
 
 -- AddForeignKey
@@ -167,4 +170,3 @@ ALTER TABLE "bookings" ADD CONSTRAINT "bookings_teacher_id_fkey" FOREIGN KEY ("t
 
 -- AddForeignKey
 ALTER TABLE "teacher_work_schedules" ADD CONSTRAINT "teacher_work_schedules_teacher_id_fkey" FOREIGN KEY ("teacher_id") REFERENCES "teachers"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
