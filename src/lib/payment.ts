@@ -1,18 +1,17 @@
 import axios from "axios";
 import { randomUUID } from "crypto";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import Stripe from "stripe";
 
-import { prisma } from "./prisma";
 import { AppError } from "@/errors/AppError";
 import {
-  createBooking,
   createBatchBookings,
+  createBooking,
   findBookingFirst,
   isExpired,
   updateBooking,
-  findBookingsByBatchId,
 } from "@/modules/booking";
+import { prisma } from "./prisma";
 
 export function getStripeInstance(): Stripe {
   const key = process.env.STRIPE_SECRET_KEY;
