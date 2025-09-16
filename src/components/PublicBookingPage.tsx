@@ -35,12 +35,10 @@ function PublicBookingPageContent({ teacher }: Props) {
     email?: string;
   }>({});
   const [loading, setLoading] = useState(false);
-  const [step, setStep] = useState<"date" | "time" | "info" | "payment">(
-    "date"
-  );
+  const [step, setStep] = useState<"dateTime" | "info" | "payment">("dateTime");
   const [error, setError] = useState<string | null>(null);
   const [loadingAvailability, setLoadingAvailability] = useState(false);
-  const steps = ["date", "time", "info", "payment"];
+  const steps = ["dateTime", "info", "payment"];
   const currentStepIndex = steps.indexOf(step);
 
   const [studentPaymentMethod, setStudentPaymentMethod] = useState<
@@ -87,7 +85,6 @@ function PublicBookingPageContent({ teacher }: Props) {
 
   const handleDateSelect = (date: Date | undefined) => {
     setSelectedDate(date);
-    setStep("time");
   };
 
   const onSubmit = (data: StudentInfoFormData) => {
@@ -211,26 +208,29 @@ function PublicBookingPageContent({ teacher }: Props) {
         {/* Booking Steps */}
         <div className="flex flex-col md:flex-row md:flex-wrap gap-6 justify-center">
           {/* Step 1: Date Selection */}
-          {step === "date" && (
-            <DateSelectionStep
-              selectedDate={selectedDate}
-              onSelect={handleDateSelect}
-            />
-          )}
+          {step === "dateTime" && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Coluna 1: calendário */}
+              <DateSelectionStep
+                selectedDate={selectedDate}
+                onSelect={handleDateSelect}
+              />
 
-          {/* Step 2: Time Selection */}
-          {step === "time" && selectedDate && (
-            <TimeSelectionStep
-              selectedDate={selectedDate}
-              onChangeDate={(newDate) => {
-                setSelectedDate(newDate);
-              }}
-              error={error}
-              teacherAvailability={teacherAvailability}
-              selectedTimes={selectedTimes}
-              handleSlot={handleScheduledSlot}
-              loadingAvailability={loadingAvailability}
-            />
+              {/* Coluna 2: horários */}
+              {selectedDate && (
+                <TimeSelectionStep
+                  selectedDate={selectedDate}
+                  onChangeDate={(newDate) => {
+                    setSelectedDate(newDate);
+                  }}
+                  error={error}
+                  teacherAvailability={teacherAvailability}
+                  selectedTimes={selectedTimes}
+                  handleSlot={handleScheduledSlot}
+                  loadingAvailability={loadingAvailability}
+                />
+              )}
+            </div>
           )}
 
           {/* Step 3: Student Info */}
@@ -251,14 +251,10 @@ function PublicBookingPageContent({ teacher }: Props) {
         </div>
         {/* Navigation */}
         <div className="space-y-4 mt-2">
-          {step !== "date" && (
+          {step !== "dateTime" && (
             <Button
               variant="outline"
-              onClick={() =>
-                setStep(
-                  step === "time" ? "date" : step === "info" ? "time" : "info"
-                )
-              }
+              onClick={() => setStep(step === "info" ? "dateTime" : "info")}
               className="w-full md:w-auto"
             >
               {t("publicBooking.back")}
