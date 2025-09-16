@@ -156,8 +156,7 @@
       "Sábado": "Sábado"
     },
     "stepLabels": {
-      "date": "Data",
-      "time": "Horário",
+      "dateTime": "Data e horário",
       "info": "Seus Dados",
       "payment": "Pagamento"
     }

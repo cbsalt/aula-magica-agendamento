@@ -64,7 +64,7 @@ export function TimeSelectionStep({
   );
 
   if (loadingAvailability) {
-    return <Skeleton className="w-full h-[320px] border border-gray-200" />;
+    return <Skeleton className="w-full h-full border border-gray-200" />;
   }
 
   if (error) {

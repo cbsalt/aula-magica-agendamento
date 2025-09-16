@@ -50,7 +50,7 @@ export function TeacherAvailability({ day, handleSlot, selectedTimes }: Props) {
             <button
               key={i}
               onClick={() => handleSlotClick(slot)}
-              className={`flex w-[180px] items-center gap-2 justify-center py-2 rounded-md border text-sm font-medium transition-colors ${
+              className={`flex w-full sm:w-[180px] items-center gap-2 justify-center py-2 rounded-md border text-sm font-medium transition-colors ${
                 isSelected
                   ? "bg-primary text-white border-primary"
                   : "border-primary text-primary hover:bg-primary hover:text-white"

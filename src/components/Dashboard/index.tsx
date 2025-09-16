@@ -3,7 +3,15 @@
 import { useEffect, useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
-import { User, CalendarDays, Link2, CreditCard, Share2 } from "lucide-react";
+import {
+  User,
+  CalendarDays,
+  Link2,
+  CreditCard,
+  Share2,
+  Menu,
+  X,
+} from "lucide-react";
 import useSWR from "swr";
 
 import { Button } from "../ui/button";
@@ -22,6 +30,7 @@ export default function Dashboard({ teacherFallback }) {
   const zoomStatus = searchParams.get("zoom");
 
   const [activeTab, setActiveTab] = useState("profile");
+  const [open, setOpen] = useState(false);
 
   const tabs = [
     { id: "profile", label: "Perfil", icon: <User size={18} /> },
@@ -68,15 +77,54 @@ export default function Dashboard({ teacherFallback }) {
     }
   }, [tabParam]);
 
+  const Sidebar = () => (
+    <nav className="space-y-2">
+      {tabs.map((tab) => (
+        <button
+          key={tab.id}
+          onClick={() => {
+            setActiveTab(tab.id);
+            clearUrlParams();
+            setOpen(false);
+          }}
+          className={`w-full flex items-center px-4 py-3 text-left rounded-lg transition-colors ${
+            activeTab === tab.id
+              ? "bg-blue-50 text-blue-700 border border-blue-200"
+              : "text-gray-700 hover:bg-gray-100"
+          }`}
+        >
+          <span className="mr-3">{tab.icon}</span>
+          {tab.label}
+        </button>
+      ))}
+    </nav>
+  );
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Toaster position="top-right" />
+
+      {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <h1 className="text-xl font-semibold text-gray-900">
-              Dashboard do Professor
-            </h1>
+            <div className="flex items-center gap-3">
+              {/* Botão de menu no mobile */}
+              <div className="md:hidden">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setOpen(true)}
+                >
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </div>
+
+              <h1 className="text-xl font-semibold text-gray-900">
+                Dashboard do Professor
+              </h1>
+            </div>
+
             <div className="flex items-center space-x-4">
               {session?.user?.image && (
                 <img
@@ -96,29 +144,34 @@ export default function Dashboard({ teacherFallback }) {
         </div>
       </header>
 
+      {/* Drawer Mobile */}
+      {open && (
+        <div className="fixed inset-0 z-40 flex">
+          {/* Overlay */}
+          <div
+            className="fixed inset-0 bg-black bg-opacity-40"
+            onClick={() => setOpen(false)}
+          />
+
+          {/* Sidebar */}
+          <div className="relative bg-white w-64 h-full shadow-lg z-50 p-4">
+            <button
+              onClick={() => setOpen(false)}
+              className="absolute top-3 right-3 text-gray-600 hover:text-gray-900"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <Sidebar />
+          </div>
+        </div>
+      )}
+
+      {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex gap-8">
-          {/* Sidebar */}
-          <div className="w-64">
-            <nav className="space-y-2">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => {
-                    setActiveTab(tab.id);
-                    clearUrlParams();
-                  }}
-                  className={`w-full flex items-center px-4 py-3 text-left rounded-lg transition-colors ${
-                    activeTab === tab.id
-                      ? "bg-blue-50 text-blue-700 border border-blue-200"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }`}
-                >
-                  <span className="mr-3">{tab.icon}</span>
-                  {tab.label}
-                </button>
-              ))}
-            </nav>
+          {/* Sidebar Desktop */}
+          <div className="hidden md:block w-64">
+            <Sidebar />
           </div>
 
           {/* Main Content */}

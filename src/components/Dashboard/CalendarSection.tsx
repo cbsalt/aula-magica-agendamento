@@ -163,13 +163,14 @@ export const CalendarSection = () => {
           </h3>
 
           {previewLoading && (
-            <div className="rounded-lg w-1/2 flex flex-col justify-center gap-2">
-              <div className="h-4 w-1/2 bg-gray-200 rounded w-full animate-pulse" />
-              <div className="flex flex-row gap-2">
-                <div className="h-4 bg-gray-200 rounded w-32 animate-pulse" />
-                <div className="h-4 bg-gray-200 rounded w-32 animate-pulse" />
-                <div className="h-4 bg-gray-200 rounded w-32 animate-pulse" />
-                <div className="h-4 bg-gray-200 rounded w-32 animate-pulse" />
+            <div className="rounded-lg w-full sm:w-1/2 flex flex-col justify-center gap-2">
+              <div className="h-4 bg-gray-200 rounded w-full animate-pulse" />
+
+              <div className="flex flex-wrap gap-2">
+                <div className="h-4 bg-gray-200 rounded flex-1 min-w-[60px] animate-pulse" />
+                <div className="h-4 bg-gray-200 rounded flex-1 min-w-[60px] animate-pulse" />
+                <div className="h-4 bg-gray-200 rounded flex-1 min-w-[60px] animate-pulse" />
+                <div className="h-4 bg-gray-200 rounded flex-1 min-w-[60px] animate-pulse" />
               </div>
             </div>
           )}

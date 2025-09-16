@@ -11,7 +11,7 @@ const AnimatedCard: React.FC<{ children: React.ReactNode }> = ({
     transition={{ duration: 0.4 }}
     className="w-full"
   >
-    <Card className="w-full shadow-sm border border-gray-200 hover:shadow-md transition-all rounded-xl bg-white">
+    <Card className="w-full h-full shadow-sm border border-gray-200 hover:shadow-md transition-all rounded-xl bg-white">
       {children}
     </Card>
   </motion.div>
