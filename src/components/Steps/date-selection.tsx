@@ -1,9 +1,9 @@
-import { CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
+import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { isBefore, startOfDay } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import AnimatedCard from "./animated-card";
-import { isBefore, startOfDay } from "date-fns";
 
 interface Props {
   selectedDate?: Date;
