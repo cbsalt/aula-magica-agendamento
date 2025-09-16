@@ -16,7 +16,7 @@ export function addOneHour(time: string) {
 }
 
 export function handleFormatDate(booking) {
-  new Intl.DateTimeFormat("pt-BR", {
+  return new Intl.DateTimeFormat("pt-BR", {
     weekday: "long",
     year: "numeric",
     month: "long",
