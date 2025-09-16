@@ -132,106 +132,100 @@ export async function processBatchBooking({
 
   const calendarId = teacher.email;
   const events = await calendarService.getEvents(calendarId);
+
   const processedBookings = [];
+
   let meetingLink: string | null = null;
 
-  const createMeetingLink = async (slotStart: Date, slotEnd: Date) => {
-    try {
-      if (teacher.zoomAccessToken && teacher.zoomRefreshToken) {
-        return await createZoomMeetingWithRetry(
-          teacher,
-          `Aulas com ${masterBooking.studentName}`,
-          slotStart,
-          slotEnd
-        );
-      } else {
-        const calendarEvent = await calendarService.createEvent({
-          summary: `Aula com ${masterBooking.studentName}`,
-          description: `Aluno: ${masterBooking.studentName}\nEmail: ${masterBooking.studentEmail}`,
-          start: { dateTime: slotStart },
-          end: { dateTime: slotEnd },
-          conferenceData: {
-            createRequest: {
-              requestId: `meet-${Date.now()}-${masterBooking.id}`,
-              conferenceSolutionKey: { type: "hangoutsMeet" },
-            },
+  function buildCalendarEvent(
+    booking,
+    slotStart: Date,
+    slotEnd: Date,
+    meetingLink?: string,
+    withConference: boolean = false
+  ) {
+    return {
+      summary: `Aula com ${booking.studentName}`,
+      description: `Aluno: ${booking.studentName}\nEmail: ${
+        booking.studentEmail
+      }${meetingLink ? `\nLink da aula: ${meetingLink}` : ""}`,
+      location: meetingLink || undefined,
+      start: { dateTime: slotStart },
+      end: { dateTime: slotEnd },
+      ...(withConference && {
+        conferenceData: {
+          createRequest: {
+            requestId: `unique-${Date.now()}-${booking.id}`,
+            conferenceSolutionKey: { type: "hangoutsMeet" },
           },
-        });
-        return calendarEvent.conferenceData?.entryPoints?.[0]?.uri || null;
-      }
-    } catch (error) {
-      console.error("Erro ao criar link de reunião:", error);
-      throw new Error("Falha ao criar link da reunião");
-    }
-  };
+        },
+      }),
+    };
+  }
 
-  const isTimeSlotAvailable = (slotStart: Date, slotEnd: Date) => {
-    return !events.some((event) => {
-      const eventStart = new Date(event.start.dateTime || event.start.date);
-      const eventEnd = new Date(event.end.dateTime || event.end.date);
-      return slotStart < eventEnd && slotEnd > eventStart;
-    });
-  };
-
-  for (const booking of batchBookings) {
+  for (const [index, booking] of batchBookings.entries()) {
     const slotStart = new Date(
       `${booking.date.toISOString().split("T")[0]}T${booking.time}`
     );
     const slotEnd = new Date(slotStart.getTime() + 60 * 60 * 1000);
 
-    if (!isTimeSlotAvailable(slotStart, slotEnd)) {
+    const isAvailable = !events.some((event) => {
+      const start = new Date(event.start.dateTime || event.start.date);
+      const end = new Date(event.end.dateTime || event.end.date);
+      return slotStart < end && slotEnd > start;
+    });
+
+    if (!isAvailable) {
       await updateBooking({
         booking,
-        data: {
-          status: "unavailable",
-          notes: "Horário indisponível",
-        },
+        data: { status: "unavailable", notes: "Horário indisponível" },
       });
       continue;
     }
 
-    try {
-      if (!meetingLink) {
-        meetingLink = await createMeetingLink(slotStart, slotEnd);
+    let calendarEvent;
+
+    if (index === 0) {
+      if (teacher.zoomAccessToken && teacher.zoomRefreshToken) {
+        meetingLink = await createZoomMeetingWithRetry(
+          teacher,
+          `Aulas com ${masterBooking.studentName}`,
+          slotStart,
+          slotEnd
+        );
+
+        calendarEvent = await calendarService.createEvent(
+          buildCalendarEvent(booking, slotStart, slotEnd, meetingLink)
+        );
+      } else {
+        calendarEvent = await calendarService.createEvent(
+          buildCalendarEvent(booking, slotStart, slotEnd, undefined, true)
+        );
+
+        meetingLink =
+          calendarEvent.conferenceData?.entryPoints?.[0]?.uri || null;
       }
-
-      const calendarEvent = await calendarService.createEvent({
-        summary: `Aula com ${booking.studentName}`,
-        description: `Aluno: ${booking.studentName}\nEmail: ${booking.studentEmail}\nLink da aula: ${meetingLink}`,
-        location: meetingLink || undefined,
-        start: { dateTime: slotStart },
-        end: { dateTime: slotEnd },
-      });
-
-      await updateBooking({
-        booking,
-        data: {
-          status: "confirmed",
-          meetLink: meetingLink,
-          notes: "Pagamento confirmado",
-        },
-      });
-
-      // Adicionar à lista de processados
-      processedBookings.push({
-        ...booking,
-        meetingLink,
-        slotStart,
-        slotEnd,
-        calendarEventId: calendarEvent.id,
-      });
-    } catch (error) {
-      console.error(`Erro ao processar booking ${booking.id}:`, error);
-
-      await updateBooking({
-        booking,
-        data: {
-          status: "error",
-          notes:
-            error instanceof Error ? error.message : "Erro no processamento",
-        },
-      });
+    } else {
+      calendarEvent = await calendarService.createEvent(
+        buildCalendarEvent(booking, slotStart, slotEnd, meetingLink)
+      );
     }
+
+    await updateBooking({
+      booking,
+      data: {
+        status: "confirmed",
+        meetLink: meetingLink,
+        notes: "Pagamento confirmado",
+      },
+    });
+
+    processedBookings.push({
+      ...booking,
+      meetingLink,
+      slotStart,
+      slotEnd,
+    });
   }
 
   if (processedBookings.length > 0) {
