@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
         currency: session.currency,
       });
     } else {
-      processBooking({
+      const processedBooking = processBooking({
         booking,
         paymentId: session.id,
         teacherId: session.metadata.teacherId,
@@ -72,6 +72,8 @@ export async function POST(req: NextRequest) {
       }).catch((err) => {
         console.error("Erro ao processar booking:", err);
       });
+
+      return processedBooking;
     }
   }
 

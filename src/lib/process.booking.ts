@@ -30,7 +30,7 @@ export async function processBooking({
 }) {
   const teacher = await findTeacherById(teacherId);
 
-  if (!teacher) return;
+  if (!teacher) return { teacher: "Teacher not found" };
 
   const slotStart = new Date(`${metadata.date}T${metadata.time}`);
   const slotEnd = new Date(slotStart.getTime() + 60 * 60 * 1000);
@@ -103,6 +103,8 @@ export async function processBooking({
     formattedDate,
     meetingLink
   );
+
+  return { teacher };
 }
 
 export async function processBatchBooking({
