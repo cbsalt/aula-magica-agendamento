@@ -8,12 +8,13 @@ function capitalize(str: string) {
 }
 
 function filterSlotsWithMinAdvance(slots) {
-  const now = new Date();
-  const nowInZone = toZonedTime(now, TIMEZONE);
+  const nowInZone = new Date();
+  // const nowInZone = toZonedTime(now, TIMEZONE);
   const minAdvanceDate = addHours(nowInZone, 12);
 
   return slots.filter((slot) => {
-    const slotStart = toZonedTime(new Date(slot.start), TIMEZONE);
+    const slotStart = new Date(slot.start);
+    // const slotStart = toZonedTime(new Date(slot.start), TIMEZONE);
     return slotStart >= minAdvanceDate;
   });
 }
@@ -25,12 +26,12 @@ export function generateSlots(start: string, end: string, dayDate: Date) {
   const [startHour, startMinute] = start.split(":").map(Number);
   const [endHour, endMinute] = end.split(":").map(Number);
 
-  const current = new Date(dayDate);
-  const zonedCurrent = toZonedTime(current, "America/Sao_Paulo");
+  const zonedCurrent = new Date(dayDate);
+  // const zonedCurrent = toZonedTime(current, "America/Sao_Paulo");
   zonedCurrent.setHours(startHour, startMinute, 0, 0);
 
-  const endTimeObj = new Date(dayDate);
-  const zonedEndTimeObj = toZonedTime(endTimeObj, "America/Sao_Paulo");
+  const zonedEndTimeObj = new Date(dayDate);
+  // const zonedEndTimeObj = toZonedTime(endTimeObj, "America/Sao_Paulo");
   zonedEndTimeObj.setHours(endHour, endMinute, 0, 0);
 
   while (zonedCurrent < zonedEndTimeObj) {
@@ -57,8 +58,8 @@ export function generateSlots(start: string, end: string, dayDate: Date) {
 }
 
 export function initializeSlots(workSchedules, totalWeeks = 0) {
-  const today = new Date();
-  const zonedToday = toZonedTime(today, "America/Sao_Paulo");
+  const zonedToday = new Date();
+  // const zonedToday = toZonedTime(today, "America/Sao_Paulo");
   let allSlots = [];
 
   for (let weekOffset = 0; weekOffset < totalWeeks; weekOffset++) {
