@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
         currency: session.currency,
       });
     } else {
-      processedBooking = processBooking({
+      processedBooking = await processBooking({
         booking,
         paymentId: session.id,
         teacherId: session.metadata.teacherId,
