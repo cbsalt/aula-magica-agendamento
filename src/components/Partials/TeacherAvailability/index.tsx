@@ -23,6 +23,7 @@ export function TeacherAvailability({ day, handleSlot, selectedTimes }: Props) {
     zonedDate.setHours(hours, minutes, 0, 0);
     console.table({
       dayDate,
+      slotStart,
       zonedDate,
     });
     return zonedDate;

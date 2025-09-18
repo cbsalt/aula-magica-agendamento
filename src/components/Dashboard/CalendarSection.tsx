@@ -31,17 +31,13 @@ export const CalendarSection = () => {
   } = useTeacherData();
 
   const filterCurrentWeek = (arr) => {
-    // const weekDay = endOfWeek()
     const today = startOfDay(new Date());
-    const dayOfWeek = today.getDay();
-    const daysUntilSaturday = 6 - dayOfWeek;
-    const saturday = new Date(today);
-    saturday.setDate(today.getDate() + daysUntilSaturday);
-    saturday.setHours(23, 59, 59, 999);
+    const saturday = endOfWeek(today, { weekStartsOn: 0 });
+    const endOfSaturday = new Date(saturday.setHours(23, 59, 59, 999));
 
     return arr.filter((item) => {
       const itemDate = new Date(item.date);
-      return itemDate >= today && itemDate <= saturday;
+      return itemDate >= today && itemDate <= endOfSaturday;
     });
   };
 
