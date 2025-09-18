@@ -23,6 +23,7 @@ export async function POST(req: NextRequest) {
   const stripe = getStripeInstance();
 
   let event;
+  let processedBooking;
 
   try {
     event = stripe.webhooks.constructEvent(
@@ -57,7 +58,7 @@ export async function POST(req: NextRequest) {
         currency: session.currency,
       });
     } else {
-      const processedBooking = processBooking({
+      processedBooking = processBooking({
         booking,
         paymentId: session.id,
         teacherId: session.metadata.teacherId,
@@ -72,10 +73,8 @@ export async function POST(req: NextRequest) {
       }).catch((err) => {
         console.error("Erro ao processar booking:", err);
       });
-
-      return processedBooking;
     }
   }
 
-  return NextResponse.json({ received: true });
+  return NextResponse.json({ received: true, processedBooking });
 }
