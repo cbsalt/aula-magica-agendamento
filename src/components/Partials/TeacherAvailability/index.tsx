@@ -1,5 +1,6 @@
 import { useSelectedTimes } from "@/hooks/useSelectedTimes";
 import { formatDateString } from "@/utils";
+import { parse } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
 import { t } from "i18next";
 import { ArrowRight, Clock, X } from "lucide-react";
@@ -15,15 +16,22 @@ const TIMEZONE = "America/Sao_Paulo";
 export function TeacherAvailability({ day, handleSlot, selectedTimes }: Props) {
   const { isTimeSlotSelected } = useSelectedTimes();
 
-  const getZonedSlotDate = (dayDate: Date, slotStart: string) => {
+  const getZonedSlotDate = (dayDate: string, slotStart: string) => {
     const [hours, minutes] = slotStart.split(":").map(Number);
-    const zonedDate = toZonedTime(dayDate, TIMEZONE);
+    const zonedDate = parse(dayDate, "yyyy-MM-dd", new Date());
+    console.log(zonedDate);
+    // const zonedDate = toZonedTime(dayDate, TIMEZONE);
     zonedDate.setHours(hours, minutes, 0, 0);
+    console.table({
+      dayDate,
+      zonedDate,
+    });
     return zonedDate;
   };
 
   const isSlotSelected = (slot) => {
     const start = formatDateString(slot.start);
+    console.log("TeacherAvailability_isSlotSelected", start);
     const zonedDate = getZonedSlotDate(day.date, start);
     return isTimeSlotSelected({ date: zonedDate, time: start });
   };

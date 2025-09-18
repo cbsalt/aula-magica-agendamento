@@ -1,4 +1,4 @@
-import { startOfDay } from "date-fns";
+import { endOfWeek, startOfDay } from "date-fns";
 import { Calendar, CircleCheck } from "lucide-react";
 import { signIn, useSession } from "next-auth/react";
 import { useCallback, useEffect, useState } from "react";
@@ -31,6 +31,7 @@ export const CalendarSection = () => {
   } = useTeacherData();
 
   const filterCurrentWeek = (arr) => {
+    // const weekDay = endOfWeek()
     const today = startOfDay(new Date());
     const dayOfWeek = today.getDay();
     const daysUntilSaturday = 6 - dayOfWeek;
