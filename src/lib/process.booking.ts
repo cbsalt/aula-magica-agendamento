@@ -103,8 +103,6 @@ export async function processBooking({
     formattedDate,
     meetingLink
   );
-
-  return { teacher };
 }
 
 export async function processBatchBooking({
