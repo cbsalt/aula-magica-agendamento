@@ -1,10 +1,8 @@
 import { addHours, format, parse } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
 
 export function formatDateString(date: string) {
-  return new Date(date).toLocaleTimeString("pt-BR", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return formatInTimeZone(date, "America/Sao_Paulo", "HH:mm");
 }
 
 export function formatPeriod(dateStart, dateEnd) {
