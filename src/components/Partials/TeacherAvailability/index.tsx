@@ -15,6 +15,9 @@ const TIMEZONE = "America/Sao_Paulo";
 
 export function TeacherAvailability({ day, handleSlot, selectedTimes }: Props) {
   const { isTimeSlotSelected } = useSelectedTimes();
+  console.log({
+    day,
+  });
 
   const getZonedSlotDate = (dayDate: string, slotStart: string) => {
     const [hours, minutes] = slotStart.split(":").map(Number);
@@ -47,10 +50,6 @@ export function TeacherAvailability({ day, handleSlot, selectedTimes }: Props) {
           const start = formatDateString(slot.start);
           const end = formatDateString(slot.end);
           const isSelected = isSlotSelected(slot);
-          console.table({
-            slot,
-            start,
-          });
 
           return (
             <button
