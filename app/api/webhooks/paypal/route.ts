@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (booking.batchId) {
-      processBatchBooking({
+      await processBatchBooking({
         masterBooking: booking,
         paymentId: localBookingId,
         teacherId: booking.teacherId,
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
         currency,
       });
     } else {
-      processBooking({
+      await processBooking({
         booking,
         paymentId: localBookingId,
         teacherId: booking.teacherId,

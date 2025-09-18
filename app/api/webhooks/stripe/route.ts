@@ -23,7 +23,6 @@ export async function POST(req: NextRequest) {
   const stripe = getStripeInstance();
 
   let event;
-  let processedBooking;
 
   try {
     event = stripe.webhooks.constructEvent(
@@ -50,7 +49,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (booking.batchId) {
-      processBatchBooking({
+      await processBatchBooking({
         masterBooking: booking,
         paymentId: session.id,
         teacherId: booking.teacherId,
@@ -58,7 +57,7 @@ export async function POST(req: NextRequest) {
         currency: session.currency,
       });
     } else {
-      processedBooking = await processBooking({
+      await processBooking({
         booking,
         paymentId: session.id,
         teacherId: session.metadata.teacherId,
@@ -76,5 +75,5 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ received: true, processedBooking });
+  return NextResponse.json({ received: true });
 }

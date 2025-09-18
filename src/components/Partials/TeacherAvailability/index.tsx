@@ -19,7 +19,6 @@ export function TeacherAvailability({ day, handleSlot, selectedTimes }: Props) {
   const getZonedSlotDate = (dayDate: string, slotStart: string) => {
     const [hours, minutes] = slotStart.split(":").map(Number);
     const zonedDate = parse(dayDate, "yyyy-MM-dd", new Date());
-    console.log(zonedDate);
     // const zonedDate = toZonedTime(dayDate, TIMEZONE);
     zonedDate.setHours(hours, minutes, 0, 0);
     console.table({
