@@ -67,11 +67,6 @@ function PublicBookingPageContent({ teacher }: Props) {
             })),
           }));
 
-        console.table({
-          data,
-          filteredAvailability,
-        });
-
         setTeacherAvailability(filteredAvailability);
       } catch (error) {
         console.error("Erro ao buscar disponibilidade:", error);

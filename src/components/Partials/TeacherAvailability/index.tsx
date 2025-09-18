@@ -47,6 +47,10 @@ export function TeacherAvailability({ day, handleSlot, selectedTimes }: Props) {
           const start = formatDateString(slot.start);
           const end = formatDateString(slot.end);
           const isSelected = isSlotSelected(slot);
+          console.table({
+            slot,
+            start,
+          });
 
           return (
             <button
