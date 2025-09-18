@@ -21,17 +21,11 @@ export function TeacherAvailability({ day, handleSlot, selectedTimes }: Props) {
     const zonedDate = parse(dayDate, "yyyy-MM-dd", new Date());
     // const zonedDate = toZonedTime(dayDate, TIMEZONE);
     zonedDate.setHours(hours, minutes, 0, 0);
-    console.table({
-      dayDate,
-      slotStart,
-      zonedDate,
-    });
     return zonedDate;
   };
 
   const isSlotSelected = (slot) => {
     const start = formatDateString(slot.start);
-    console.log("TeacherAvailability_isSlotSelected", start);
     const zonedDate = getZonedSlotDate(day.date, start);
     return isTimeSlotSelected({ date: zonedDate, time: start });
   };
