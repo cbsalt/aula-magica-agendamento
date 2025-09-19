@@ -1,15 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { Calendar, Clock, X } from "lucide-react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { X, Calendar, Clock, DollarSign } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-import { Teacher } from "@prisma/client";
 import { useSelectedTimes } from "@/hooks/useSelectedTimes";
+import { Teacher } from "@prisma/client";
 
 interface Props {
   teacher: Teacher;

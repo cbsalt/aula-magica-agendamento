@@ -1,12 +1,14 @@
 import { addHours, format, parse } from "date-fns";
-import { formatInTimeZone } from "date-fns-tz";
 
 export function formatDateString(date: string) {
-  return formatInTimeZone(date, "America/Sao_Paulo", "HH:mm");
+  return new Date(date).toLocaleTimeString("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 export function formatPeriod(dateStart, dateEnd) {
-  return `${formatDateString(dateStart)} - ${formatDateString(dateEnd)}`;
+  return `${dateStart} - ${dateEnd}`;
 }
 
 export function addOneHour(time: string) {
@@ -23,4 +25,8 @@ export function handleFormatDate(booking) {
     minute: "2-digit",
     hour12: true,
   }).format(new Date(`${booking.date}T${booking.time}`));
+}
+
+export function capitalize(str: string) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
 }

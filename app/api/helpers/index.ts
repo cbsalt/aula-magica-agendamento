@@ -1,48 +1,46 @@
 import { addDays, addHours, format, startOfWeek } from "date-fns";
-import { toZonedTime } from "date-fns-tz";
-
-const TIMEZONE = "America/Sao_Paulo";
+import { formatInTimeZone } from "date-fns-tz";
 
 function capitalize(str: string) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-function filterSlotsWithMinAdvance(slots) {
-  const nowInZone = new Date();
-  // const nowInZone = toZonedTime(now, TIMEZONE);
-  const minAdvanceDate = addHours(nowInZone, 12);
+function parseLocalToDate(
+  dateStr,
+  timeHHmm,
+  timezoneLabel = "America/Sao_Paulo"
+) {
+  const iso = `${dateStr}T${timeHHmm}:00${timezoneLabel}`;
+  return new Date(iso);
+}
 
-  return slots.filter((slot) => {
-    const slotStart = new Date(slot.start);
-    // const slotStart = toZonedTime(new Date(slot.start), TIMEZONE);
-    return slotStart >= minAdvanceDate;
-  });
+function filterSlotsWithMinAdvance(slots) {
+  const minAdvanceDate = addHours(new Date(), 12);
+  return slots.filter((slot) => slot.absoluteStart >= minAdvanceDate);
 }
 
 export function generateSlots(start: string, end: string, dayDate: Date) {
-  const dateFormat = "yyyy-MM-dd'T'HH:mm:ssXXX";
+  const hourFormat = "HH:mm";
   const formatter = new Intl.DateTimeFormat("pt-BR", { weekday: "long" });
   const slots = [];
   const [startHour, startMinute] = start.split(":").map(Number);
   const [endHour, endMinute] = end.split(":").map(Number);
 
   const zonedCurrent = new Date(dayDate);
-  // const zonedCurrent = toZonedTime(current, "America/Sao_Paulo");
   zonedCurrent.setHours(startHour, startMinute, 0, 0);
 
-  const zonedEndTimeObj = new Date(dayDate);
-  // const zonedEndTimeObj = toZonedTime(endTimeObj, "America/Sao_Paulo");
-  zonedEndTimeObj.setHours(endHour, endMinute, 0, 0);
+  const zonedEndTime = new Date(dayDate);
+  zonedEndTime.setHours(endHour, endMinute, 0, 0);
 
-  while (zonedCurrent < zonedEndTimeObj) {
+  while (zonedCurrent < zonedEndTime) {
     const slotStart = new Date(zonedCurrent);
     const slotEnd = addHours(slotStart, 1);
 
-    if (slotEnd > zonedEndTimeObj) break;
+    if (slotEnd > zonedEndTime) break;
 
     slots.push({
-      start: format(slotStart, dateFormat),
-      end: format(slotEnd, dateFormat),
+      start: format(slotStart, hourFormat),
+      end: format(slotEnd, hourFormat),
       available: true,
     });
 
@@ -53,13 +51,14 @@ export function generateSlots(start: string, end: string, dayDate: Date) {
     date: format(dayDate, "yyyy-MM-dd"),
     start: slots[0].start,
     end: slots[slots.length - 1].end,
+    timezone: "America/Sao_Paulo",
+    timezoneLabel: formatInTimeZone(new Date(), "America/Sao_Paulo", "xxx"),
     slots,
   };
 }
 
 export function initializeSlots(workSchedules, totalWeeks = 0) {
   const zonedToday = new Date();
-  // const zonedToday = toZonedTime(today, "America/Sao_Paulo");
   let allSlots = [];
 
   for (let weekOffset = 0; weekOffset < totalWeeks; weekOffset++) {
@@ -95,18 +94,38 @@ export function isSlotFree(events, slot) {
 export const freeSlots = (events, allSlots) =>
   allSlots
     .map((day) => {
-      const availableSlots = day.slots.filter((slot) =>
-        isSlotFree(events, slot)
+      const tzLabel = day.timezoneLabel ?? "-03:00";
+      const dateStr = day.date;
+
+      const slotsWithAbsolute = (day.slots || []).map((slot) => {
+        const absoluteStart = parseLocalToDate(dateStr, slot.start, tzLabel);
+        const absoluteEnd = parseLocalToDate(dateStr, slot.end, tzLabel);
+        return { ...slot, absoluteStart, absoluteEnd };
+      });
+
+      const availableSlots = slotsWithAbsolute.filter((slot) =>
+        isSlotFree(events, {
+          ...slot,
+          start: slot.absoluteStart.toISOString(),
+          end: slot.absoluteEnd.toISOString(),
+        })
       );
+
       const filteredSlots = filterSlotsWithMinAdvance(availableSlots);
 
       if (filteredSlots.length === 0) return null;
 
+      const normalizedSlots = filteredSlots.map((s) => ({
+        start: s.start,
+        end: s.end,
+        available: s.available,
+      }));
+
       return {
         ...day,
-        slots: filteredSlots,
-        start: filteredSlots[0].start,
-        end: filteredSlots[filteredSlots.length - 1].end,
+        slots: normalizedSlots,
+        start: normalizedSlots[0].start,
+        end: normalizedSlots[normalizedSlots.length - 1].end,
       };
     })
     .filter(Boolean);

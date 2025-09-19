@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import AnimatedCard from "./animated-card";
 import { t } from "i18next";
 import { TeacherAvailability } from "../Partials/TeacherAvailability";
+import { capitalize } from "@/utils";
 
 interface Props {
   selectedDate: Date;
@@ -32,6 +33,8 @@ export function TimeSelectionStep({
     }
   };
 
+  const dayName = capitalize(format(selectedDate, "EEEE", { locale: ptBR }));
+
   const CalendarHeader = ({ title }: { title: string }) => (
     <CardHeader className="flex flex-row items-center justify-center">
       <button
@@ -50,7 +53,8 @@ export function TimeSelectionStep({
 
       <CardTitle className="flex items-center text-center text-base md:text-lg font-semibold text-gray-800">
         <Clock className="mr-2 h-5 w-5 text-primary" />
-        {title} – {format(selectedDate, "dd/MM/yyyy", { locale: ptBR })}
+        {t(`publicBooking.weekDays.${dayName}`)} -{" "}
+        {format(selectedDate, "dd/MM/yyyy", { locale: ptBR })}
       </CardTitle>
 
       <button
@@ -79,6 +83,12 @@ export function TimeSelectionStep({
     return (
       <AnimatedCard>
         <CalendarHeader title={t("publicBooking.noAvailableTimes")} />
+        <CardContent className="flex flex-col items-center justify-center text-center py-12">
+          <Clock className="h-8 w-8 text-gray-400 mb-3" />
+          <p className="text-gray-600 text-sm md:text-base max-w-xs">
+            {t("publicBooking.noAvailableTimes")}
+          </p>
+        </CardContent>
       </AnimatedCard>
     );
   }
