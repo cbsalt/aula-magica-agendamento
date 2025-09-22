@@ -1,4 +1,13 @@
-import { addDays, addHours, format, startOfWeek } from "date-fns";
+import {
+  addDays,
+  addHours,
+  format,
+  isBefore,
+  setHours,
+  setMinutes,
+  startOfDay,
+  startOfWeek,
+} from "date-fns";
 import { formatInTimeZone } from "date-fns-tz";
 
 function capitalize(str: string) {
@@ -26,17 +35,19 @@ export function generateSlots(start: string, end: string, dayDate: Date) {
   const [startHour, startMinute] = start.split(":").map(Number);
   const [endHour, endMinute] = end.split(":").map(Number);
 
-  const zonedCurrent = new Date(dayDate);
-  zonedCurrent.setHours(startHour, startMinute, 0, 0);
+  const baseDate = startOfDay(new Date(dayDate));
 
-  const zonedEndTime = new Date(dayDate);
-  zonedEndTime.setHours(endHour, endMinute, 0, 0);
+  const zonedCurrent = setMinutes(setHours(baseDate, startHour), startMinute);
+  const zonedEndTime = setMinutes(setHours(baseDate, endHour), endMinute);
 
-  while (zonedCurrent < zonedEndTime) {
-    const slotStart = new Date(zonedCurrent);
+  let current = zonedCurrent;
+
+  while (
+    isBefore(addHours(current, 1), zonedEndTime) ||
+    +addHours(current, 1) === +zonedEndTime
+  ) {
+    const slotStart = current;
     const slotEnd = addHours(slotStart, 1);
-
-    if (slotEnd > zonedEndTime) break;
 
     slots.push({
       start: format(slotStart, hourFormat),
@@ -44,8 +55,9 @@ export function generateSlots(start: string, end: string, dayDate: Date) {
       available: true,
     });
 
-    zonedCurrent.setHours(zonedCurrent.getHours() + 1); // increment by 1 hour
+    current = slotEnd;
   }
+
   return {
     label: capitalize(formatter.format(dayDate)),
     date: format(dayDate, "yyyy-MM-dd"),
