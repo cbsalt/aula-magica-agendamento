@@ -10,14 +10,10 @@ import { Booking } from "@prisma/client";
 
 export async function processBooking({
   booking,
-  paymentId,
   metadata,
   teacherId,
-  amount,
-  currency,
 }: {
   booking?: Booking;
-  paymentId: string;
   metadata: {
     studentName: string;
     studentEmail: string;
@@ -25,8 +21,6 @@ export async function processBooking({
     time: string;
   };
   teacherId: string;
-  amount: number;
-  currency: string;
 }) {
   const teacher = await findTeacherById(teacherId);
 
@@ -63,8 +57,8 @@ export async function processBooking({
   const calendarEvent = await calendarService.createEvent({
     summary: `Aula com ${metadata.studentName}`,
     description: `Aluno: ${metadata.studentName}\nEmail: ${metadata.studentEmail}`,
-    start: { dateTime: slotStart },
-    end: { dateTime: slotEnd },
+    start: { dateTime: slotStart.toISOString(), timeZone: "America/Sao_Paulo" },
+    end: { dateTime: slotEnd.toISOString(), timeZone: "America/Sao_Paulo" },
     conferenceData: {
       createRequest: {
         requestId: `unique-${Date.now()}`,
@@ -107,13 +101,11 @@ export async function processBooking({
 
 export async function processBatchBooking({
   masterBooking,
-  paymentId,
   teacherId,
   amount,
   currency,
 }: {
   masterBooking: Booking;
-  paymentId: string;
   teacherId: string;
   amount: number;
   currency: string;

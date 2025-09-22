@@ -261,9 +261,11 @@ function PublicBookingPageContent({ teacher }: Props) {
             </Button>
           )}
         </div>
-        <div className="text-sm text-gray-500 mb-4 text-center">
-          Horário de Brasília (GMT-3)
-        </div>
+        {step === "dateTime" && (
+          <div className="text-sm text-gray-500 mb-4 text-center">
+            Horário de Brasília (GMT-3)
+          </div>
+        )}
       </div>
 
       <SelectedTimesDrawer
