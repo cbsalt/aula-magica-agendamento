@@ -143,21 +143,35 @@ export async function processBatchBooking({
 
   let meetingLink: string | null = null;
 
-  function buildCalendarEvent(
+  const buildCalendarEvent = (
     booking,
-    slotStart: Date,
-    slotEnd: Date,
     meetingLink?: string,
     withConference: boolean = false
-  ) {
+  ) => {
+    const timeZone = "America/Sao_Paulo";
+
+    const startDateTime = `${booking.date.toISOString().split("T")[0]}T${
+      booking.time
+    }:00`;
+    const endDateTime = `${
+      booking.date.toISOString().split("T")[0]
+    }T${addOneHour(booking.time)}:00`;
+
+    const startFormatted = `${booking.date.toISOString().split("T")[0]} ${
+      booking.time
+    }`;
+    const endFormatted = `${addOneHour(booking.time)} BRT`;
+
     return {
       summary: `Aula com ${booking.studentName}`,
       description: `Aluno: ${booking.studentName}\nEmail: ${
         booking.studentEmail
-      }${meetingLink ? `\nLink da aula: ${meetingLink}` : ""}`,
+      }${
+        meetingLink ? `\nLink da aula: ${meetingLink}` : ""
+      }\nHorário: ${startFormatted} – ${endFormatted}`,
       location: meetingLink || undefined,
-      start: { dateTime: slotStart },
-      end: { dateTime: slotEnd },
+      start: { dateTime: startDateTime, timeZone },
+      end: { dateTime: endDateTime, timeZone },
       ...(withConference && {
         conferenceData: {
           createRequest: {
@@ -167,7 +181,7 @@ export async function processBatchBooking({
         },
       }),
     };
-  }
+  };
 
   for (const [index, booking] of batchBookings.entries()) {
     const slotStart = new Date(
@@ -201,11 +215,11 @@ export async function processBatchBooking({
         );
 
         calendarEvent = await calendarService.createEvent(
-          buildCalendarEvent(booking, slotStart, slotEnd, meetingLink)
+          buildCalendarEvent(booking, meetingLink)
         );
       } else {
         calendarEvent = await calendarService.createEvent(
-          buildCalendarEvent(booking, slotStart, slotEnd, undefined, true)
+          buildCalendarEvent(booking, undefined, true)
         );
 
         meetingLink =
@@ -213,7 +227,7 @@ export async function processBatchBooking({
       }
     } else {
       calendarEvent = await calendarService.createEvent(
-        buildCalendarEvent(booking, slotStart, slotEnd, meetingLink)
+        buildCalendarEvent(booking, meetingLink)
       );
     }
 
