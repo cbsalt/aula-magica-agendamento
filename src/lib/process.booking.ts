@@ -8,6 +8,8 @@ import { findTeacherById } from "@/modules/teacher";
 import { updateBooking, findBookingsByBatchId } from "@/modules/booking";
 import { Booking } from "@prisma/client";
 import { formatInTimeZone } from "date-fns-tz";
+import { format, parse } from "date-fns";
+import { addOneHour } from "@/utils";
 
 export async function processBooking({
   booking,
@@ -57,22 +59,16 @@ export async function processBooking({
     });
   }
 
-  const formatDateTime = (time) => {
-    return formatInTimeZone(time, timeZone, "yyyy-MM-dd'T'HH:mm:ss");
-  };
-
-  const startFormatted = formatInTimeZone(
-    slotStart,
-    timeZone,
-    "dd/MM/yyyy HH:mm"
-  );
-  const endFormatted = formatInTimeZone(slotEnd, timeZone, "HH:mm 'BRT'");
+  const startDate = parse(metadata.time, "HH:mm", new Date());
+  const startFormatted = format(startDate, "dd/MM/yyyy HH:mm");
+  const endTime = addOneHour(metadata.time);
+  const endFormatted = `${endTime} BRT`;
 
   const calendarEvent = await calendarService.createEvent({
     summary: `Aula com ${metadata.studentName}`,
     description: `Aluno: ${metadata.studentName}\nEmail: ${metadata.studentEmail}\nHorário: ${startFormatted} – ${endFormatted}`,
-    start: { dateTime: formatDateTime(slotStart), timeZone },
-    end: { dateTime: formatDateTime(slotEnd), timeZone },
+    start: { dateTime: `${metadata.date}T${metadata.time}:00` },
+    end: { dateTime: `${metadata.date}T${endTime}:00`, timeZone },
     conferenceData: {
       createRequest: {
         requestId: `unique-${Date.now()}`,
