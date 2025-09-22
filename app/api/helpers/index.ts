@@ -106,7 +106,7 @@ export function isSlotFree(events, slot) {
 export const freeSlots = (events, allSlots) =>
   allSlots
     .map((day) => {
-      const tzLabel = day.timezoneLabel ?? "-03:00";
+      const tzLabel = day.timezoneLabel;
       const dateStr = day.date;
 
       const slotsWithAbsolute = (day.slots || []).map((slot) => {
