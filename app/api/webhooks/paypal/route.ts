@@ -27,6 +27,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (booking.status === "confirmed" && booking.paypalOrderId === orderId) {
+      return NextResponse.json({ received: true });
+    }
+
     await updateBooking({
       booking,
       data: {
