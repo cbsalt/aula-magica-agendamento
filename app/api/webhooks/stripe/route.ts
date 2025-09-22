@@ -51,7 +51,6 @@ export async function POST(req: NextRequest) {
     if (booking.batchId) {
       await processBatchBooking({
         masterBooking: booking,
-        paymentId: session.id,
         teacherId: booking.teacherId,
         amount: session.amount_total / 100,
         currency: session.currency,
@@ -59,7 +58,6 @@ export async function POST(req: NextRequest) {
     } else {
       await processBooking({
         booking,
-        paymentId: session.id,
         teacherId: session.metadata.teacherId,
         metadata: {
           studentName: session.metadata.studentName,
@@ -67,8 +65,6 @@ export async function POST(req: NextRequest) {
           date: session.metadata.date,
           time: session.metadata.time,
         },
-        amount: session.amount_total / 100,
-        currency: session.currency,
       }).catch((err) => {
         console.error("Erro ao processar booking:", err);
       });

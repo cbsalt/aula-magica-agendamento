@@ -40,7 +40,6 @@ export async function POST(req: NextRequest) {
     if (booking.batchId) {
       await processBatchBooking({
         masterBooking: booking,
-        paymentId: localBookingId,
         teacherId: booking.teacherId,
         amount,
         currency,
@@ -48,7 +47,6 @@ export async function POST(req: NextRequest) {
     } else {
       await processBooking({
         booking,
-        paymentId: localBookingId,
         teacherId: booking.teacherId,
         metadata: {
           studentName: booking.studentName,
@@ -56,8 +54,6 @@ export async function POST(req: NextRequest) {
           date: booking.date.toISOString().split("T")[0],
           time: booking.time,
         },
-        amount,
-        currency,
       });
     }
 
