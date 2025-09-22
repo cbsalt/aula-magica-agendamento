@@ -7,6 +7,7 @@ import { createZoomMeetingWithRetry } from "@/lib/zoom";
 import { findTeacherById } from "@/modules/teacher";
 import { updateBooking, findBookingsByBatchId } from "@/modules/booking";
 import { Booking } from "@prisma/client";
+import { formatInTimeZone } from "date-fns-tz";
 
 export async function processBooking({
   booking,
@@ -22,6 +23,8 @@ export async function processBooking({
   };
   teacherId: string;
 }) {
+  const timeZone = "America/Sao_Paulo";
+
   const teacher = await findTeacherById(teacherId);
 
   if (!teacher) return { teacher: "Teacher not found" };
@@ -54,11 +57,22 @@ export async function processBooking({
     });
   }
 
+  const formatDateTime = (time) => {
+    return formatInTimeZone(time, timeZone, "yyyy-MM-dd'T'HH:mm:ss");
+  };
+
+  const startFormatted = formatInTimeZone(
+    slotStart,
+    timeZone,
+    "dd/MM/yyyy HH:mm"
+  );
+  const endFormatted = formatInTimeZone(slotEnd, timeZone, "HH:mm 'BRT'");
+
   const calendarEvent = await calendarService.createEvent({
     summary: `Aula com ${metadata.studentName}`,
-    description: `Aluno: ${metadata.studentName}\nEmail: ${metadata.studentEmail}`,
-    start: { dateTime: slotStart.toISOString(), timeZone: "America/Sao_Paulo" },
-    end: { dateTime: slotEnd.toISOString(), timeZone: "America/Sao_Paulo" },
+    description: `Aluno: ${metadata.studentName}\nEmail: ${metadata.studentEmail}\nHorário: ${startFormatted} – ${endFormatted}`,
+    start: { dateTime: formatDateTime(slotStart), timeZone },
+    end: { dateTime: formatDateTime(slotEnd), timeZone },
     conferenceData: {
       createRequest: {
         requestId: `unique-${Date.now()}`,
