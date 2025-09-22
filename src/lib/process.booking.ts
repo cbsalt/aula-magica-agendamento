@@ -62,15 +62,11 @@ export async function processBooking({
     });
   }
 
-  const startFormatted = formatInTimeZone(
-    slotStart,
-    timeZone,
-    "dd/MM/yyyy HH:mm"
-  );
-  const endFormatted = formatInTimeZone(slotEnd, timeZone, "HH:mm 'BRT'");
-
   const startDateTime = `${metadata.date}T${metadata.time}:00`;
   const endDateTime = `${metadata.date}T${addOneHour(metadata.time)}:00`;
+
+  const startFormatted = `${metadata.date} ${metadata.time}`;
+  const endFormatted = `${addOneHour(metadata.time)} BRT`;
 
   const calendarEvent = await calendarService.createEvent({
     summary: `Aula com ${metadata.studentName}`,
