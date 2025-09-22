@@ -7,9 +7,9 @@ import { createZoomMeetingWithRetry } from "@/lib/zoom";
 import { findTeacherById } from "@/modules/teacher";
 import { updateBooking, findBookingsByBatchId } from "@/modules/booking";
 import { Booking } from "@prisma/client";
-import { formatInTimeZone } from "date-fns-tz";
 import { format, parse } from "date-fns";
 import { addOneHour } from "@/utils";
+import { toZonedTime, formatInTimeZone } from "date-fns-tz";
 
 export async function processBooking({
   booking,
@@ -31,7 +31,10 @@ export async function processBooking({
 
   if (!teacher) return { teacher: "Teacher not found" };
 
-  const slotStart = new Date(`${metadata.date}T${metadata.time}`);
+  const slotStart = toZonedTime(
+    `${metadata.date}T${metadata.time}:00`,
+    timeZone
+  );
   const slotEnd = new Date(slotStart.getTime() + 60 * 60 * 1000);
 
   const calendarService = new GoogleCalendarService(
@@ -59,16 +62,18 @@ export async function processBooking({
     });
   }
 
-  const startDate = parse(metadata.time, "HH:mm", new Date());
-  const startFormatted = format(startDate, "dd/MM/yyyy HH:mm");
-  const endTime = addOneHour(metadata.time);
-  const endFormatted = `${endTime} BRT`;
+  const startFormatted = formatInTimeZone(
+    slotStart,
+    timeZone,
+    "dd/MM/yyyy HH:mm"
+  );
+  const endFormatted = formatInTimeZone(slotEnd, timeZone, "HH:mm 'BRT'");
 
   const calendarEvent = await calendarService.createEvent({
     summary: `Aula com ${metadata.studentName}`,
     description: `Aluno: ${metadata.studentName}\nEmail: ${metadata.studentEmail}\nHorário: ${startFormatted} – ${endFormatted}`,
-    start: { dateTime: `${metadata.date}T${metadata.time}:00` },
-    end: { dateTime: `${metadata.date}T${endTime}:00`, timeZone },
+    start: { dateTime: slotStart.toISOString(), timeZone },
+    end: { dateTime: slotEnd.toISOString(), timeZone },
     conferenceData: {
       createRequest: {
         requestId: `unique-${Date.now()}`,
