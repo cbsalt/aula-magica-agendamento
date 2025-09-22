@@ -1,13 +1,13 @@
-import { CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { useTranslation } from "react-i18next";
-import { addHours, format, parse, parseISO, setHours } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import AnimatedCard from "./animated-card";
-import { Teacher } from "@prisma/client";
+import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 import { addOneHour } from "@/utils";
+import { Teacher } from "@prisma/client";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { ArrowRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import AnimatedCard from "./animated-card";
 
 interface Props {
   teacher: Teacher;

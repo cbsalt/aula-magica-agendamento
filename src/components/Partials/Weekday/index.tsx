@@ -1,7 +1,7 @@
 "use client";
 
 import * as Dialog from "@radix-ui/react-dialog";
-import Select, { components } from "react-select";
+import Select from "react-select";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -126,15 +126,18 @@ export function Weekday({ day, idx, workSchedule, setWorkSchedule }) {
         </button>
       </div>
 
-      {/* Drawer mobile */}
+      {/* Drawer */}
       <Dialog.Root open={isDrawerOpen} onOpenChange={setDrawerOpen}>
         <Dialog.Portal>
-          <Dialog.Overlay className="fixed inset-0 bg-black/30" />
+          <Dialog.Overlay className="fixed inset-0 bg-black/30 z-40" />
+
           <Dialog.Content
             className={`
-    fixed bottom-0 left-0 right-0 bg-white p-4 rounded-t-lg shadow-lg w-full max-w-md mx-auto
-    sm:rounded-lg sm:max-w-sm sm:top-1/2 sm:left-1/2 sm:transform sm:-translate-x-1/2 sm:-translate-y-1/2
-  `}
+      fixed z-50 bg-white p-4 shadow-lg w-full max-w-md
+      bottom-0 left-1/2 -translate-x-1/2 rounded-t-lg
+      sm:top-1/2 sm:bottom-auto sm:rounded-lg sm:max-w-sm
+      sm:-translate-y-1/2
+    `}
           >
             <Dialog.Title className="text-lg font-semibold mb-4 text-center">
               {activeField === "start" ? "Escolher Início" : "Escolher Fim"}
