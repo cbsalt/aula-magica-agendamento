@@ -103,7 +103,11 @@ export async function processBooking({
     },
   });
 
-  const formattedDate = formatDateForEmail(metadata.date, metadata.time);
+  const formattedDate = formatDateForEmail(
+    metadata.date,
+    metadata.time,
+    "pt-BR"
+  );
 
   sendConfirmationEmail(
     metadata.studentEmail,
@@ -249,6 +253,10 @@ export async function processBatchBooking({
   }
 
   if (processedBookings.length > 0) {
+    processedBookings.sort(
+      (a, b) => a.slotStart.getTime() - b.slotStart.getTime()
+    );
+
     const formattedBookings = processedBookings.map((booking) => {
       let timeStr = booking.time;
 

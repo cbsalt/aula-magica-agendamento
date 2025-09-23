@@ -85,7 +85,7 @@ export async function sendBatchConfirmationEmail(
       <div style="border: 1px solid #e0e0e0; border-radius: 4px; padding: 12px; margin-bottom: 12px;">
         <h3 style="margin: 0 0 8px 0; color: #1a73e8;">Aula ${index + 1}</h3>
         <p style="margin: 0; font-size: 16px; background-color: #f1f6ff; padding: 8px; border-radius: 4px; text-align: center;">
-          <strong>${formattedDate}</strong>
+          <strong>Início: ${formattedDate}</strong>
         </p>
         ${
           booking.meetingLink

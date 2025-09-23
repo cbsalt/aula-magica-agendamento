@@ -11,7 +11,6 @@ import { capitalize } from "@/utils";
 interface Props {
   selectedDate: Date;
   onChangeDate: (date: Date) => void;
-  error: string;
   teacherAvailability: [];
   selectedTimes: Array<{ date: Date; time: string }>;
   handleSlot: (slot: { date: Date; time: string }) => void;
@@ -21,7 +20,6 @@ interface Props {
 export function TimeSelectionStep({
   selectedDate,
   onChangeDate,
-  error,
   teacherAvailability,
   selectedTimes,
   handleSlot,
@@ -35,7 +33,7 @@ export function TimeSelectionStep({
 
   const dayName = capitalize(format(selectedDate, "EEEE", { locale: ptBR }));
 
-  const CalendarHeader = ({ title }: { title: string }) => (
+  const CalendarHeader = () => (
     <CardHeader className="flex flex-row items-center justify-center">
       <button
         disabled={
@@ -71,18 +69,10 @@ export function TimeSelectionStep({
     return <Skeleton className="w-full h-full border border-gray-200" />;
   }
 
-  if (error) {
-    return (
-      <AnimatedCard>
-        <CalendarHeader title={t("error")} />
-      </AnimatedCard>
-    );
-  }
-
   if (teacherAvailability.length === 0) {
     return (
       <AnimatedCard>
-        <CalendarHeader title={t("publicBooking.noAvailableTimes")} />
+        <CalendarHeader />
         <CardContent className="flex flex-col items-center justify-center text-center py-12">
           <Clock className="h-8 w-8 text-gray-400 mb-3" />
           <p className="text-gray-600 text-sm md:text-base max-w-xs">
@@ -95,7 +85,7 @@ export function TimeSelectionStep({
 
   return (
     <AnimatedCard>
-      <CalendarHeader title={t("publicBooking.chooseTime")} />
+      <CalendarHeader />
       <CardContent>
         <div className="space-y-8">
           {teacherAvailability.map((day) => (
