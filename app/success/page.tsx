@@ -15,24 +15,9 @@ export default async function SuccessPage({ searchParams }: Props) {
 
   try {
     const stripe = getStripeInstance();
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    await stripe.checkout.sessions.retrieve(sessionId);
 
-    const metadata = session.metadata;
-    const { studentEmail, date, time } = metadata || {};
-
-    if (!studentEmail || !date || !time) {
-      return (
-        <ErrorMessage message="Não foi possível recuperar os detalhes da sua aula. Por favor, entre em contato com o suporte." />
-      );
-    }
-
-    return (
-      <SuccessClient
-        metadata={
-          metadata as { studentName: string; date: string; time: string }
-        }
-      />
-    );
+    return <SuccessClient />;
   } catch (error) {
     return (
       <ErrorMessage message="Ocorreu um erro ao verificar seu pagamento. Se você recebeu o comprovante, entre em contato conosco." />
