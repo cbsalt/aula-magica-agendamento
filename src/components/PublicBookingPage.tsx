@@ -13,6 +13,7 @@ import { SelectedTimesProvider } from "@/contexts/SelectedTimesContext";
 import { useSelectedTimes } from "@/hooks/useSelectedTimes";
 import { createBooking } from "@/services/paymentService";
 import { Teacher } from "@prisma/client";
+import toast, { Toaster } from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import SelectedTimesDrawer from "./SelectedTimesDrawer";
 import DateSelectionStep from "./Steps/date-selection";
@@ -36,7 +37,6 @@ function PublicBookingPageContent({ teacher }: Props) {
   }>({});
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<"dateTime" | "info" | "payment">("dateTime");
-  const [error, setError] = useState<string | null>(null);
   const [loadingAvailability, setLoadingAvailability] = useState(false);
   const steps = ["dateTime", "info", "payment"];
   const currentStepIndex = steps.indexOf(step);
@@ -78,10 +78,10 @@ function PublicBookingPageContent({ teacher }: Props) {
   );
 
   useEffect(() => {
-    if (selectedDate) {
+    if (step === "dateTime" && selectedDate) {
       fetchAvailability(selectedDate);
     }
-  }, [selectedDate, fetchAvailability]);
+  }, [step, selectedDate, fetchAvailability]);
 
   const handleDateSelect = (date: Date | undefined) => {
     setSelectedDate(date);
@@ -94,7 +94,6 @@ function PublicBookingPageContent({ teacher }: Props) {
 
   const handleBooking = async () => {
     setLoading(true);
-    setError(null);
 
     try {
       let payload;
@@ -126,10 +125,16 @@ function PublicBookingPageContent({ teacher }: Props) {
       if (result.paymentUrl) {
         window.location.href = result.paymentUrl;
       } else {
-        setError("Erro inesperado ao redirecionar para o pagamento.");
+        toast.error("Erro inesperado ao redirecionar para o pagamento.");
       }
     } catch (error) {
-      setError(error?.response?.data?.error || "Erro ao criar pagamento");
+      const errorMessage = error?.response?.data?.error;
+
+      if (error?.response?.status === 409) {
+        return toast.error(errorMessage);
+      }
+
+      toast.error(errorMessage || "Erro ao criar pagamento");
     } finally {
       setLoading(false);
     }
@@ -145,6 +150,8 @@ function PublicBookingPageContent({ teacher }: Props) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4">
+      <Toaster position="top-right" />
+
       <div className="max-w-4xl mx-auto">
         {/* Language Selector */}
         <div className="flex justify-end mb-4">
@@ -223,7 +230,6 @@ function PublicBookingPageContent({ teacher }: Props) {
                   onChangeDate={(newDate) => {
                     setSelectedDate(newDate);
                   }}
-                  error={error}
                   teacherAvailability={teacherAvailability}
                   selectedTimes={selectedTimes}
                   handleSlot={handleScheduledSlot}
