@@ -69,7 +69,7 @@ export class PaymentService {
             });
           } else {
             throw new AppError(
-              `Conflito: o horário ${
+              `O horário ${
                 timeSlot.time
               } em ${timeSlot.date.toLocaleDateString()} foi bloqueado recentemente. Tente outro ou volte em alguns minutos.`,
               409
@@ -139,7 +139,7 @@ export class PaymentService {
           });
         } else {
           throw new AppError(
-            "Conflito: esse horário foi bloqueado recentemente. Tente outro ou volte em alguns minutos.",
+            "Esse horário foi bloqueado recentemente. Tente outro ou volte em alguns minutos.",
             409
           );
         }
