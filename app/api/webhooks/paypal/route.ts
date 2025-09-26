@@ -1,4 +1,3 @@
-import { NextApiResponse } from "next";
 import { NextRequest, NextResponse } from "next/server";
 
 import { findBooking, updateBooking } from "@/modules/booking";
@@ -47,6 +46,7 @@ export async function POST(req: NextRequest) {
         teacherId: booking.teacherId,
         amount,
         currency,
+        paypalOrderId: orderId ?? null,
       });
     } else {
       await processBooking({
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
         metadata: {
           studentName: booking.studentName,
           studentEmail: booking.studentEmail,
-          date: booking.date.toISOString().split("T")[0],
+          date: booking.date,
           time: booking.time,
         },
       });

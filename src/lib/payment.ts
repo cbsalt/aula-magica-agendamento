@@ -40,7 +40,7 @@ export class PaymentService {
       date: string;
       time: string;
     };
-    timeSlots?: Array<{ date: Date; time: string }>;
+    timeSlots?: Array<{ date: string; time: string }>;
     request: NextRequest;
   }) {
     const isBatchProcessing = data.timeSlots && data.timeSlots.length > 1;
@@ -69,9 +69,7 @@ export class PaymentService {
             });
           } else {
             throw new AppError(
-              `O horário ${
-                timeSlot.time
-              } em ${timeSlot.date.toLocaleDateString()} foi bloqueado recentemente. Tente outro ou volte em alguns minutos.`,
+              `O horário ${timeSlot.time} em ${timeSlot.date} foi bloqueado recentemente. Tente outro ou volte em alguns minutos.`,
               409
             );
           }
@@ -115,13 +113,11 @@ export class PaymentService {
         throw error;
       }
     } else {
-      const bookingDate = new Date(data.metadata.date);
-
       const existingBooking = await findBookingFirst({
         data: {
           teacherId: data.teacherId,
           time: data.metadata.time,
-          date: bookingDate,
+          date: data.metadata.date,
           status: { in: ["pending", "confirmed"] },
         },
       });
@@ -147,7 +143,6 @@ export class PaymentService {
 
       const booking = await createBooking({
         bookingData: data,
-        bookingDate,
         notes: "Aguardando pagamento",
         status: "pending",
       });
@@ -369,7 +364,7 @@ export class PaymentService {
         "Erro ao capturar pagamento PayPal:",
         error.response?.data || error.message
       );
-      throw new Error("Erro ao capturar pagamento PayPal");
+      throw error;
     }
   }
 }

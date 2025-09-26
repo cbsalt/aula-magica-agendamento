@@ -9,7 +9,8 @@ export async function sendConfirmationEmail(
   toEmail: string,
   studentName: string,
   date: string,
-  meetLink: string | null
+  meetLink: string | null,
+  rescheduleLink?: string
 ) {
   const sender = new Sender(
     "no-reply@scheduleasier.com",
@@ -34,6 +35,11 @@ export async function sendConfirmationEmail(
             ? `<p>Link para a reunião: <a href="${meetLink}" style="color:#1a73e8; text-decoration:none;">${meetLink}</a></p>`
             : ""
         }
+        ${
+          rescheduleLink
+            ? `<p style="margin-top: 12px;">Precisa reagendar? <a href="${rescheduleLink}" style="color:#1a73e8; text-decoration:none; font-weight:600;">Clique aqui</a>.</p>`
+            : ""
+        }
         <p>Obrigado por escolher nossos serviços!<br/>Desejamos uma ótima aula.</p>
       </div>
       <div style="background-color:#f5f5f5; padding:16px; font-size:12px; color:#777; text-align:center;">
@@ -48,6 +54,8 @@ Olá ${studentName},
 
 Seu pagamento foi confirmado e sua aula está agendada para ${date}.
 ${meetLink ? `Link para a reunião: ${meetLink}` : ""}
+
+${rescheduleLink ? `Reagendar: ${rescheduleLink}` : ""}
 
 Obrigado por escolher nossos serviços!
 ---
@@ -67,9 +75,10 @@ Este é um e-mail automático, por favor não responda.
 export async function sendBatchConfirmationEmail(
   toEmail: string,
   studentName: string,
-  bookings: Array<{ date: string; time: string; meetingLink: string | null }>,
+  bookings: Array<{ formattedDateTime: string; meetingLink: string | null }>,
   totalAmount: number,
-  currency: string
+  currency: string,
+  rescheduleLink?: string
 ) {
   const sender = new Sender(
     "no-reply@scheduleasier.com",
@@ -79,13 +88,11 @@ export async function sendBatchConfirmationEmail(
 
   const bookingsHtml = bookings
     .map((booking, index) => {
-      const formattedDate = handleFormatDate(booking);
-
       return `
       <div style="border: 1px solid #e0e0e0; border-radius: 4px; padding: 12px; margin-bottom: 12px;">
         <h3 style="margin: 0 0 8px 0; color: #1a73e8;">Aula ${index + 1}</h3>
         <p style="margin: 0; font-size: 16px; background-color: #f1f6ff; padding: 8px; border-radius: 4px; text-align: center;">
-          <strong>Início: ${formattedDate}</strong>
+          <strong>Início: ${booking.formattedDateTime}</strong>
         </p>
         ${
           booking.meetingLink
@@ -123,6 +130,12 @@ export async function sendBatchConfirmationEmail(
           </p>
         </div>
 
+        ${
+          rescheduleLink
+            ? `<p style="margin-top: 12px;">Precisa reagendar sua sequência de aulas? <a href="${rescheduleLink}" style="color:#1a73e8; text-decoration:none; font-weight:600;">Clique aqui</a>.</p>`
+            : ""
+        }
+
         <p>Obrigado por escolher nossos serviços!<br/>Desejamos ótimas aulas.</p>
       </div>
       <div style="background-color:#f5f5f5; padding:16px; font-size:12px; color:#777; text-align:center;">
@@ -134,9 +147,7 @@ export async function sendBatchConfirmationEmail(
 
   const bookingsText = bookings
     .map((booking, index) => {
-      const formattedDate = handleFormatDate(booking);
-
-      return `Aula ${index + 1}: ${formattedDate}${
+      return `Aula ${index + 1}: ${booking.formattedDateTime}${
         booking.meetingLink ? `\nLink: ${booking.meetingLink}` : ""
       }`;
     })
@@ -152,6 +163,8 @@ ${bookingsText}
 Resumo do Pagamento:
 Total: ${totalAmount.toFixed(2)} ${currency}
 ${bookings.length} ${bookings.length === 1 ? "aula" : "aulas"} agendadas
+
+${rescheduleLink ? `Reagendar: ${rescheduleLink}` : ""}
 
 Obrigado por escolher nossos serviços!
 ---

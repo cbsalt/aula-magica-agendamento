@@ -125,7 +125,7 @@ model Booking {
   studentName  String @map("student_name")
   studentEmail String @map("student_email")
 
-  date DateTime
+  date String
   time String
 
   status String  @default("pending") // pending, confirmed, cancelled, completed

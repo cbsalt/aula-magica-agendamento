@@ -11,7 +11,6 @@ export function findBooking(id): Promise<Booking> {
 
 export function createBooking({
   bookingData,
-  bookingDate,
   status,
   notes,
   batchId = null,
@@ -22,7 +21,7 @@ export function createBooking({
       teacherId: bookingData.teacherId,
       studentName: bookingData.metadata.studentName,
       studentEmail: bookingData.studentEmail,
-      date: bookingDate,
+      date: bookingData.metadata.date,
       time: bookingData.metadata.time,
       amount: bookingData.amount,
       currency: bookingData.currency,
