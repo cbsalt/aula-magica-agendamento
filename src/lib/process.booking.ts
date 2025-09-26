@@ -7,8 +7,8 @@ import { createZoomMeetingWithRetry } from "@/lib/zoom";
 import { findTeacherById } from "@/modules/teacher";
 import { updateBooking, findBookingsByBatchId } from "@/modules/booking";
 import { Booking } from "@prisma/client";
-import { format, parse } from "date-fns";
-import { addOneHour } from "@/utils";
+import { format, parse, parseISO, set } from "date-fns";
+import { addOneHour, getBookingDateTime } from "@/utils";
 import { toZonedTime, formatInTimeZone } from "date-fns-tz";
 
 export async function processBooking({
@@ -103,17 +103,21 @@ export async function processBooking({
     },
   });
 
-  const formattedDate = formatDateForEmail(
-    metadata.date,
-    metadata.time,
-    "pt-BR"
-  );
+  const initialSlot = getBookingDateTime({
+    date: metadata.date,
+    time: metadata.time,
+  });
+
+  const formattedDate = formatDateForEmail(initialSlot, "pt-BR");
+
+  // const rescheduleLink = `${process.env.NEXTAUTH_URL}/reschedule?bookingId=${booking?.id}`;
 
   sendConfirmationEmail(
     metadata.studentEmail,
     metadata.studentName,
     formattedDate,
     meetingLink
+    // rescheduleLink
   );
 }
 
@@ -122,11 +126,13 @@ export async function processBatchBooking({
   teacherId,
   amount,
   currency,
+  paypalOrderId,
 }: {
   masterBooking: Booking;
   teacherId: string;
   amount: number;
   currency: string;
+  paypalOrderId?: string | null;
 }) {
   const teacher = await findTeacherById(teacherId);
   if (!teacher) return;
@@ -154,17 +160,22 @@ export async function processBatchBooking({
   ) => {
     const timeZone = "America/Sao_Paulo";
 
-    const startDateTime = `${booking.date.toISOString().split("T")[0]}T${
-      booking.time
-    }:00`;
-    const endDateTime = `${
-      booking.date.toISOString().split("T")[0]
-    }T${addOneHour(booking.time)}:00`;
+    const slotStart = getBookingDateTime(booking);
+    const slotEnd = new Date(slotStart.getTime() + 60 * 60 * 1000);
 
-    const startFormatted = `${booking.date.toISOString().split("T")[0]} ${
-      booking.time
-    }`;
-    const endFormatted = `${addOneHour(booking.time)} BRT`;
+    const startDateTime = slotStart.toISOString();
+    const endDateTime = slotEnd.toISOString();
+
+    const startFormatted = `${slotStart.toLocaleDateString(
+      "pt-BR"
+    )} ${slotStart.toLocaleTimeString("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    })}`;
+    const endFormatted = `${slotEnd.toLocaleTimeString("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    })} BRT`;
 
     return {
       summary: `Aula com ${booking.studentName}`,
@@ -188,9 +199,7 @@ export async function processBatchBooking({
   };
 
   for (const [index, booking] of batchBookings.entries()) {
-    const slotStart = new Date(
-      `${booking.date.toISOString().split("T")[0]}T${booking.time}`
-    );
+    const slotStart = getBookingDateTime(booking);
     const slotEnd = new Date(slotStart.getTime() + 60 * 60 * 1000);
 
     const isAvailable = !events.some((event) => {
@@ -235,12 +244,16 @@ export async function processBatchBooking({
       );
     }
 
+    const amountPerBooking = booking.amount / batchBookings.length;
+
     await updateBooking({
       booking,
       data: {
+        paypalOrderId,
         status: "confirmed",
         meetLink: meetingLink,
         notes: "Pagamento confirmado",
+        amount: amountPerBooking,
       },
     });
 
@@ -258,21 +271,18 @@ export async function processBatchBooking({
     );
 
     const formattedBookings = processedBookings.map((booking) => {
-      let timeStr = booking.time;
-
-      if (timeStr.length === 4 && !timeStr.includes(":")) {
-        timeStr = `${timeStr.slice(0, 2)}:${timeStr.slice(2)}`;
-      }
-
-      const dateStr = booking.date.toISOString().split("T")[0];
+      const slotStart = getBookingDateTime({
+        date: booking.date,
+        time: booking.time,
+      });
 
       return {
-        formattedDateTime: formatDateForEmail(dateStr, timeStr, "pt-BR"),
-        date: dateStr,
-        time: timeStr,
+        formattedDateTime: formatDateForEmail(slotStart, "pt-BR"),
         meetingLink: booking.meetingLink,
       };
     });
+
+    // const rescheduleLink = `${process.env.NEXTAUTH_URL}/reschedule?batchId=${masterBooking.batchId}`;
 
     await sendBatchConfirmationEmail(
       masterBooking.studentEmail,
@@ -280,18 +290,14 @@ export async function processBatchBooking({
       formattedBookings,
       amount,
       currency
+      // rescheduleLink
     );
   }
 
   return processedBookings;
 }
 
-function formatDateForEmail(date: string, time: string, locale = "en-US") {
-  const [year, month, day] = date.split("-").map(Number);
-  const [hours, minutes] = time.split(":").map(Number);
-
-  const dateObj = new Date(year, month - 1, day, hours, minutes);
-
+function formatDateForEmail(dateObj: Date, locale = "en-US") {
   return new Intl.DateTimeFormat(locale, {
     weekday: "long",
     year: "numeric",
@@ -299,6 +305,6 @@ function formatDateForEmail(date: string, time: string, locale = "en-US") {
     day: "numeric",
     hour: "2-digit",
     minute: "2-digit",
-    hour12: true,
+    hour12: false,
   }).format(dateObj);
 }

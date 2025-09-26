@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
 
     if (isBatchProcessing) {
       const timeSlots = bookingData.timeSlots.map((slot) => ({
-        date: new Date(slot.date),
+        date: slot.date,
         time: slot.time.split(" - ")[0],
       }));
 
@@ -59,8 +59,8 @@ export async function POST(request: NextRequest) {
           teacherId: teacher.id,
           studentEmail: bookingData.studentEmail,
           studentName: bookingData.studentName,
-          date: timeSlots[0].date.toISOString().split("T")[0], // Usar a primeira data como referência
-          time: timeSlots[0].time, // Usar o primeiro horário como referência
+          date: timeSlots[0].date,
+          time: timeSlots[0].time,
         },
         timeSlots,
         request: request,
