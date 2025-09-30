@@ -1,18 +1,22 @@
 "use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { fetchTeacherAvailability } from "@/services/teacherService";
-import { format } from "date-fns";
-import { motion } from "framer-motion";
-import { useCallback, useEffect, useState } from "react";
+import { format, parse } from "date-fns";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import LanguageSelector from "@/components/LanguageSelector";
 import { SelectedTimesProvider } from "@/contexts/SelectedTimesContext";
 import { useSelectedTimes } from "@/hooks/useSelectedTimes";
+import {
+  getScheduledBookings,
+  updateScheduledBookings,
+} from "@/services/bookingService";
 import { createBooking } from "@/services/paymentService";
+import { getBrasiliaTimeLabel } from "@/utils";
 import { Teacher } from "@prisma/client";
+import { Info } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import SelectedTimesDrawer from "./SelectedTimesDrawer";
@@ -20,13 +24,23 @@ import DateSelectionStep from "./Steps/date-selection";
 import PaymentStep from "./Steps/payment";
 import { StudentInfoFormData, StudentInfoStep } from "./Steps/student-info";
 import { TimeSelectionStep } from "./Steps/time-selection";
+import Header from "./Booking/header";
+import { ModalRescheduleConfirmation } from "./Booking/modal-reschedule-confirmation";
+import { ProgressBar } from "./Booking/progress-bar";
 
 interface Props {
   teacher: Teacher;
 }
 
+interface ReschedulePayload {
+  timeSlots: { date: string; time: string }[];
+  bookingId?: string;
+  batchId?: string;
+}
+
 function PublicBookingPageContent({ teacher }: Props) {
   const { t } = useTranslation();
+  const router = useRouter();
   const { selectedTimes, addTimeSlot, removeTimeSlot, isTimeSlotSelected } =
     useSelectedTimes();
   const [selectedDate, setSelectedDate] = useState<Date>();
@@ -38,12 +52,31 @@ function PublicBookingPageContent({ teacher }: Props) {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<"dateTime" | "info" | "payment">("dateTime");
   const [loadingAvailability, setLoadingAvailability] = useState(false);
+  const [scheduledBookings, setScheduledBookings] = useState([]);
+  const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [slotToUpdate, setSlotToUpdate] = useState([]);
+  const [pendingSlot, setPendingSlot] = useState<{
+    date: string;
+    time: string;
+  } | null>(null);
+
   const steps = ["dateTime", "info", "payment"];
-  const currentStepIndex = steps.indexOf(step);
 
   const [studentPaymentMethod, setStudentPaymentMethod] = useState<
     "creditCard" | "paypal"
   >("creditCard");
+
+  const searchParams = useSearchParams();
+  const rescheduleParams = useMemo(() => {
+    const bookingId = searchParams?.get("bookingId") || undefined;
+    const batchId = searchParams?.get("batchId") || undefined;
+    return { bookingId, batchId };
+  }, [searchParams]);
+
+  const isRescheduleMode = !!(
+    rescheduleParams.bookingId || rescheduleParams.batchId
+  );
 
   const fetchAvailability = useCallback(
     async (selectedDate: Date) => {
@@ -58,13 +91,11 @@ function PublicBookingPageContent({ teacher }: Props) {
           .filter((day) => day.date === formattedDate)
           .map((day) => ({
             ...day,
-            slots: day.slots.map((slot) => ({
-              ...slot,
-              time: new Date(slot.start).toLocaleTimeString("pt-BR", {
-                hour: "2-digit",
-                minute: "2-digit",
-              }),
-            })),
+            slots: day.slots.map((slot) => {
+              return {
+                ...slot,
+              };
+            }),
           }));
 
         setTeacherAvailability(filteredAvailability);
@@ -82,6 +113,33 @@ function PublicBookingPageContent({ teacher }: Props) {
       fetchAvailability(selectedDate);
     }
   }, [step, selectedDate, fetchAvailability]);
+
+  useEffect(() => {
+    if (!isRescheduleMode) return;
+    (async () => {
+      try {
+        const params = new URLSearchParams();
+        if (rescheduleParams.bookingId)
+          params.set("bookingId", rescheduleParams.bookingId);
+        if (rescheduleParams.batchId)
+          params.set("batchId", rescheduleParams.batchId);
+
+        const response = await getScheduledBookings(params.toString());
+        setScheduledBookings(response?.bookings);
+
+        const first = response?.bookings[0];
+
+        if (first.date) {
+          const selectedDate = parse(first.date, "yyyy-MM-dd", new Date());
+          setSelectedDate(selectedDate);
+        }
+      } catch (error) {
+        toast.error(error?.response?.data?.error, {
+          position: "top-center",
+        });
+      }
+    })();
+  }, [isRescheduleMode]);
 
   const handleDateSelect = (date: Date | undefined) => {
     setSelectedDate(date);
@@ -104,7 +162,7 @@ function PublicBookingPageContent({ teacher }: Props) {
           studentName: studentData.name,
           studentEmail: studentData.email,
           timeSlots: selectedTimes.map((timeSlot) => ({
-            date: format(timeSlot.date, "yyyy-MM-dd"),
+            date: timeSlot.date,
             time: timeSlot.time,
           })),
           studentPaymentMethod,
@@ -125,26 +183,119 @@ function PublicBookingPageContent({ teacher }: Props) {
       if (result.paymentUrl) {
         window.location.href = result.paymentUrl;
       } else {
-        toast.error("Erro inesperado ao redirecionar para o pagamento.");
+        toast.error("Erro inesperado ao redirecionar para o pagamento.", {
+          position: "top-center",
+        });
       }
     } catch (error) {
       const errorMessage = error?.response?.data?.error;
 
       if (error?.response?.status === 409) {
-        return toast.error(errorMessage);
+        return toast.error(errorMessage, {
+          position: "top-center",
+        });
       }
 
-      toast.error(errorMessage || "Erro ao criar pagamento");
+      toast.error(errorMessage || "Erro ao criar pagamento", {
+        position: "top-center",
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleScheduledSlot = (slot: { date: Date; time: string }) => {
+  const handleReplaceScheduledSlot = (slot: { date: string; time: string }) => {
+    const alreadySelected = selectedTimes.some(
+      (s) => s.date === slot.date && s.time === slot.time
+    );
+
+    const alreadyInScheduled = scheduledBookings.some(
+      (s) =>
+        s.date === slot.date &&
+        s.time === slot.time &&
+        !slotToUpdate.some((u) => u.id === s.id)
+    );
+
+    if (alreadySelected || alreadyInScheduled) {
+      return toast(t(`publicBooking.reschedule.alreadySelected`), {
+        icon: <Info />,
+        position: "top-center",
+      });
+    }
+
+    const replacedSlot = {
+      ...slot,
+      id: slotToUpdate[0].id,
+    };
+
+    addTimeSlot(replacedSlot, true);
+
+    const updatedSlots = slotToUpdate.map((item) => ({
+      ...item,
+      date: slot.date,
+      time: slot.time,
+      isEdited: true,
+    }));
+
+    const newScheduledBookings = scheduledBookings.filter(
+      (item) => !slotToUpdate.some((slot) => slot.id === item.id)
+    );
+
+    setScheduledBookings([...newScheduledBookings, ...updatedSlots]);
+    toast.success(t("publicBooking.reschedule.success"), {
+      duration: 5000,
+      position: "top-center",
+    });
+  };
+
+  const handleScheduledSlot = (slot: { date: string; time: string }) => {
     if (isTimeSlotSelected(slot)) {
       removeTimeSlot(slot);
-    } else {
-      addTimeSlot(slot);
+      return;
+    }
+
+    addTimeSlot(slot);
+  };
+
+  const handleConfirmReschedule = async () => {
+    setLoading(true);
+    setIsDrawerOpen(false);
+
+    const editedSlots = scheduledBookings.filter((slot) => slot.isEdited);
+
+    const payload: ReschedulePayload = {
+      timeSlots: editedSlots.map((timeSlot) => ({
+        id: timeSlot.id,
+        date: timeSlot.date,
+        time: timeSlot.time,
+      })),
+      bookingId: rescheduleParams.bookingId,
+      batchId: rescheduleParams.batchId,
+    };
+
+    try {
+      await toast.promise(
+        updateScheduledBookings(payload),
+        {
+          loading: t("publicBooking.reschedule.toast.loading"),
+          success: (
+            <b>
+              {t("publicBooking.reschedule.toast.success", {
+                count: editedSlots.length,
+              })}
+            </b>
+          ),
+          error: <b>{t("publicBooking.reschedule.toast.error")}</b>,
+        },
+        {
+          duration: 5000,
+          position: "top-center",
+        }
+      );
+
+      router.push("/reschedule-success");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -153,77 +304,25 @@ function PublicBookingPageContent({ teacher }: Props) {
       <Toaster position="top-right" />
 
       <div className="max-w-4xl mx-auto">
-        {/* Language Selector */}
         <div className="flex justify-end mb-4">
           <LanguageSelector />
         </div>
-        {/* Teacher Info */}
-        <Card className="mb-8 shadow-lg border border-gray-200">
-          <CardHeader>
-            <div className="flex items-center gap-5">
-              <Avatar className="h-16 w-16 ring-2 ring-primary ring-offset-2">
-                <AvatarImage src={teacher.photo} alt={teacher.name} />
-                <AvatarFallback>{teacher.name.charAt(0)}</AvatarFallback>
-              </Avatar>
 
-              <div className="flex flex-col justify-center">
-                <CardTitle className="text-xl font-semibold text-gray-800">
-                  {teacher.name}
-                </CardTitle>
+        <Header teacher={teacher} isRescheduleMode={isRescheduleMode} />
 
-                <p className="text-sm text-gray-600 line-clamp-2 max-w-md">
-                  {teacher.description}
-                </p>
-
-                <div className="mt-2 inline-flex items-center text-sm font-medium text-green-600">
-                  <div className="text-gray-600 mr-1">
-                    {t(`publicBooking.price`)}:
-                  </div>
-                  {teacher.price.toFixed(2)} {teacher.currency}
-                </div>
-              </div>
-            </div>
-          </CardHeader>
-        </Card>
-
-        {/* Progress Bar */}
-        <div className="w-full mb-8">
-          <div className="flex items-center justify-between text-sm font-medium text-gray-600 mb-2">
-            {steps.map((s, index) => (
-              <div
-                key={s}
-                className={`flex-1 text-center ${
-                  index === currentStepIndex ? "text-primary font-semibold" : ""
-                }`}
-              >
-                {t(`publicBooking.stepLabels.${s}`)}
-              </div>
-            ))}
-          </div>
-          <div className="relative h-2 bg-gray-200 rounded-full overflow-hidden">
-            <motion.div
-              className="absolute top-0 left-0 h-full bg-gradient-to-r from-primary to-green-400 rounded-full"
-              initial={{ width: 0 }}
-              animate={{
-                width: `${((currentStepIndex + 1) / steps.length) * 100}%`,
-              }}
-              transition={{ duration: 0.6, ease: "easeInOut" }}
-            />
-          </div>
-        </div>
+        {!isRescheduleMode && <ProgressBar steps={steps} step={step} />}
 
         {/* Booking Steps */}
         <div className="flex flex-col md:flex-row md:flex-wrap gap-6 justify-center">
           {/* Step 1: Date Selection */}
           {step === "dateTime" && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Coluna 1: calendário */}
               <DateSelectionStep
+                isRescheduleMode={isRescheduleMode}
                 selectedDate={selectedDate}
                 onSelect={handleDateSelect}
               />
 
-              {/* Coluna 2: horários */}
               {selectedDate && (
                 <TimeSelectionStep
                   selectedDate={selectedDate}
@@ -231,19 +330,29 @@ function PublicBookingPageContent({ teacher }: Props) {
                     setSelectedDate(newDate);
                   }}
                   teacherAvailability={teacherAvailability}
-                  selectedTimes={selectedTimes}
-                  handleSlot={handleScheduledSlot}
+                  onHandleSlot={
+                    isRescheduleMode
+                      ? (slot) => {
+                          setPendingSlot(slot);
+                          setIsRescheduleModalOpen(true);
+                        }
+                      : handleScheduledSlot
+                  }
                   loadingAvailability={loadingAvailability}
+                  isRescheduleMode={isRescheduleMode}
+                  slotToUpdate={slotToUpdate}
                 />
               )}
             </div>
           )}
 
           {/* Step 3: Student Info */}
-          {step === "info" && <StudentInfoStep onSubmit={onSubmit} />}
+          {!isRescheduleMode && step === "info" && (
+            <StudentInfoStep onSubmit={onSubmit} />
+          )}
 
           {/* Step 4: Payment */}
-          {step === "payment" && (
+          {!isRescheduleMode && step === "payment" && (
             <PaymentStep
               teacher={teacher}
               selectedTimes={selectedTimes}
@@ -256,27 +365,51 @@ function PublicBookingPageContent({ teacher }: Props) {
           )}
         </div>
         {/* Navigation */}
-        <div className="space-y-4 mt-2">
-          {step !== "dateTime" && (
-            <Button
-              variant="outline"
-              onClick={() => setStep(step === "info" ? "dateTime" : "info")}
-              className="w-full md:w-auto"
-            >
-              {t("publicBooking.back")}
-            </Button>
-          )}
-        </div>
+        {!isRescheduleMode && (
+          <div className="space-y-4 mt-2">
+            {step !== "dateTime" && (
+              <Button
+                variant="outline"
+                onClick={() => setStep(step === "info" ? "dateTime" : "info")}
+                className="w-full md:w-auto"
+              >
+                {t("publicBooking.back")}
+              </Button>
+            )}
+          </div>
+        )}
         {step === "dateTime" && (
-          <div className="text-sm text-gray-500 mb-4 text-center">
-            Horário de Brasília (GMT-3)
+          <div className="text-sm text-gray-500 mt-4 text-center">
+            {getBrasiliaTimeLabel()}
           </div>
         )}
       </div>
 
       <SelectedTimesDrawer
+        isOpen={isDrawerOpen}
+        setIsOpen={setIsDrawerOpen}
+        isRescheduleMode={isRescheduleMode}
         teacher={teacher}
-        onContinue={() => setStep("info")}
+        scheduledBookings={scheduledBookings}
+        slotToUpdate={slotToUpdate}
+        setSlotToUpdate={setSlotToUpdate}
+        onContinue={() =>
+          isRescheduleMode ? setIsRescheduleModalOpen(true) : setStep("info")
+        }
+      />
+
+      <ModalRescheduleConfirmation
+        isLoading={loading}
+        isOpen={isRescheduleModalOpen}
+        shouldReplaceSlot={!!pendingSlot}
+        setIsRescheduleModalOpen={setIsRescheduleModalOpen}
+        onHandleReplaceSlot={() => {
+          if (pendingSlot) {
+            handleReplaceScheduledSlot(pendingSlot);
+            setPendingSlot(null);
+          }
+        }}
+        onConfirm={handleConfirmReschedule}
       />
     </div>
   );
