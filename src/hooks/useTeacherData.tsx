@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
 import {
   getTeacherAvailability,
   getTeacherProfile,
 } from "@/services/teacherService";
 import axios from "axios";
+import { useEffect, useState } from "react";
 
 export const weekDays = [
   { label: "Domingo", value: 0 },
@@ -53,7 +53,7 @@ export function useTeacherData() {
         }
 
         // Atualiza conexão Google
-        setIsConnected(!!profile.googleAccessToken);
+        setIsConnected(!!profile.googleCalendarConnected);
       } catch (error) {
         if (!axios.isCancel(error)) {
           console.error("Erro ao buscar dados do professor:", error);
