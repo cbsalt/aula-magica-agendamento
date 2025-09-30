@@ -3,15 +3,14 @@ import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { addOneHour } from "@/utils";
 import { Teacher } from "@prisma/client";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { format, parseISO } from "date-fns";
 import { ArrowRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import AnimatedCard from "./animated-card";
 
 interface Props {
   teacher: Teacher;
-  selectedTimes: Array<{ date: Date; time: string }>;
+  selectedTimes: Array<{ date: string; time: string }>;
   studentData: {
     name?: string;
     email?: string;
@@ -62,7 +61,7 @@ export default function PaymentStep({
                     {/* Coluna da data + horário */}
                     <div className="flex flex-col">
                       <span className="text-sm text-gray-500">
-                        {format(timeSlot.date, "dd/MM/yyyy", { locale: ptBR })}
+                        {format(parseISO(timeSlot.date), "dd/MM/yyyy")}
                       </span>
                       <div className="flex items-center gap-2">
                         <span className="text-lg font-medium">
