@@ -1,4 +1,4 @@
-import { Clock, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { Clock, ChevronLeft, ChevronRight, Info } from "lucide-react";
 import { addDays, format, isBefore, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,23 +7,26 @@ import AnimatedCard from "./animated-card";
 import { t } from "i18next";
 import { TeacherAvailability } from "../Partials/TeacherAvailability";
 import { capitalize } from "@/utils";
+import toast from "react-hot-toast";
 
 interface Props {
   selectedDate: Date;
   onChangeDate: (date: Date) => void;
   teacherAvailability: [];
-  selectedTimes: Array<{ date: Date; time: string }>;
-  handleSlot: (slot: { date: Date; time: string }) => void;
+  onHandleSlot: (slot: { date: string; time: string }) => void;
   loadingAvailability: boolean;
+  isRescheduleMode?: boolean;
+  slotToUpdate;
 }
 
 export function TimeSelectionStep({
   selectedDate,
   onChangeDate,
   teacherAvailability,
-  selectedTimes,
-  handleSlot,
+  onHandleSlot,
   loadingAvailability,
+  isRescheduleMode = false,
+  slotToUpdate,
 }: Props) {
   const changeDate = (days: number) => {
     if (!loadingAvailability) {
@@ -83,6 +86,19 @@ export function TimeSelectionStep({
     );
   }
 
+  const handleSlotWrapped = (slot: { date: string; time: string }) => {
+    if (isRescheduleMode && !slotToUpdate.length) {
+      toast(t("publicBooking.reschedule.selectTime"), {
+        icon: <Info size={48} />,
+        duration: 5000,
+        position: "top-center",
+      });
+      return;
+    }
+
+    onHandleSlot(slot);
+  };
+
   return (
     <AnimatedCard>
       <CalendarHeader />
@@ -92,8 +108,7 @@ export function TimeSelectionStep({
             <TeacherAvailability
               key={day}
               day={day}
-              selectedTimes={selectedTimes}
-              handleSlot={handleSlot}
+              handleSlot={handleSlotWrapped}
             />
           ))}
         </div>
