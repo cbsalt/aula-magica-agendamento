@@ -68,3 +68,37 @@ export function updateDataTeacherById(id, data, include = {}) {
     include,
   });
 }
+
+export function serializeTeacher(teacher: Teacher) {
+  if (!teacher) return null;
+
+  const {
+    id,
+    name,
+    email,
+    publicLinkId,
+    currency,
+    price,
+    description,
+    hasPublicLink,
+    zoomConnected,
+    photo,
+    slug,
+    isActive,
+  } = teacher;
+
+  return {
+    id,
+    name,
+    email,
+    publicLinkId,
+    currency,
+    price,
+    description,
+    hasPublicLink,
+    zoomConnected,
+    photo,
+    slug,
+    isActive,
+  };
+}
