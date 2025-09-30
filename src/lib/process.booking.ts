@@ -1,15 +1,14 @@
 import { GoogleCalendarService } from "@/lib/google-calendar";
-import {
-  sendConfirmationEmail,
-  sendBatchConfirmationEmail,
-} from "app/api/mail/send-confirmation-email";
 import { createZoomMeetingWithRetry } from "@/lib/zoom";
+import { findBookingsByBatchId, updateBooking } from "@/modules/booking";
 import { findTeacherById } from "@/modules/teacher";
-import { updateBooking, findBookingsByBatchId } from "@/modules/booking";
+import { addOneHour, buildCalendarEvent, getBookingDateTime } from "@/utils";
 import { Booking } from "@prisma/client";
-import { format, parse, parseISO, set } from "date-fns";
-import { addOneHour, getBookingDateTime } from "@/utils";
-import { toZonedTime, formatInTimeZone } from "date-fns-tz";
+import {
+  sendBatchConfirmationEmail,
+  sendConfirmationEmail,
+} from "app/api/mail/send-confirmation-email";
+import { toZonedTime } from "date-fns-tz";
 
 export async function processBooking({
   booking,
@@ -99,6 +98,7 @@ export async function processBooking({
     data: {
       status: "confirmed",
       meetLink: meetingLink,
+      googleEventId: calendarEvent.id,
       notes: "Pagamento confirmado",
     },
   });
@@ -110,14 +110,14 @@ export async function processBooking({
 
   const formattedDate = formatDateForEmail(initialSlot, "pt-BR");
 
-  // const rescheduleLink = `${process.env.NEXTAUTH_URL}/reschedule?bookingId=${booking?.id}`;
+  const rescheduleLink = `${process.env.NEXTAUTH_URL}/reschedule?bookingId=${booking?.id}`;
 
   sendConfirmationEmail(
     metadata.studentEmail,
     metadata.studentName,
     formattedDate,
-    meetingLink
-    // rescheduleLink
+    meetingLink,
+    rescheduleLink
   );
 }
 
@@ -152,51 +152,6 @@ export async function processBatchBooking({
   const processedBookings = [];
 
   let meetingLink: string | null = null;
-
-  const buildCalendarEvent = (
-    booking,
-    meetingLink?: string,
-    withConference: boolean = false
-  ) => {
-    const timeZone = "America/Sao_Paulo";
-
-    const slotStart = getBookingDateTime(booking);
-    const slotEnd = new Date(slotStart.getTime() + 60 * 60 * 1000);
-
-    const startDateTime = slotStart.toISOString();
-    const endDateTime = slotEnd.toISOString();
-
-    const startFormatted = `${slotStart.toLocaleDateString(
-      "pt-BR"
-    )} ${slotStart.toLocaleTimeString("pt-BR", {
-      hour: "2-digit",
-      minute: "2-digit",
-    })}`;
-    const endFormatted = `${slotEnd.toLocaleTimeString("pt-BR", {
-      hour: "2-digit",
-      minute: "2-digit",
-    })} BRT`;
-
-    return {
-      summary: `Aula com ${booking.studentName}`,
-      description: `Aluno: ${booking.studentName}\nEmail: ${
-        booking.studentEmail
-      }${
-        meetingLink ? `\nLink da aula: ${meetingLink}` : ""
-      }\nHorário: ${startFormatted} – ${endFormatted}`,
-      location: meetingLink || undefined,
-      start: { dateTime: startDateTime, timeZone },
-      end: { dateTime: endDateTime, timeZone },
-      ...(withConference && {
-        conferenceData: {
-          createRequest: {
-            requestId: `unique-${Date.now()}-${booking.id}`,
-            conferenceSolutionKey: { type: "hangoutsMeet" },
-          },
-        },
-      }),
-    };
-  };
 
   for (const [index, booking] of batchBookings.entries()) {
     const slotStart = getBookingDateTime(booking);
@@ -252,6 +207,7 @@ export async function processBatchBooking({
         paypalOrderId,
         status: "confirmed",
         meetLink: meetingLink,
+        googleEventId: calendarEvent.id,
         notes: "Pagamento confirmado",
         amount: amountPerBooking,
       },
@@ -282,15 +238,15 @@ export async function processBatchBooking({
       };
     });
 
-    // const rescheduleLink = `${process.env.NEXTAUTH_URL}/reschedule?batchId=${masterBooking.batchId}`;
+    const rescheduleLink = `${process.env.NEXTAUTH_URL}/reschedule?batchId=${masterBooking.batchId}`;
 
     await sendBatchConfirmationEmail(
       masterBooking.studentEmail,
       masterBooking.studentName,
       formattedBookings,
       amount,
-      currency
-      // rescheduleLink
+      currency,
+      rescheduleLink
     );
   }
 
