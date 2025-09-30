@@ -93,9 +93,13 @@ export const CalendarSection = () => {
       const filteredResults = filterCurrentWeek(results.availability);
       setPreviewData({ availability: filteredResults });
 
-      toast.success("Horários salvos com sucesso!");
+      toast.success("Horários salvos com sucesso!", {
+        position: "top-center",
+      });
     } catch (err) {
-      toast.error("Erro ao salvar horários.");
+      toast.error("Erro ao salvar horários.", {
+        position: "top-center",
+      });
     } finally {
       setSaving(false);
     }

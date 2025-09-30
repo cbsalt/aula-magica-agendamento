@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
 import { toast } from "react-hot-toast";
@@ -20,12 +20,16 @@ export const PublicLinkSection = ({ teacher, onUpdate }) => {
       const { publicUrl } = await generatePublicLink(price, currency);
 
       setPublicUrl(publicUrl);
-      toast.success("Link público gerado com sucesso!");
+      toast.success("Link público gerado com sucesso!", {
+        position: "top-center",
+      });
 
       onUpdate();
     } catch (error) {
       console.error("Erro ao gerar link:", error);
-      toast.error(error.message || "Erro ao gerar link público");
+      toast.error(error.message || "Erro ao gerar link público", {
+        position: "top-center",
+      });
     } finally {
       setIsGenerating(false);
     }
@@ -33,7 +37,9 @@ export const PublicLinkSection = ({ teacher, onUpdate }) => {
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(publicUrl);
-    toast.success("Link copiado para a área de transferência!");
+    toast.success("Link copiado para a área de transferência!", {
+      position: "top-center",
+    });
   };
 
   return (

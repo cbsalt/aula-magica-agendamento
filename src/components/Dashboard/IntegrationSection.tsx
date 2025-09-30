@@ -27,7 +27,9 @@ export const IntegrationsSection = () => {
       window.location.href = url;
     } catch (err) {
       console.error(err);
-      toast.error("Erro ao iniciar conexão com o Zoom");
+      toast.error("Erro ao iniciar conexão com o Zoom", {
+        position: "top-center",
+      });
       setIsConnecting(false);
     }
   };
@@ -37,10 +39,14 @@ export const IntegrationsSection = () => {
       await disconnectZoom();
       setZoomConnected(false);
 
-      toast.success("Zoom desconectado com sucesso");
+      toast.success("Zoom desconectado com sucesso", {
+        position: "top-center",
+      });
     } catch (err) {
       console.error(err);
-      toast.error("Erro ao desconectar do Zoom");
+      toast.error("Erro ao desconectar do Zoom", {
+        position: "top-center",
+      });
     }
   };
 

@@ -50,7 +50,9 @@ export const PaymentsSection = ({ initialData }) => {
       toast.success("Configuração de pagamento salva com sucesso!");
     } catch (err) {
       console.error(err);
-      toast.error(err?.message || "Erro ao salvar configuração");
+      toast.error(err?.message || "Erro ao salvar configuração", {
+        position: "top-center",
+      });
     } finally {
       setIsSaving(false);
     }
