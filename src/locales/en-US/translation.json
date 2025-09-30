@@ -95,6 +95,24 @@
         "validEmail": "Email is invalid"
       }
     },
+    "reschedule": {
+      "info": "You have already selected the maximum number of time slots.",
+      "editSelectedTimes": "Edit scheduled times",
+      "rescheduled": "Rescheduled",
+      "modalTitle": "Reschedule Confirmation",
+      "modalMessage": "Are you sure you want to reschedule this/these time slot(s)?",
+      "confirmButton": "Confirm",
+      "cancelButton": "Cancel",
+      "selectTime": "Before proceeding, choose a time to reschedule using the floating button at the bottom right.",
+      "success": "Time slot selected! Once you’ve chosen all your slots, open the panel on the right by clicking the floating button to confirm your changes.",
+      "alreadySelected": "This time slot is already selected for rescheduling.",
+      "continue": "Change slot(s)",
+      "toast": {
+        "loading": "Rescheduling...",
+        "success": "{{count}} rescheduled lesson(s) successfully!",
+        "error": "Failed to reschedule."
+      }
+    },
     "weekDays": {
       "Domingo": "Sunday",
       "Segunda-feira": "Monday",
