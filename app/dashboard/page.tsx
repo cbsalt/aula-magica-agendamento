@@ -1,10 +1,9 @@
-import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import Dashboard from "@/components/Dashboard";
-
-import { findTeacherByEmail } from "@/modules/teacher";
 import Footer from "@/components/Footer";
+import { authOptions } from "@/lib/auth";
+import { findTeacherByEmail, serializeTeacher } from "@/modules/teacher";
+import { getServerSession } from "next-auth";
+import { redirect } from "next/navigation";
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
@@ -17,9 +16,11 @@ export default async function DashboardPage() {
     paymentConfig: true,
   });
 
+  const serializedTeacher = serializeTeacher(teacher);
+
   return (
     <>
-      <Dashboard teacherFallback={teacher} />
+      <Dashboard teacherFallback={serializedTeacher} />
       <Footer />
     </>
   );
