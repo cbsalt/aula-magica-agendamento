@@ -1,36 +1,24 @@
 import { useSelectedTimes } from "@/hooks/useSelectedTimes";
-import { parse } from "date-fns";
-import { t } from "i18next";
-import { ArrowRight, Clock, X } from "lucide-react";
+import { ArrowRight, Clock, Info, X } from "lucide-react";
+import { useState } from "react";
 
 interface Props {
-  day;
-  handleSlot: (slot: { date: Date; time: string }) => void;
-  selectedTimes: Array<{ date: Date; time: string }>;
+  day: {
+    date: string;
+    slots: Array<{ start: string; end: string }>;
+  };
+  handleSlot: (slot: { date: string; time: string }) => void;
 }
 
-const TIMEZONE = "America/Sao_Paulo";
-
-export function TeacherAvailability({ day, handleSlot, selectedTimes }: Props) {
+export function TeacherAvailability({ day, handleSlot }: Props) {
   const { isTimeSlotSelected } = useSelectedTimes();
 
-  const getZonedSlotDate = (dayDate: string, slotStart: string) => {
-    const [hours, minutes] = slotStart.split(":").map(Number);
-    const zonedDate = parse(dayDate, "yyyy-MM-dd", new Date());
-    zonedDate.setHours(hours, minutes, 0, 0);
-    return zonedDate;
+  const isSlotSelected = (slot: { start: string }) => {
+    return isTimeSlotSelected({ date: day.date, time: slot.start });
   };
 
-  const isSlotSelected = (slot) => {
-    const start = slot.start;
-    const zonedDate = getZonedSlotDate(day.date, start);
-    return isTimeSlotSelected({ date: zonedDate, time: start });
-  };
-
-  const handleSlotClick = (slot) => {
-    const start = slot.start;
-    const zonedDate = getZonedSlotDate(day.date, start);
-    handleSlot({ date: zonedDate, time: start });
+  const handleSlotClick = (slot: { start: string }) => {
+    handleSlot({ date: day.date, time: slot.start });
   };
 
   return (
