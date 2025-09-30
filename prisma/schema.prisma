@@ -134,7 +134,6 @@ model Booking {
   // Payment
   paymentId     String? @map("payment_id")
   paypalOrderId String? @map("paypal_order_id")
-  paymentStatus String  @default("pending") // pending, paid, failed, refunded
   amount        Float
   currency      String
 
@@ -147,6 +146,8 @@ model Booking {
 
   // Relationships
   teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  googleEventId String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
