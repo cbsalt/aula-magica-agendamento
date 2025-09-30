@@ -1,13 +1,14 @@
 import { createContext, useContext } from "react";
 
-interface TimeSlot {
-  date: Date;
+export interface TimeSlot {
+  id?: string;
+  date: string;
   time: string;
 }
 
 interface SelectedTimesContextType {
   selectedTimes: TimeSlot[];
-  addTimeSlot: (timeSlot: TimeSlot) => void;
+  addTimeSlot: (timeSlot: TimeSlot, replace?: boolean) => void;
   removeTimeSlot: (timeSlot: TimeSlot) => void;
   clearSelectedTimes: () => void;
   isTimeSlotSelected: (timeSlot: TimeSlot) => boolean;
