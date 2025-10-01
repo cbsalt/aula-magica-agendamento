@@ -1,6 +1,6 @@
 import PublicBookingPage from "@/components/PublicBookingPage";
 import { findBooking, findBookingsByBatchId } from "@/modules/booking";
-import { findTeacherById } from "@/modules/teacher";
+import { findTeacherById, serializeTeacher } from "@/modules/teacher";
 import { notFound } from "next/navigation";
 
 export default async function ReschedulePage(props) {
@@ -21,9 +21,11 @@ export default async function ReschedulePage(props) {
     paymentConfig: true,
   });
 
-  if (!teacher) {
+  const serializedTeacher = serializeTeacher(teacher);
+
+  if (!serializedTeacher) {
     notFound();
   }
 
-  return <PublicBookingPage teacher={teacher} />;
+  return <PublicBookingPage teacher={serializedTeacher} />;
 }
