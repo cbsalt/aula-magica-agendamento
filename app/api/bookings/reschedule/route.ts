@@ -23,7 +23,7 @@ export async function PUT(req: NextRequest) {
   try {
     const body = bodySchema.parse(await req.json());
 
-    if (!body.bookingId && !body.batchId) {
+    if (!body.bookingId || !body.batchId) {
       return NextResponse.json(
         { error: "Informe bookingId ou batchId" },
         { status: 400 }
