@@ -36,9 +36,7 @@ export function getBrasiliaTimeLabel(date: Date = new Date()): string {
   const timeZone = "America/Sao_Paulo";
   const zonedDate = toZonedTime(date, timeZone);
   const offset = formatTz(zonedDate, "xxx", { timeZone });
-  const shortOffset = offset.replace(/:00$/, "");
-
-  return `Horário de Brasília (GMT${shortOffset})`;
+  return offset.replace(/:00$/, "");
 }
 
 export function getBookingDateTime(booking: {
