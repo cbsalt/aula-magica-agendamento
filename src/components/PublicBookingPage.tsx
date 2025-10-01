@@ -398,19 +398,20 @@ function PublicBookingPageContent({ teacher }: Props) {
         }
       />
 
-      <ModalRescheduleConfirmation
-        isLoading={loading}
-        isOpen={isRescheduleModalOpen}
-        shouldReplaceSlot={!!pendingSlot}
-        setIsRescheduleModalOpen={setIsRescheduleModalOpen}
-        onHandleReplaceSlot={() => {
-          if (pendingSlot) {
-            handleReplaceScheduledSlot(pendingSlot);
-            setPendingSlot(null);
-          }
-        }}
-        onConfirm={handleConfirmReschedule}
-      />
+      {isRescheduleModalOpen && (
+        <ModalRescheduleConfirmation
+          isLoading={loading}
+          shouldReplaceSlot={!!pendingSlot}
+          setIsRescheduleModalOpen={setIsRescheduleModalOpen}
+          onHandleReplaceSlot={() => {
+            if (pendingSlot) {
+              handleReplaceScheduledSlot(pendingSlot);
+              setPendingSlot(null);
+            }
+          }}
+          onConfirm={handleConfirmReschedule}
+        />
+      )}
     </div>
   );
 }
