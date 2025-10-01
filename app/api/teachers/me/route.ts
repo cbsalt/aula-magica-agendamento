@@ -19,8 +19,6 @@ export async function GET(req: NextRequest) {
       name: true,
       description: true,
       googleAccessToken: true,
-      googleCalendarId: true,
-      googleRefreshToken: true,
     },
   });
 
@@ -31,5 +29,11 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  return NextResponse.json(teacher);
+  return NextResponse.json({
+    id: teacher.id,
+    email: teacher.email,
+    name: teacher.name,
+    description: teacher.description,
+    googleCalendarConnected: !!teacher.googleAccessToken,
+  });
 }

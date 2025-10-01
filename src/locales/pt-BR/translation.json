@@ -104,8 +104,8 @@
     "paypalDesc": "Pague com sua conta PayPal",
     "selectedTimes": "Horários Selecionados",
     "total": "Total",
-    "lesson": "aula",
-    "lessons": "aulas",
+    "lesson": "{{ count }} aula",
+    "lesson_other": "{{ count }} aulas",
     "continue": "Continuar",
     "clear": "Limpar",
     "noAvailableTimes": "Nenhum horário disponível",
@@ -115,6 +115,24 @@
       "email": {
         "isRequired": "E-mail é obrigatório",
         "validEmail": "E-mail inválido"
+      }
+    },
+    "reschedule": {
+      "info": "Você já selecionou o número máximo de horários.",
+      "editSelectedTimes": "Editar horários agendados",
+      "rescheduled": "Reagendado",
+      "modalTitle": "Confirmação de Reagendamento",
+      "modalMessage": "Você tem certeza que deseja reagendar este(s) horário(s)?",
+      "confirmButton": "Confirmar",
+      "cancelButton": "Cancelar",
+      "selectTime": "Antes de continuar, escolha um horário para reagendar usando o botão flutuante no canto inferior direito.",
+      "success": "Horário selecionado! Quando terminar de escolher todos, abra o painel à direita clicando no botão flutuante para confirmar as alterações.",
+      "alreadySelected": "Este horário já está selecionado para reagendamento.",
+      "continue": "Alterar horário(s)",
+      "toast": {
+        "loading": "Reagendando...",
+        "success": "{{count}} horário(s) reagendado(s) com sucesso!",
+        "error": "Falha ao reagendar."
       }
     },
     "weekDays": {

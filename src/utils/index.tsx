@@ -49,3 +49,50 @@ export function getBookingDateTime(booking: {
   const [hours, minutes] = booking.time.split(":").map(Number);
   return set(date, { hours, minutes, seconds: 0, milliseconds: 0 });
 }
+
+export const buildCalendarEvent = (
+  booking,
+  meetingLink?: string,
+  withConference: boolean = false
+) => {
+  const timeZone = "America/Sao_Paulo";
+
+  const slotStart = getBookingDateTime(booking);
+  const slotEnd = new Date(slotStart.getTime() + ONE_HOURS_MS);
+
+  const startDateTime = slotStart.toISOString();
+  const endDateTime = slotEnd.toISOString();
+
+  const startFormatted = `${slotStart.toLocaleDateString(
+    "pt-BR"
+  )} ${slotStart.toLocaleTimeString("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  })}`;
+  const endFormatted = `${slotEnd.toLocaleTimeString("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  })} BRT`;
+
+  return {
+    summary: `Aula com ${booking.studentName}`,
+    description: `Aluno: ${booking.studentName}\nEmail: ${
+      booking.studentEmail
+    }${
+      meetingLink ? `\nLink da aula: ${meetingLink}` : ""
+    }\nHorário: ${startFormatted} – ${endFormatted}`,
+    location: meetingLink || undefined,
+    start: { dateTime: startDateTime, timeZone },
+    end: { dateTime: endDateTime, timeZone },
+    ...(withConference && {
+      conferenceData: {
+        createRequest: {
+          requestId: `unique-${Date.now()}-${booking.id}`,
+          conferenceSolutionKey: { type: "hangoutsMeet" },
+        },
+      },
+    }),
+  };
+};
+
+export const ONE_HOURS_MS = 1000 * 60 * 60;

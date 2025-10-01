@@ -49,11 +49,15 @@ export const ProfileSection = () => {
     setIsSaving(true);
     try {
       await updateTeacherProfile({ ...formData });
-      toast.success("Informações salvas com sucesso!");
+      toast.success("Informações salvas com sucesso!", {
+        position: "top-center",
+      });
 
       mutate();
     } catch (error) {
-      toast.error(error.message || "Erro ao salvar as informações");
+      toast.error(error.message || "Erro ao salvar as informações", {
+        position: "top-center",
+      });
     } finally {
       setIsSaving(false);
     }

@@ -65,7 +65,9 @@ export default function Dashboard({ teacherFallback }) {
 
   useEffect(() => {
     if (zoomStatus === "success") {
-      toast.success("Zoom conectado com sucesso");
+      toast.success("Zoom conectado com sucesso", {
+        position: "top-center",
+      });
 
       clearUrlParams();
     }

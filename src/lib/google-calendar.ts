@@ -89,4 +89,22 @@ export class GoogleCalendarService {
       return response.data;
     });
   }
+
+  async updateEvent(calendarId: string, eventId: string, eventData) {
+    return this.requestWithRefresh(async () => {
+      const calendar = google.calendar({
+        version: "v3",
+        auth: this.oauth2Client,
+      });
+
+      const response = await calendar.events.update({
+        calendarId,
+        eventId,
+        requestBody: eventData,
+        conferenceDataVersion: 1,
+      });
+
+      return response.data;
+    });
+  }
 }

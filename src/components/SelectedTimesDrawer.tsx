@@ -2,28 +2,57 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { TimeSlot, useSelectedTimes } from "@/hooks/useSelectedTimes";
+import { format, parseISO } from "date-fns";
 import { Calendar, Clock, X } from "lucide-react";
-import { useState } from "react";
+import { Dispatch, SetStateAction } from "react";
 import { useTranslation } from "react-i18next";
-
-import { useSelectedTimes } from "@/hooks/useSelectedTimes";
-import { Teacher } from "@prisma/client";
+import { SerializedTeacher } from "./interfaces";
 
 interface Props {
-  teacher: Teacher;
+  isRescheduleMode: boolean;
+  teacher: SerializedTeacher;
+  scheduledBookings?: { id: string; date: string; time: string }[];
+  isOpen: boolean;
+  setIsOpen: Dispatch<SetStateAction<boolean>>;
+  slotToUpdate;
+  setSlotToUpdate;
   onContinue: () => void;
 }
 
-export default function SelectedTimesDrawer({ teacher, onContinue }: Props) {
+type ExtendedSlot = TimeSlot & { isEdited?: boolean };
+
+export default function SelectedTimesDrawer({
+  isRescheduleMode,
+  teacher,
+  scheduledBookings = [],
+  isOpen,
+  setIsOpen,
+  slotToUpdate,
+  setSlotToUpdate,
+  onContinue,
+}: Props) {
   const { t } = useTranslation();
   const { selectedTimes, clearSelectedTimes } = useSelectedTimes();
-  const [isOpen, setIsOpen] = useState(false);
+
+  const selectedSlots: ExtendedSlot[] = isRescheduleMode
+    ? scheduledBookings
+    : selectedTimes;
 
   const totalAmount = teacher.price * selectedTimes.length;
 
-  if (selectedTimes.length === 0) return null;
+  const hasEdition = selectedSlots.some((slot) => slot.isEdited);
+  const isDisabled = isRescheduleMode && !hasEdition;
+
+  if (!scheduledBookings.length && !selectedTimes.length) return null;
+
+  const handleRescheduleClick = (bookingId) => {
+    const updateScheduled = scheduledBookings.filter(
+      (item) => item.id === bookingId
+    );
+    setSlotToUpdate(updateScheduled);
+    setIsOpen(false);
+  };
 
   return (
     <>
@@ -35,10 +64,7 @@ export default function SelectedTimesDrawer({ teacher, onContinue }: Props) {
           size="lg"
         >
           <Calendar className="h-5 w-5 mr-2" />
-          {selectedTimes.length}{" "}
-          {selectedTimes.length === 1
-            ? t("publicBooking.lesson")
-            : t("publicBooking.lessons")}
+          {t("publicBooking.lesson", { count: selectedSlots.length })}
         </Button>
       </div>
 
@@ -59,7 +85,9 @@ export default function SelectedTimesDrawer({ teacher, onContinue }: Props) {
         <div className="flex flex-col h-full">
           <div className="flex items-center justify-between p-4 border-b">
             <h2 className="text-lg font-semibold text-gray-800">
-              {t("publicBooking.selectedTimes")}
+              {isRescheduleMode
+                ? t("publicBooking.reschedule.editSelectedTimes")
+                : t("publicBooking.selectedTimes")}
             </h2>
             <Button
               variant="ghost"
@@ -72,72 +100,107 @@ export default function SelectedTimesDrawer({ teacher, onContinue }: Props) {
           </div>
 
           {/* Content */}
-          <div className="flex-1 overflow-y-auto p-4">
-            <div className="space-y-3">
-              {selectedTimes.map((timeSlot, index) => (
-                <Card key={index} className="border border-gray-200">
+          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            {selectedSlots.map((timeSlot, index) => {
+              const isBeingEdited = slotToUpdate.some(
+                (item) => item.id === timeSlot.id
+              );
+
+              return (
+                <Card
+                  key={`scheduled-${index}`}
+                  className={`relative border cursor-pointer hover:bg-gray-50 ${
+                    isBeingEdited ? "border-green-500" : "border-gray-200"
+                  }`}
+                  onClick={() => {
+                    if (!isRescheduleMode) return;
+
+                    handleRescheduleClick(timeSlot.id);
+                  }}
+                >
+                  {timeSlot.isEdited && (
+                    <span className="absolute top-2 right-2 bg-green-100 text-green-700 text-xs font-medium px-2 py-0.5 rounded-full">
+                      {t("publicBooking.reschedule.rescheduled")}
+                    </span>
+                  )}
                   <CardContent className="p-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
-                        <Clock className="h-4 w-4 text-primary" />
+                        <Clock
+                          className={`h-4 w-4 ${
+                            isBeingEdited ? "text-primary" : "text-gray-400"
+                          }`}
+                        />
                         <div>
                           <p className="font-medium text-sm">
-                            {format(timeSlot.date, "dd/MM/yyyy", {
-                              locale: ptBR,
-                            })}
+                            {format(parseISO(timeSlot.date), "dd/MM/yyyy")}
                           </p>
                           <p className="text-sm text-gray-600">
                             {timeSlot.time}
                           </p>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-primary">
-                          {teacher.price.toFixed(2)} {teacher.currency}
-                        </p>
-                      </div>
+                      {!isRescheduleMode && (
+                        <div className="text-right">
+                          <p
+                            className={`font-semibold ${
+                              isBeingEdited ? "text-primary" : "text-gray-500"
+                            }`}
+                          >
+                            {teacher.price.toFixed(2)} {teacher.currency}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
-              ))}
-            </div>
+              );
+            })}
           </div>
 
           {/* Footer */}
           <div className="border-t p-4 space-y-3">
-            <div className="flex items-center justify-between text-lg font-semibold">
-              <span className="flex items-center">
-                {t("publicBooking.total")}
-              </span>
-              <span className="text-primary">
-                {totalAmount.toFixed(2)} {teacher.currency}
-              </span>
-            </div>
+            {!isRescheduleMode && (
+              <>
+                <div className="flex items-center justify-between text-lg font-semibold">
+                  <span className="flex items-center">
+                    {t("publicBooking.total")}
+                  </span>
+                  <span className="text-primary">
+                    {totalAmount.toFixed(2)} {teacher.currency}
+                  </span>
+                </div>
 
-            <div className="text-sm text-gray-500 text-center">
-              {selectedTimes.length}{" "}
-              {selectedTimes.length === 1
-                ? t("publicBooking.lesson")
-                : t("publicBooking.lessons")}{" "}
-              × {teacher.price.toFixed(2)} {teacher.currency}
-            </div>
+                <div className="text-sm text-gray-500 text-center">
+                  {t("publicBooking.lesson", { count: selectedSlots.length })} ×{" "}
+                  {teacher.price.toFixed(2)} {teacher.currency}
+                </div>
+              </>
+            )}
 
             <div className="flex space-x-2">
+              {!isRescheduleMode && (
+                <Button
+                  variant="outline"
+                  onClick={clearSelectedTimes}
+                  className="flex-1"
+                >
+                  {t("publicBooking.clear")}
+                </Button>
+              )}
               <Button
-                variant="outline"
-                onClick={clearSelectedTimes}
-                className="flex-1"
-              >
-                {t("publicBooking.clear")}
-              </Button>
-              <Button
+                disabled={isDisabled}
                 onClick={() => {
                   onContinue();
-                  setIsOpen(false);
+                  if (!isRescheduleMode) {
+                    setIsOpen(false);
+                  }
                 }}
                 className="flex-1"
               >
-                {t("publicBooking.continue")}
+                {isRescheduleMode
+                  ? t("publicBooking.reschedule.continue")
+                  : t("publicBooking.continue")}
               </Button>
             </div>
           </div>
