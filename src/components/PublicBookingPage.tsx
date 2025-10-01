@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { fetchTeacherAvailability } from "@/services/teacherService";
-import { format, parse } from "date-fns";
+import { format, parse, parseISO } from "date-fns";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -309,6 +309,28 @@ function PublicBookingPageContent({ teacher }: Props) {
         </div>
 
         <Header teacher={teacher} isRescheduleMode={isRescheduleMode} />
+        {isRescheduleMode && !slotToUpdate.length && (
+          <div className="bg-blue-100 border-l-4 border-blue-400 text-blue-700 p-3 rounded mb-4 text-center">
+            {t("publicBooking.reschedule.noSlotSelected.message")}{" "}
+            <span
+              className="font-semibold cursor-pointer"
+              onClick={() => setIsDrawerOpen(true)}
+            >
+              {t("publicBooking.reschedule.noSlotSelected.action")}
+            </span>
+            .
+          </div>
+        )}
+        {isRescheduleMode && slotToUpdate.length > 0 && (
+          <div className="bg-blue-100 border-l-4 border-blue-400 text-blue-700 p-3 rounded mb-4 text-center">
+            {t("publicBooking.reschedule.slotSelected.prefix")}{" "}
+            <span className="font-semibold">
+              {format(parseISO(slotToUpdate[0].date), "dd/MM/yyyy")} às{" "}
+              {slotToUpdate[0].time}
+            </span>
+            . {t("publicBooking.reschedule.slotSelected.suffix")}
+          </div>
+        )}
 
         {!isRescheduleMode && <ProgressBar steps={steps} step={step} />}
 
@@ -380,7 +402,9 @@ function PublicBookingPageContent({ teacher }: Props) {
         )}
         {step === "dateTime" && (
           <div className="text-sm text-gray-500 mt-4 text-center">
-            {getBrasiliaTimeLabel()}
+            {t("publicBooking.timezone.label", {
+              offset: getBrasiliaTimeLabel(),
+            })}
           </div>
         )}
       </div>

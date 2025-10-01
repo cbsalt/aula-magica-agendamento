@@ -133,6 +133,14 @@
         "loading": "Reagendando...",
         "success": "{{count}} horário(s) reagendado(s) com sucesso!",
         "error": "Falha ao reagendar."
+      },
+      "noSlotSelected": {
+        "message": "Para começar, escolha as aulas que deseja reagendar clicando",
+        "action": "aqui"
+      },
+      "slotSelected": {
+        "prefix": "Você está reagendando a aula de",
+        "suffix": "Agora, selecione o novo horário disponível."
       }
     },
     "weekDays": {
@@ -148,6 +156,9 @@
       "dateTime": "Data e horário",
       "info": "Seus Dados",
       "payment": "Pagamento"
+    },
+    "timezone": {
+      "label": "Horário de Brasília (GMT{{offset}})"
     }
   },
   "language": {

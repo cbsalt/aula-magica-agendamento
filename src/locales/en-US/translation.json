@@ -111,6 +111,14 @@
         "loading": "Rescheduling...",
         "success": "{{count}} rescheduled lesson(s) successfully!",
         "error": "Failed to reschedule."
+      },
+      "noSlotSelected": {
+        "message": "To get started, choose which classes you’d like to reschedule by clicking",
+        "action": "here"
+      },
+      "slotSelected": {
+        "prefix": "You are rescheduling the class on",
+        "suffix": "Now, select a new available time."
       }
     },
     "weekDays": {
@@ -126,6 +134,9 @@
       "dateTime": "Date & Time",
       "info": "Your Data",
       "payment": "Payment"
+    },
+    "timezone": {
+      "label": "Brasília Time (GMT{{offset}})"
     }
   },
   "loading": "Loading...",
