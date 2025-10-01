@@ -65,10 +65,7 @@ export default function SelectedTimesDrawer({
           size="lg"
         >
           <Calendar className="h-5 w-5 mr-2" />
-          {selectedSlots.length}{" "}
-          {selectedSlots.length === 1
-            ? t("publicBooking.lesson")
-            : t("publicBooking.lessons")}
+          {t("publicBooking.lesson", { count: selectedSlots.length })}
         </Button>
       </div>
 
@@ -176,11 +173,8 @@ export default function SelectedTimesDrawer({
                 </div>
 
                 <div className="text-sm text-gray-500 text-center">
-                  {selectedTimes.length}{" "}
-                  {selectedTimes.length === 1
-                    ? t("publicBooking.lesson")
-                    : t("publicBooking.lessons")}{" "}
-                  × {teacher.price.toFixed(2)} {teacher.currency}
+                  {t("publicBooking.lesson", { count: selectedSlots.length })} ×{" "}
+                  {teacher.price.toFixed(2)} {teacher.currency}
                 </div>
               </>
             )}

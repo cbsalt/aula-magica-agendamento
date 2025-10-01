@@ -90,11 +90,8 @@ export default function PaymentStep({
               </span>
             </div>
             <div className="text-xs text-gray-500 mt-1">
-              {selectedTimes.length}{" "}
-              {selectedTimes.length === 1
-                ? t("publicBooking.lesson")
-                : t("publicBooking.lessons")}{" "}
-              × {teacher.price.toFixed(2)} {teacher.currency}
+              {t("publicBooking.lesson", { count: selectedTimes.length })} ×{" "}
+              {teacher.price.toFixed(2)} {teacher.currency}
             </div>
           </div>
 
