@@ -2,7 +2,12 @@ import { GoogleCalendarService } from "@/lib/google-calendar";
 import { createZoomMeetingWithRetry } from "@/lib/zoom";
 import { findBookingsByBatchId, updateBooking } from "@/modules/booking";
 import { findTeacherById } from "@/modules/teacher";
-import { addOneHour, buildCalendarEvent, getBookingDateTime } from "@/utils";
+import {
+  addOneHour,
+  buildCalendarEvent,
+  getBookingDateTime,
+  ONE_HOURS_MS,
+} from "@/utils";
 import { Booking } from "@prisma/client";
 import {
   sendBatchConfirmationEmail,
@@ -34,7 +39,7 @@ export async function processBooking({
     `${metadata.date}T${metadata.time}:00`,
     timeZone
   );
-  const slotEnd = new Date(slotStart.getTime() + 60 * 60 * 1000);
+  const slotEnd = new Date(slotStart.getTime() + ONE_HOURS_MS);
 
   const calendarService = new GoogleCalendarService(
     teacher.googleAccessToken,
@@ -155,7 +160,7 @@ export async function processBatchBooking({
 
   for (const [index, booking] of batchBookings.entries()) {
     const slotStart = getBookingDateTime(booking);
-    const slotEnd = new Date(slotStart.getTime() + 60 * 60 * 1000);
+    const slotEnd = new Date(slotStart.getTime() + ONE_HOURS_MS);
 
     const isAvailable = !events.some((event) => {
       const start = new Date(event.start.dateTime || event.start.date);

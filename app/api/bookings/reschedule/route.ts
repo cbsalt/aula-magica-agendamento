@@ -4,7 +4,7 @@ import { z } from "zod";
 import { GoogleCalendarService } from "@/lib/google-calendar";
 import { prisma } from "@/lib/prisma";
 import { findTeacherById } from "@/modules/teacher";
-import { buildCalendarEvent, getBookingDateTime } from "@/utils";
+import { buildCalendarEvent, getBookingDateTime, ONE_HOURS_MS } from "@/utils";
 import { addHours, isBefore } from "date-fns";
 
 const timeSlotSchema = z.object({
@@ -49,7 +49,7 @@ export async function PUT(req: NextRequest) {
       const originalStart = getBookingDateTime(booking);
 
       const hoursUntil =
-        (originalStart.getTime() - now.getTime()) / (1000 * 60 * 60);
+        (originalStart.getTime() - now.getTime()) / ONE_HOURS_MS;
 
       if (hoursUntil < 12) {
         return NextResponse.json(
@@ -87,9 +87,9 @@ export async function PUT(req: NextRequest) {
     for (let i = 0; i < body.timeSlots.length; i++) {
       const slot = body.timeSlots[i] as { date: string; time: string };
       const start = getBookingDateTime(slot);
-      const end = new Date(start.getTime() + 60 * 60 * 1000);
+      const end = new Date(start.getTime() + ONE_HOURS_MS);
 
-      const hoursFromNow = (start.getTime() - now.getTime()) / (1000 * 60 * 60);
+      const hoursFromNow = (start.getTime() - now.getTime()) / ONE_HOURS_MS;
       if (hoursFromNow < 12) {
         return NextResponse.json(
           { error: "Novo horário deve ter no mínimo 12h de antecedência" },
@@ -195,7 +195,7 @@ export async function GET(req: NextRequest) {
   const orderedBookings = validBookings
     .map((b) => {
       const slotStart = getBookingDateTime(b);
-      const slotEnd = new Date(slotStart.getTime() + 60 * 60 * 1000);
+      const slotEnd = new Date(slotStart.getTime() + ONE_HOURS_MS);
 
       return { ...b, slotStart, slotEnd };
     })

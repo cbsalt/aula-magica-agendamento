@@ -58,7 +58,7 @@ export const buildCalendarEvent = (
   const timeZone = "America/Sao_Paulo";
 
   const slotStart = getBookingDateTime(booking);
-  const slotEnd = new Date(slotStart.getTime() + 60 * 60 * 1000);
+  const slotEnd = new Date(slotStart.getTime() + ONE_HOURS_MS);
 
   const startDateTime = slotStart.toISOString();
   const endDateTime = slotEnd.toISOString();
@@ -94,3 +94,5 @@ export const buildCalendarEvent = (
     }),
   };
 };
+
+export const ONE_HOURS_MS = 1000 * 60 * 60;
