@@ -23,7 +23,7 @@ export function TeacherAvailability({ day, handleSlot }: Props) {
 
   return (
     <div className="space-y-2">
-      <div className="flex flex-wrap gap-3 w-full">
+      <div className="flex flex-wrap justify-start gap-3 w-full lg:gap-y-3 lg:justify-between">
         {day.slots.map((slot, i) => {
           const start = slot.start;
           const end = slot.end;

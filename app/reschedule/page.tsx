@@ -3,9 +3,15 @@ import { findBooking, findBookingsByBatchId } from "@/modules/booking";
 import { findTeacherById, serializeTeacher } from "@/modules/teacher";
 import { notFound } from "next/navigation";
 
-export default async function ReschedulePage(props) {
-  const batchId = props.searchParams.batchId;
-  const bookingId = props.searchParams.bookingId;
+export default async function ReschedulePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ batchId?: string; bookingId?: string }>;
+}) {
+  const params = await searchParams;
+
+  const batchId = params.batchId;
+  const bookingId = params.bookingId;
 
   let booking;
 
@@ -15,7 +21,9 @@ export default async function ReschedulePage(props) {
     booking = await findBooking(bookingId);
   }
 
-  const teacherId = booking[0]?.teacherId;
+  const teacherId = Array.isArray(booking)
+    ? booking[0]?.teacherId
+    : booking?.teacherId;
 
   const teacher = await findTeacherById(teacherId, {
     paymentConfig: true,
