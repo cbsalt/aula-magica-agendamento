@@ -6,8 +6,13 @@ interface Props {
   searchParams?: { session_id?: string };
 }
 
-export default async function SuccessPage({ searchParams }: Props) {
-  const sessionId = searchParams?.session_id;
+export default async function SuccessPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ session_id?: string }>;
+}) {
+  const params = await searchParams;
+  const sessionId = params.session_id;
 
   if (!sessionId) {
     return <SuccessClient />;
