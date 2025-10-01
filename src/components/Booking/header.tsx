@@ -1,11 +1,10 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
-
-import { Teacher } from "@prisma/client";
 import { useTranslation } from "react-i18next";
+import { SerializedTeacher } from "../interfaces";
 
 interface Props {
-  teacher: Teacher;
+  teacher: SerializedTeacher;
   isRescheduleMode: boolean;
 }
 

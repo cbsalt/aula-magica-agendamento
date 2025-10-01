@@ -2,14 +2,14 @@ import { Button } from "@/components/ui/button";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { addOneHour } from "@/utils";
-import { Teacher } from "@prisma/client";
 import { format, parseISO } from "date-fns";
 import { ArrowRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { SerializedTeacher } from "../interfaces";
 import AnimatedCard from "./animated-card";
 
 interface Props {
-  teacher: Teacher;
+  teacher: SerializedTeacher;
   selectedTimes: Array<{ date: string; time: string }>;
   studentData: {
     name?: string;

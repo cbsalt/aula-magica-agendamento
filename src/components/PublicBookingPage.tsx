@@ -15,21 +15,21 @@ import {
 } from "@/services/bookingService";
 import { createBooking } from "@/services/paymentService";
 import { getBrasiliaTimeLabel } from "@/utils";
-import { Teacher } from "@prisma/client";
 import { Info } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 import { useTranslation } from "react-i18next";
+import Header from "./Booking/header";
+import { ModalRescheduleConfirmation } from "./Booking/modal-reschedule-confirmation";
+import { ProgressBar } from "./Booking/progress-bar";
+import { SerializedTeacher } from "./interfaces";
 import SelectedTimesDrawer from "./SelectedTimesDrawer";
 import DateSelectionStep from "./Steps/date-selection";
 import PaymentStep from "./Steps/payment";
 import { StudentInfoFormData, StudentInfoStep } from "./Steps/student-info";
 import { TimeSelectionStep } from "./Steps/time-selection";
-import Header from "./Booking/header";
-import { ModalRescheduleConfirmation } from "./Booking/modal-reschedule-confirmation";
-import { ProgressBar } from "./Booking/progress-bar";
 
 interface Props {
-  teacher: Teacher;
+  teacher: SerializedTeacher;
 }
 
 interface ReschedulePayload {

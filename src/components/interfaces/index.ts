@@ -1,3 +1,4 @@
+import { serializeTeacher } from "@/modules/teacher";
 import { PaymentConfig } from "@prisma/client";
 
 export interface ITeacher {
@@ -22,3 +23,5 @@ export interface ITeacher {
   updatedAt: string;
   paymentConfig?: PaymentConfig | null;
 }
+
+export type SerializedTeacher = ReturnType<typeof serializeTeacher>;

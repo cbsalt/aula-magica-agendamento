@@ -2,17 +2,16 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { TimeSlot, useSelectedTimes } from "@/hooks/useSelectedTimes";
 import { format, parseISO } from "date-fns";
 import { Calendar, Clock, X } from "lucide-react";
 import { Dispatch, SetStateAction } from "react";
 import { useTranslation } from "react-i18next";
-
-import { TimeSlot, useSelectedTimes } from "@/hooks/useSelectedTimes";
-import { Teacher } from "@prisma/client";
+import { SerializedTeacher } from "./interfaces";
 
 interface Props {
   isRescheduleMode: boolean;
-  teacher: Teacher;
+  teacher: SerializedTeacher;
   scheduledBookings?: { id: string; date: string; time: string }[];
   isOpen: boolean;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
