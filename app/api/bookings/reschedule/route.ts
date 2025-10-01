@@ -202,14 +202,16 @@ export async function GET(req: NextRequest) {
     .sort((a, b) => a.slotStart.getTime() - b.slotStart.getTime());
 
   return NextResponse.json({
-    bookings: orderedBookings.map((b) => ({
-      id: b.id,
-      batchId: b.batchId,
-      studentName: b.studentName,
-      studentEmail: b.studentEmail,
-      date: b.date,
-      time: b.time,
-      teacherId: b.teacherId,
-    })),
+    bookings: orderedBookings.map(
+      ({ id, batchId, studentName, studentEmail, date, time, teacherId }) => ({
+        id,
+        batchId,
+        studentName,
+        studentEmail,
+        date,
+        time,
+        teacherId,
+      })
+    ),
   });
 }
