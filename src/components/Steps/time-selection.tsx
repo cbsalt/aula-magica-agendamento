@@ -37,7 +37,7 @@ export function TimeSelectionStep({
   const dayName = capitalize(format(selectedDate, "EEEE", { locale: ptBR }));
 
   const CalendarHeader = () => (
-    <CardHeader className="flex flex-row items-center justify-center">
+    <CardHeader className="flex flex-row items-center justify-center space-y-0">
       <button
         disabled={
           loadingAvailability ||
@@ -47,7 +47,7 @@ export function TimeSelectionStep({
           )
         }
         onClick={() => onChangeDate(addDays(selectedDate, -1))}
-        className="mt-1.5 p-2 rounded-full hover:bg-gray-100 disabled:opacity-50 transition flex items-center justify-center"
+        className="px-2 rounded-full hover:bg-gray-100 disabled:opacity-50 transition flex items-center justify-center"
       >
         <ChevronLeft className="h-6 w-6 text-primary" />
       </button>
@@ -61,7 +61,7 @@ export function TimeSelectionStep({
       <button
         disabled={loadingAvailability}
         onClick={() => changeDate(1)}
-        className="p-2 rounded-full hover:bg-gray-100 disabled:opacity-50 transition flex items-center justify-center"
+        className="px-2 rounded-full hover:bg-gray-100 disabled:opacity-50 transition flex items-center justify-center"
       >
         <ChevronRight className="h-6 w-6 text-primary" />
       </button>
