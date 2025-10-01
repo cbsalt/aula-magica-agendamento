@@ -155,7 +155,7 @@ export async function GET(req: NextRequest) {
   const bookingId = searchParams.get("bookingId");
   const batchId = searchParams.get("batchId");
 
-  if (!bookingId && !batchId) {
+  if (!bookingId || !batchId) {
     return NextResponse.json(
       { error: "Informe bookingId ou batchId" },
       { status: 400 }
