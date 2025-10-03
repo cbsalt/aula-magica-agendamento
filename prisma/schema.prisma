@@ -156,11 +156,13 @@ model Booking {
 }
 
 model TeacherWorkSchedule {
-  id        String @id @default(cuid())
-  teacherId String @map("teacher_id")
-  dayOfWeek Int // 0 = Domingo, 1 = Segunda, ..., 6 = Sábado
-  startTime String // Ex: "09:00"
-  endTime   String // Ex: "18:00"
+  id            String  @id @default(cuid())
+  teacherId     String  @map("teacher_id")
+  dayOfWeek     Int // 0 = Domingo, 1 = Segunda, ..., 6 = Sábado
+  startTime     String // Ex: "09:00"
+  endTime       String // Ex: "18:00"
+  startInterval String?
+  endInterval   String?
 
   teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
 
