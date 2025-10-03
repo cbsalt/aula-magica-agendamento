@@ -19,6 +19,8 @@ const defaultSchedule = weekDays.map((day) => ({
   dayOfWeek: day.value,
   startTime: "",
   endTime: "",
+  startInterval: "",
+  endInterval: "",
 }));
 
 export function useTeacherData() {
@@ -45,8 +47,16 @@ export function useTeacherData() {
                   dayOfWeek: day.value,
                   startTime: found.startTime,
                   endTime: found.endTime,
+                  startInterval: found.startInterval,
+                  endInterval: found.endInterval,
                 }
-              : { dayOfWeek: day.value, startTime: "", endTime: "" };
+              : {
+                  dayOfWeek: day.value,
+                  startTime: "",
+                  endTime: "",
+                  startInterval: "",
+                  endInterval: "",
+                };
           });
 
           setWorkSchedule(schedule);
