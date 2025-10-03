@@ -2,6 +2,7 @@ import {
   addDays,
   addHours,
   format,
+  isAfter,
   isBefore,
   setHours,
   setMinutes,
@@ -28,31 +29,53 @@ function filterSlotsWithMinAdvance(slots) {
   return slots.filter((slot) => slot.absoluteStart >= minAdvanceDate);
 }
 
-export function generateSlots(start: string, end: string, dayDate: Date) {
+export function generateSlots(
+  start: string,
+  end: string,
+  dayDate: Date,
+  startInterval?: string | null,
+  endInterval?: string | null
+) {
   const hourFormat = "HH:mm";
   const formatter = new Intl.DateTimeFormat("pt-BR", { weekday: "long" });
   const slots = [];
+
   const [startHour, startMinute] = start.split(":").map(Number);
   const [endHour, endMinute] = end.split(":").map(Number);
 
-  const baseDate = startOfDay(new Date(dayDate));
-
-  const zonedCurrent = setMinutes(setHours(baseDate, startHour), startMinute);
+  const baseDate = startOfDay(dayDate);
+  let current = setMinutes(setHours(baseDate, startHour), startMinute);
   const zonedEndTime = setMinutes(setHours(baseDate, endHour), endMinute);
 
-  let current = zonedCurrent;
+  let zonedIntervalStart: Date | null = null;
+  let zonedIntervalEnd: Date | null = null;
 
-  while (
-    isBefore(addHours(current, 1), zonedEndTime) ||
-    +addHours(current, 1) === +zonedEndTime
-  ) {
+  if (startInterval && endInterval) {
+    const [iStartHour, iStartMinute] = startInterval.split(":").map(Number);
+    const [iEndHour, iEndMinute] = endInterval.split(":").map(Number);
+    zonedIntervalStart = setMinutes(
+      setHours(baseDate, iStartHour),
+      iStartMinute
+    );
+    zonedIntervalEnd = setMinutes(setHours(baseDate, iEndHour), iEndMinute);
+  }
+
+  while (isBefore(current, zonedEndTime)) {
     const slotStart = current;
-    const slotEnd = addHours(slotStart, 1);
+    let slotEnd = addHours(slotStart, 1);
+    if (isAfter(slotEnd, zonedEndTime)) slotEnd = zonedEndTime;
+
+    let available = true;
+    if (zonedIntervalStart && zonedIntervalEnd) {
+      if (slotStart >= zonedIntervalStart && slotEnd <= zonedIntervalEnd) {
+        available = false;
+      }
+    }
 
     slots.push({
       start: format(slotStart, hourFormat),
       end: format(slotEnd, hourFormat),
-      available: true,
+      available,
     });
 
     current = slotEnd;
@@ -84,7 +107,13 @@ export function initializeSlots(workSchedules, totalWeeks = 0) {
 
       if (ws.startTime && ws.endTime) {
         allSlots = allSlots.concat(
-          generateSlots(ws.startTime, ws.endTime, dayDate)
+          generateSlots(
+            ws.startTime,
+            ws.endTime,
+            dayDate,
+            ws?.startInterval,
+            ws?.endInterval
+          )
         );
       }
     }
