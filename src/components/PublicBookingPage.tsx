@@ -91,11 +91,7 @@ function PublicBookingPageContent({ teacher }: Props) {
           .filter((day) => day.date === formattedDate)
           .map((day) => ({
             ...day,
-            slots: day.slots.map((slot) => {
-              return {
-                ...slot,
-              };
-            }),
+            slots: (day.slots || []).filter((slot) => slot.available),
           }));
 
         setTeacherAvailability(filteredAvailability);
