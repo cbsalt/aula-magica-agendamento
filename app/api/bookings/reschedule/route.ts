@@ -45,6 +45,9 @@ export async function PUT(req: NextRequest) {
     }
 
     const now = new Date();
+    const validBookings = [];
+    const invalidBookings = [];
+
     for (const booking of bookings) {
       const originalStart = getBookingDateTime(booking);
 
@@ -52,14 +55,27 @@ export async function PUT(req: NextRequest) {
         (originalStart.getTime() - now.getTime()) / ONE_HOURS_MS;
 
       if (hoursUntil < 12) {
-        return NextResponse.json(
-          { error: "Reagendamento permitido apenas com 12h de antecedência" },
-          { status: 409 }
-        );
+        invalidBookings.push(booking);
+      } else {
+        validBookings.push(booking);
       }
     }
 
-    const teacherId = bookings[0].teacherId;
+    if (validBookings.length === 0) {
+      return NextResponse.json(
+        {
+          error: "Reagendamento permitido apenas com 12h de antecedência",
+          invalidBookings: invalidBookings.map((b) => ({
+            id: b.id,
+            date: b.date,
+            time: b.time,
+          })),
+        },
+        { status: 409 }
+      );
+    }
+
+    const teacherId = validBookings[0].teacherId;
     const teacher = await findTeacherById(teacherId);
     if (!teacher) {
       return NextResponse.json(
@@ -78,35 +94,33 @@ export async function PUT(req: NextRequest) {
 
     const isOverlap = (start: Date, end: Date) => {
       return events.some((event) => {
-        const eStart = new Date(event.start.dateTime || event.start.date);
-        const eEnd = new Date(event.end.dateTime || event.end.date);
-        return start < eEnd && end > eStart;
+        const eventStart = new Date(event.start.dateTime || event.start.date);
+        const eventEnd = new Date(event.end.dateTime || event.end.date);
+        return start < eventEnd && end > eventStart;
       });
     };
 
-    for (let i = 0; i < body.timeSlots.length; i++) {
-      const slot = body.timeSlots[i] as { date: string; time: string };
-      const start = getBookingDateTime(slot);
-      const end = new Date(start.getTime() + ONE_HOURS_MS);
-
+    const validTimeSlots = body.timeSlots.filter((slot) => {
+      const start = getBookingDateTime({
+        date: slot.date,
+        time: slot.time,
+      });
       const hoursFromNow = (start.getTime() - now.getTime()) / ONE_HOURS_MS;
-      if (hoursFromNow < 12) {
-        return NextResponse.json(
-          { error: "Novo horário deve ter no mínimo 12h de antecedência" },
-          { status: 409 }
-        );
-      }
+      return (
+        hoursFromNow >= 12 &&
+        !isOverlap(start, new Date(start.getTime() + ONE_HOURS_MS))
+      );
+    });
 
-      if (isOverlap(start, end)) {
-        return NextResponse.json(
-          { error: "Horário indisponível no calendário" },
-          { status: 409 }
-        );
-      }
+    if (validTimeSlots.length === 0) {
+      return NextResponse.json(
+        { error: "Nenhum novo horário válido para reagendamento" },
+        { status: 409 }
+      );
     }
 
     const updates = await Promise.all(
-      body.timeSlots.map(async (slot) => {
+      validTimeSlots.map(async (slot) => {
         const booking = await prisma.booking.update({
           where: { id: slot.id },
           data: {
@@ -134,7 +148,15 @@ export async function PUT(req: NextRequest) {
       })
     );
 
-    return NextResponse.json({ success: true, bookings: updates });
+    return NextResponse.json({
+      success: true,
+      bookings: updates,
+      skippedBookings: invalidBookings.map((b) => ({
+        id: b.id,
+        date: b.date,
+        time: b.time,
+      })),
+    });
   } catch (err) {
     if (err?.name === "ZodError") {
       return NextResponse.json(
