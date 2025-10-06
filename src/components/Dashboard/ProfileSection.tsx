@@ -1,49 +1,46 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
+import { useMemo, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
-
-import { Button } from "../ui/button";
-import { Card, CardContent } from "../ui/card";
-import { InputText } from "../Form/InputText";
-import { Textarea } from "../Form/Textarea";
-import useSWR from "swr";
 import {
   getTeacherProfile,
   updateTeacherProfile,
 } from "@/services/teacherService";
+import Image from "next/image";
 import toast from "react-hot-toast";
+import useSWR from "swr";
+import { InputText } from "../Form/InputText";
+import { Textarea } from "../Form/Textarea";
+import { Button } from "../ui/button";
+import { Card, CardContent } from "../ui/card";
+import { User } from "lucide-react";
 
-export const ProfileSection = () => {
+export const ProfileSection = ({ teacherProfile }) => {
   const { data: session } = useSession();
-
+  const [loaded, setLoaded] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const methods = useForm({
-    defaultValues: {
-      name: "",
-      email: "",
-      bio: "",
-    },
-  });
 
   const { data: teacher, mutate } = useSWR(
     "/api/teachers/me",
     getTeacherProfile,
     {
-      fallbackData: session?.user,
+      fallbackData: teacherProfile,
+      revalidateOnMount: false,
     }
   );
 
-  useEffect(() => {
-    if (session?.user) {
-      methods.reset({
-        name: teacher.name,
-        email: teacher.email,
-        bio: teacher.description,
-      });
-    }
-  }, [methods, session, teacher]);
+  const methods = useForm({
+    defaultValues: useMemo(
+      () => ({
+        name: teacher?.name || "",
+        email: teacher?.email || "",
+        bio: teacher?.description || "",
+        photo: teacher?.photo || "",
+      }),
+      [teacher]
+    ),
+  });
 
   const handleSave = async (formData) => {
     setIsSaving(true);
@@ -53,7 +50,7 @@ export const ProfileSection = () => {
         position: "top-center",
       });
 
-      mutate();
+      await mutate();
     } catch (error) {
       toast.error(error.message || "Erro ao salvar as informações", {
         position: "top-center",
@@ -63,7 +60,7 @@ export const ProfileSection = () => {
     }
   };
 
-  const loadingProfile = session?.user?.name;
+  const avatarSrc = teacher?.image || session?.user?.image || null;
 
   return (
     <Card>
@@ -72,27 +69,34 @@ export const ProfileSection = () => {
         <div className="space-y-6">
           <FormProvider {...methods}>
             <div className="flex items-center space-x-4 bg-gray-100 px-3 py-2 rounded-lg">
-              {loadingProfile ? (
-                <div className="px-3 py-2 rounded-lg w-full flex flex-row align-items-center justify-content-center gap-4">
-                  <img
-                    src={session.user.image}
-                    alt={session.user.name || ""}
-                    className="w-14 h-14 rounded-full"
+              <div className="relative w-14 h-14">
+                {!loaded && (
+                  <div className="absolute inset-0 bg-gray-200 rounded-full animate-pulse" />
+                )}
+
+                {avatarSrc ? (
+                  <Image
+                    src={avatarSrc}
+                    alt={teacher?.name || session?.user?.name || "Avatar"}
+                    fill
+                    sizes="56px"
+                    className={`rounded-full object-cover transition-opacity duration-200 ${
+                      loaded ? "opacity-100" : "opacity-0"
+                    }`}
+                    onLoadingComplete={() => setLoaded(true)}
+                    priority
                   />
-                  <div>
-                    <h3 className="text-lg font-medium">{session.user.name}</h3>
-                    <p className="text-gray-600">{session.user.email}</p>
+                ) : (
+                  <div className="w-14 h-14 bg-gray-200 rounded-full flex items-center justify-center">
+                    <User className="text-gray-500 w-7 h-7" />
                   </div>
-                </div>
-              ) : (
-                <div className="px-3 py-2 rounded-lg w-full flex flex-row align-items-center justify-content-center gap-4">
-                  <div className="h-14 w-14 bg-gray-200 rounded-full animate-pulse" />
-                  <div className="flex flex-col gap-[0.5] w-full justify-center">
-                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2 animate-pulse" />
-                    <div className="h-4 bg-gray-200 rounded w-1/2 animate-pulse" />
-                  </div>
-                </div>
-              )}
+                )}
+              </div>
+
+              <div className="flex flex-col justify-center">
+                <h3 className="text-lg font-medium">{teacher?.name}</h3>
+                <p className="text-gray-600">{teacher?.email}</p>
+              </div>
             </div>
 
             <form onSubmit={methods.handleSubmit(handleSave)}>

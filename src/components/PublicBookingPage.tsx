@@ -9,10 +9,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import LanguageSelector from "@/components/LanguageSelector";
 import { SelectedTimesProvider } from "@/contexts/SelectedTimesContext";
 import { useSelectedTimes } from "@/hooks/useSelectedTimes";
-import {
-  getScheduledBookings,
-  updateScheduledBookings,
-} from "@/services/bookingService";
+import { updateScheduledBookings } from "@/services/bookingService";
 import { createBooking } from "@/services/paymentService";
 import { getBrasiliaTimeLabel } from "@/utils";
 import { Info } from "lucide-react";
@@ -30,6 +27,16 @@ import { TimeSelectionStep } from "./Steps/time-selection";
 
 interface Props {
   teacher: SerializedTeacher;
+  scheduled?: Array<{
+    id: string;
+    batchId: string | null;
+    studentName: string;
+    studentEmail: string;
+    date: string;
+    time: string;
+    teacherId: string;
+    isEdited?: boolean;
+  }>;
 }
 
 interface ReschedulePayload {
@@ -38,12 +45,16 @@ interface ReschedulePayload {
   batchId?: string;
 }
 
-function PublicBookingPageContent({ teacher }: Props) {
+function PublicBookingPageContent({ teacher, scheduled }: Props) {
   const { t } = useTranslation();
   const router = useRouter();
   const { selectedTimes, addTimeSlot, removeTimeSlot, isTimeSlotSelected } =
     useSelectedTimes();
-  const [selectedDate, setSelectedDate] = useState<Date>();
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
+    scheduled?.[0]?.date
+      ? parse(scheduled[0].date, "yyyy-MM-dd", new Date())
+      : undefined
+  );
   const [teacherAvailability, setTeacherAvailability] = useState([] as []);
   const [studentData, setStudentData] = useState<{
     name?: string;
@@ -52,7 +63,7 @@ function PublicBookingPageContent({ teacher }: Props) {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<"dateTime" | "info" | "payment">("dateTime");
   const [loadingAvailability, setLoadingAvailability] = useState(false);
-  const [scheduledBookings, setScheduledBookings] = useState([]);
+  const [scheduledBookings, setScheduledBookings] = useState(scheduled);
   const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [slotToUpdate, setSlotToUpdate] = useState([]);
@@ -109,33 +120,6 @@ function PublicBookingPageContent({ teacher }: Props) {
       fetchAvailability(selectedDate);
     }
   }, [step, selectedDate, fetchAvailability]);
-
-  useEffect(() => {
-    if (!isRescheduleMode) return;
-    (async () => {
-      try {
-        const params = new URLSearchParams();
-        if (rescheduleParams.bookingId)
-          params.set("bookingId", rescheduleParams.bookingId);
-        if (rescheduleParams.batchId)
-          params.set("batchId", rescheduleParams.batchId);
-
-        const response = await getScheduledBookings(params.toString());
-        setScheduledBookings(response?.bookings);
-
-        const first = response?.bookings[0];
-
-        if (first.date) {
-          const selectedDate = parse(first.date, "yyyy-MM-dd", new Date());
-          setSelectedDate(selectedDate);
-        }
-      } catch (error) {
-        toast.error(error?.response?.data?.error, {
-          position: "top-center",
-        });
-      }
-    })();
-  }, [isRescheduleMode]);
 
   const handleDateSelect = (date: Date | undefined) => {
     setSelectedDate(date);
@@ -305,26 +289,29 @@ function PublicBookingPageContent({ teacher }: Props) {
         </div>
 
         <Header teacher={teacher} isRescheduleMode={isRescheduleMode} />
-        {isRescheduleMode && !slotToUpdate.length && (
-          <div className="bg-blue-100 border-l-4 border-blue-400 text-blue-700 p-3 rounded mb-4 text-center">
-            {t("publicBooking.reschedule.noSlotSelected.message")}{" "}
-            <span
-              className="font-semibold cursor-pointer"
-              onClick={() => setIsDrawerOpen(true)}
-            >
-              {t("publicBooking.reschedule.noSlotSelected.action")}
-            </span>
-            .
-          </div>
-        )}
-        {isRescheduleMode && slotToUpdate.length > 0 && (
-          <div className="bg-blue-100 border-l-4 border-blue-400 text-blue-700 p-3 rounded mb-4 text-center">
-            {t("publicBooking.reschedule.slotSelected.prefix")}{" "}
-            <span className="font-semibold">
-              {format(parseISO(slotToUpdate[0].date), "dd/MM/yyyy")} às{" "}
-              {slotToUpdate[0].time}
-            </span>
-            . {t("publicBooking.reschedule.slotSelected.suffix")}
+        {isRescheduleMode && (
+          <div className="bg-purple-200 border-l-4 border-purple-400 text-purple-700 p-3 rounded mb-4 text-center">
+            {!slotToUpdate.length ? (
+              <>
+                {t("publicBooking.reschedule.noSlotSelected.message")}{" "}
+                <span
+                  className="font-semibold cursor-pointer"
+                  onClick={() => setIsDrawerOpen(true)}
+                >
+                  {t("publicBooking.reschedule.noSlotSelected.action")}
+                </span>
+                .
+              </>
+            ) : (
+              <>
+                {t("publicBooking.reschedule.slotSelected.prefix")}{" "}
+                <span className="font-semibold">
+                  {format(parseISO(slotToUpdate[0].date), "dd/MM/yyyy")} às{" "}
+                  {slotToUpdate[0].time}
+                </span>
+                . {t("publicBooking.reschedule.slotSelected.suffix")}
+              </>
+            )}
           </div>
         )}
 
@@ -436,10 +423,10 @@ function PublicBookingPageContent({ teacher }: Props) {
   );
 }
 
-export default function PublicBookingPage({ teacher }: Props) {
+export default function PublicBookingPage({ teacher, scheduled }: Props) {
   return (
     <SelectedTimesProvider>
-      <PublicBookingPageContent teacher={teacher} />
+      <PublicBookingPageContent teacher={teacher} scheduled={scheduled} />
     </SelectedTimesProvider>
   );
 }

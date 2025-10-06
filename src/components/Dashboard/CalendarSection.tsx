@@ -3,71 +3,44 @@ import {
   fetchTeacherAvailability,
   saveTeacherAvailability,
 } from "@/services/teacherService";
-import { endOfWeek, startOfDay } from "date-fns";
 import { useSession } from "next-auth/react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import toast from "react-hot-toast";
+import useSWR from "swr";
 import { Availability } from "../Partials/Availability";
+import { TimePicker } from "../Partials/TimePicker";
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
-import { TimePicker } from "../Partials/TimePicker";
 
-export const CalendarSection = () => {
+const WEEKS_TO_SHOW = 1;
+
+export const CalendarSection = ({
+  teacherAvailability,
+  initialAvailability,
+  teacherProfile,
+}) => {
   const { data: session } = useSession();
   const [saving, setSaving] = useState(false);
-  const [previewLoading, setPreviewLoading] = useState(false);
-  const [previewData, setPreviewData] = useState({ availability: [] });
-  const [previewError, setPreviewError] = useState<string | null>(null);
 
-  const { workSchedule, setWorkSchedule, isConnected, loading, weekDays } =
-    useTeacherData();
-  const filterCurrentWeek = (arr) => {
-    const today = startOfDay(new Date());
-    const saturday = endOfWeek(today, { weekStartsOn: 0 });
-    const endOfSaturday = new Date(saturday.setHours(23, 59, 59, 999));
+  const { workSchedule, weekDays, setWorkSchedule } =
+    useTeacherData(initialAvailability);
 
-    return arr.filter((item) => {
-      const itemDate = new Date(item.date);
-      return itemDate >= today && itemDate <= endOfSaturday;
-    });
+  const teacherId = session?.user?.teacherId;
+  const shouldFetch = teacherProfile.googleCalendarConnected && !!teacherId;
+
+  const fetcher = async () => {
+    const data = await fetchTeacherAvailability(teacherId, WEEKS_TO_SHOW);
+    return data.availability;
   };
 
-  useEffect(() => {
-    if (!isConnected || !session?.user?.teacherId) return;
-
-    const controller = new AbortController();
-    const signal = controller.signal;
-
-    const fetchPreview = async () => {
-      setPreviewLoading(true);
-      setPreviewError(null);
-
-      try {
-        const results = await fetchTeacherAvailability(
-          session.user.teacherId,
-          signal
-        );
-
-        const filteredResults = filterCurrentWeek(results.availability);
-
-        setPreviewData({ availability: filteredResults });
-      } catch (err) {
-        if (err.name === "CanceledError" || err.name === "AbortError") {
-          console.log("Requisição cancelada");
-        } else {
-          setPreviewError("Erro ao buscar preview de disponibilidade.");
-        }
-      } finally {
-        setPreviewLoading(false);
-      }
-    };
-
-    fetchPreview();
-
-    return () => {
-      controller.abort();
-    };
-  }, [isConnected, session?.user?.teacherId]);
+  const {
+    data: previewData,
+    error,
+    mutate,
+  } = useSWR(shouldFetch ? ["teacherAvailability", teacherId] : null, fetcher, {
+    fallbackData: teacherAvailability.availability,
+    revalidateOnMount: false,
+  });
 
   const handleSave = useCallback(async () => {
     if (saving) return;
@@ -90,9 +63,7 @@ export const CalendarSection = () => {
 
       await saveTeacherAvailability(toSave);
 
-      const results = await fetchTeacherAvailability(session.user.teacherId);
-      const filteredResults = filterCurrentWeek(results.availability);
-      setPreviewData({ availability: filteredResults });
+      await mutate();
 
       toast.success("Horários salvos com sucesso!", {
         position: "top-center",
@@ -104,7 +75,7 @@ export const CalendarSection = () => {
     } finally {
       setSaving(false);
     }
-  }, [saving, workSchedule, session?.user?.teacherId]);
+  }, [saving, workSchedule, mutate]);
 
   const isSaveDisabled = workSchedule.some(
     (ws) => (ws.startTime || ws.endTime) && (!ws.startTime || !ws.endTime)
@@ -124,14 +95,8 @@ export const CalendarSection = () => {
             serão usados para bloquear automaticamente os horários já ocupados.
           </p>
 
-          {loading ? (
-            <div className="rounded-lg w-full flex flex-row align-items-center justify-content-center gap-4">
-              <div className="h-16 bg-gray-200 rounded w-full mb-2 animate-pulse" />
-              <div className="h-16 bg-gray-200 rounded w-full mb-2 animate-pulse" />
-              <div className="h-16 bg-gray-200 rounded w-full mb-2 animate-pulse" />
-            </div>
-          ) : (
-            <form className="space-y-4 md:space-y-0 md:grid sm:grid lg:grid gap-4">
+          <>
+            <form className="space-y-4 md:space-y-0 flex flex-col md:flex-row md:flex-wrap gap-4">
               {weekDays.map((day, idx) => {
                 const item = workSchedule.find(
                   (w) => w.dayOfWeek === day.value
@@ -140,7 +105,7 @@ export const CalendarSection = () => {
                 return (
                   <Card
                     key={idx}
-                    className="p-4 shadow-sm border border-gray-200 rounded-xl flex flex-col"
+                    className="p-2 shadow-sm border border-gray-200 rounded-xl flex flex-col"
                   >
                     <TimePicker
                       variant="work"
@@ -163,49 +128,40 @@ export const CalendarSection = () => {
                   </Card>
                 );
               })}
-
-              <div className="md:col-span-2 lg:col-span-3 flex justify-end mt-4">
-                <Button
-                  type="button"
-                  onClick={handleSave}
-                  disabled={saving || isSaveDisabled}
-                  className="w-full md:w-auto"
-                >
-                  {saving ? "Salvando..." : "Salvar horários"}
-                </Button>
-              </div>
             </form>
-          )}
+            <div className="md:col-span-2 lg:col-span-3 flex justify-end mt-4">
+              <Button
+                type="button"
+                onClick={handleSave}
+                disabled={saving || isSaveDisabled}
+                className="w-full md:w-auto"
+              >
+                {saving ? "Salvando..." : "Salvar horários"}
+              </Button>
+            </div>
+          </>
         </div>
 
         <div className="mt-8">
-          <h3 className="text-lg font-semibold mb-4 text-blue-900">
-            Preview da Semana
-          </h3>
-
-          {previewLoading && (
-            <div className="rounded-lg w-full sm:w-1/2 flex flex-col justify-center gap-2">
-              <div className="h-4 bg-gray-200 rounded w-full animate-pulse" />
-
-              <div className="flex flex-wrap gap-2">
-                <div className="h-4 bg-gray-200 rounded flex-1 min-w-[60px] animate-pulse" />
-                <div className="h-4 bg-gray-200 rounded flex-1 min-w-[60px] animate-pulse" />
-                <div className="h-4 bg-gray-200 rounded flex-1 min-w-[60px] animate-pulse" />
-                <div className="h-4 bg-gray-200 rounded flex-1 min-w-[60px] animate-pulse" />
-              </div>
-            </div>
+          {error && (
+            <div className="text-red-600">Erro ao buscar disponibilidade.</div>
           )}
 
-          {!previewError ? (
-            <div className="overflow-x-auto">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {previewData?.availability?.map((day) => (
-                  <Availability day={day} key={day.date} />
-                ))}
+          {previewData?.length ? (
+            <>
+              <h3 className="text-lg font-semibold mb-4 text-blue-900">
+                Sua disponibilidade para a próxima semana
+              </h3>
+              <div className="overflow-x-auto">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {previewData.map((day) => (
+                    <Availability day={day} key={day.date} />
+                  ))}
+                </div>
               </div>
-            </div>
+            </>
           ) : (
-            <div className="text-red-600">{previewError}</div>
+            <div className="text-gray-500">Nenhum horário disponível.</div>
           )}
         </div>
       </CardContent>

@@ -23,7 +23,12 @@ import { PaymentsSection } from "./PaymentSection";
 import { PublicLinkSection } from "./PublicSection";
 import { getTeacherPublicLink } from "@/services/teacherService";
 
-export default function Dashboard({ teacherFallback }) {
+export default function Dashboard({
+  teacherFallback,
+  previewData,
+  initialAvailability,
+  teacherProfile,
+}) {
   const { data: session } = useSession();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
@@ -56,8 +61,14 @@ export default function Dashboard({ teacherFallback }) {
   });
 
   const renderTabs = {
-    profile: <ProfileSection />,
-    calendar: <CalendarSection />,
+    profile: <ProfileSection teacherProfile={teacherProfile} />,
+    calendar: (
+      <CalendarSection
+        teacherAvailability={previewData}
+        initialAvailability={initialAvailability}
+        teacherProfile={teacherProfile}
+      />
+    ),
     integrations: <IntegrationsSection />,
     payments: <PaymentsSection initialData={{}} />,
     "public-link": <PublicLinkSection teacher={teacher} onUpdate={mutate} />,
