@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useState } from "react";
 import Select from "react-select";
+import { X } from "lucide-react";
 
 const hoursOptions = Array.from({ length: 24 }, (_, i) => ({
   value: i.toString().padStart(2, "0"),
@@ -129,23 +130,74 @@ export function TimePicker({
       </div>
 
       {/* Desktop */}
-      <div className="hidden sm:flex flex-row items-center gap-2 flex-shrink">
-        <button
-          type="button"
-          className="px-2 py-1 bg-gray-200 rounded min-w-12"
-          onClick={() => openDrawer("start")}
-        >
-          {startTime || "Início"}
-        </button>
+      <div className="hidden sm:flex flex-row items-center gap-2">
+        <div className="flex items-center gap-1">
+          <select
+            className="px-2 py-1 bg-gray-200 rounded min-w-14"
+            value={startHour || ""}
+            onChange={(e) => updateTime("start", "hour", e.target.value)}
+          >
+            <option value="">HH</option>
+            {hoursOptions.map((h) => (
+              <option key={h.value} value={h.value}>
+                {h.label}
+              </option>
+            ))}
+          </select>
+          <select
+            className="px-2 py-1 bg-gray-200 rounded min-w-14"
+            value={startMinute || ""}
+            onChange={(e) => updateTime("start", "minute", e.target.value)}
+          >
+            <option value="">MM</option>
+            {minutesOptions.map((m) => (
+              <option key={m.value} value={m.value}>
+                {m.label}
+              </option>
+            ))}
+          </select>
+        </div>
 
         <span className="px-1 text-gray-500">às</span>
 
+        <div className="flex items-center gap-1">
+          <select
+            className="px-2 py-1 bg-gray-200 rounded min-w-14"
+            value={endHour || ""}
+            onChange={(e) => updateTime("end", "hour", e.target.value)}
+          >
+            <option value="">HH</option>
+            {filterEndHours().map((h) => (
+              <option key={h.value} value={h.value}>
+                {h.label}
+              </option>
+            ))}
+          </select>
+          <select
+            className="px-2 py-1 bg-gray-200 rounded min-w-14"
+            value={endMinute || ""}
+            onChange={(e) => updateTime("end", "minute", e.target.value)}
+          >
+            <option value="">MM</option>
+            {filterEndMinutes().map((m) => (
+              <option key={m.value} value={m.value}>
+                {m.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <button
           type="button"
-          className="px-2 py-1 bg-gray-200 rounded min-w-12"
-          onClick={() => openDrawer("end")}
+          onClick={() => {
+            updateTime("start", "hour", "");
+            updateTime("start", "minute", "");
+            updateTime("end", "hour", "");
+            updateTime("end", "minute", "");
+          }}
+          className="p-1 rounded-full bg-gray-200 hover:bg-gray-300 text-gray-600"
         >
-          {endTime || "Fim"}
+          <X className="w-2 h-2" />
         </button>
       </div>
 
