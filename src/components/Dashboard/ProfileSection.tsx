@@ -18,17 +18,16 @@ import { User } from "lucide-react";
 
 export const ProfileSection = ({ teacherProfile }) => {
   const { data: session } = useSession();
-  const [loaded, setLoaded] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  const { data: teacher, mutate } = useSWR(
-    "/api/teachers/me",
-    getTeacherProfile,
-    {
-      fallbackData: teacherProfile,
-      revalidateOnMount: false,
-    }
-  );
+  const {
+    data: teacher,
+    mutate,
+    isLoading,
+  } = useSWR("/api/teachers/me", getTeacherProfile, {
+    fallbackData: teacherProfile,
+    revalidateOnMount: false,
+  });
 
   const methods = useForm({
     defaultValues: useMemo(
@@ -70,7 +69,7 @@ export const ProfileSection = ({ teacherProfile }) => {
           <FormProvider {...methods}>
             <div className="flex items-center space-x-4 bg-gray-100 px-3 py-2 rounded-lg">
               <div className="relative w-14 h-14">
-                {!loaded && (
+                {!isLoading && (
                   <div className="absolute inset-0 bg-gray-200 rounded-full animate-pulse" />
                 )}
 
@@ -81,9 +80,8 @@ export const ProfileSection = ({ teacherProfile }) => {
                     fill
                     sizes="56px"
                     className={`rounded-full object-cover transition-opacity duration-200 ${
-                      loaded ? "opacity-100" : "opacity-0"
+                      !isLoading ? "opacity-100" : "opacity-0"
                     }`}
-                    onLoadingComplete={() => setLoaded(true)}
                     priority
                   />
                 ) : (
