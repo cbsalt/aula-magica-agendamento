@@ -7,7 +7,6 @@ import {
   setHours,
   setMinutes,
   startOfDay,
-  startOfWeek,
 } from "date-fns";
 import { formatInTimeZone } from "date-fns-tz";
 
@@ -96,26 +95,24 @@ export function initializeSlots(workSchedules, totalWeeks = 0) {
   const zonedToday = new Date();
   let allSlots = [];
 
-  for (let weekOffset = 0; weekOffset < totalWeeks; weekOffset++) {
-    for (const ws of workSchedules) {
-      const startOfTargetWeek = addDays(
-        startOfWeek(zonedToday, { weekStartsOn: 0 }),
-        weekOffset * 7
+  const totalDays = totalWeeks * 7 + 1;
+
+  for (let dayOffset = 0; dayOffset < totalDays; dayOffset++) {
+    const dayDate = addDays(zonedToday, dayOffset);
+    const dayOfWeek = dayDate.getDay();
+
+    const ws = workSchedules.find((w) => w.dayOfWeek === dayOfWeek);
+
+    if (ws?.startTime && ws?.endTime) {
+      allSlots = allSlots.concat(
+        generateSlots(
+          ws.startTime,
+          ws.endTime,
+          dayDate,
+          ws?.startInterval,
+          ws?.endInterval
+        )
       );
-
-      const dayDate = addDays(startOfTargetWeek, ws.dayOfWeek);
-
-      if (ws.startTime && ws.endTime) {
-        allSlots = allSlots.concat(
-          generateSlots(
-            ws.startTime,
-            ws.endTime,
-            dayDate,
-            ws?.startInterval,
-            ws?.endInterval
-          )
-        );
-      }
     }
   }
 
