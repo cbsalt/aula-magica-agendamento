@@ -15,6 +15,7 @@ const TOTAL_WEEKS = 16;
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    const WEEKS_TO_SHOW = body.weeks ?? TOTAL_WEEKS;
     const { teacherId } = availabilitySchema.parse(body);
 
     const teacher = await findTeacherById(teacherId, {
@@ -32,7 +33,7 @@ export async function POST(request: NextRequest) {
 
     // Gera slots de acordo com a configuração semanal
     const workSchedules = teacher.teacherWorkSchedules || [];
-    const allSlots = initializeSlots(workSchedules, TOTAL_WEEKS);
+    const allSlots = initializeSlots(workSchedules, WEEKS_TO_SHOW);
 
     return NextResponse.json({
       availability: freeSlots(events, allSlots),
