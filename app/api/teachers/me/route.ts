@@ -17,6 +17,7 @@ export async function GET(req: NextRequest) {
       id: true,
       email: true,
       name: true,
+      photo: true,
       description: true,
       googleAccessToken: true,
     },
@@ -33,6 +34,7 @@ export async function GET(req: NextRequest) {
     id: teacher.id,
     email: teacher.email,
     name: teacher.name,
+    photo: teacher.photo,
     description: teacher.description,
     googleCalendarConnected: !!teacher.googleAccessToken,
   });

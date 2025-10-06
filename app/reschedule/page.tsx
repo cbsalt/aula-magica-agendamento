@@ -1,7 +1,7 @@
 import PublicBookingPage from "@/components/PublicBookingPage";
 import { findBooking, findBookingsByBatchId } from "@/modules/booking";
 import { findTeacherById, serializeTeacher } from "@/modules/teacher";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 export default async function ReschedulePage({
   searchParams,
@@ -10,8 +10,11 @@ export default async function ReschedulePage({
 }) {
   const params = await searchParams;
 
-  const batchId = params.batchId;
-  const bookingId = params.bookingId;
+  const { batchId, bookingId } = params;
+
+  const search = new URLSearchParams();
+  if (bookingId) search.set("bookingId", bookingId);
+  else if (batchId) search.set("batchId", batchId);
 
   let booking;
 
@@ -25,6 +28,10 @@ export default async function ReschedulePage({
     ? booking[0]?.teacherId
     : booking?.teacherId;
 
+  if (!teacherId) {
+    notFound();
+  }
+
   const teacher = await findTeacherById(teacherId, {
     paymentConfig: true,
   });
@@ -35,5 +42,17 @@ export default async function ReschedulePage({
     notFound();
   }
 
-  return <PublicBookingPage teacher={serializedTeacher} />;
+  const res = await fetch(
+    `${process.env.NEXTAUTH_URL}/api/bookings/reschedule?${search.toString()}`
+  );
+
+  if (!res.ok) {
+    return redirect("/no-bookings-to-reschedule");
+  }
+
+  const data = await res.json();
+
+  return (
+    <PublicBookingPage teacher={serializedTeacher} scheduled={data.bookings} />
+  );
 }

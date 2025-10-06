@@ -44,12 +44,22 @@ export function removeOldSchedule(teacherId) {
 
 export function createSchedule(teacherId, disponibility) {
   return prisma.teacherWorkSchedule.createMany({
-    data: disponibility.map((item) => ({
-      teacherId,
-      dayOfWeek: item.dayOfWeek,
-      startTime: item.startTime,
-      endTime: item.endTime,
-    })),
+    data: disponibility.map(
+      ({
+        dayOfWeek,
+        startTime,
+        endTime,
+        startInterval = null,
+        endInterval = null,
+      }) => ({
+        teacherId,
+        dayOfWeek,
+        startTime,
+        endTime,
+        startInterval,
+        endInterval,
+      })
+    ),
   });
 }
 

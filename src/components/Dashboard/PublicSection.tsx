@@ -7,10 +7,10 @@ import { toast } from "react-hot-toast";
 import { generatePublicLink } from "@/services/teacherService";
 
 export const PublicLinkSection = ({ teacher, onUpdate }) => {
-  const initialPublicLink = teacher.publicLink;
+  const initialPublicLink = teacher?.publicLink;
 
-  const [price, setPrice] = useState(teacher.price || 150);
-  const [currency, setCurrency] = useState(teacher.currency || "BRL");
+  const [price, setPrice] = useState(teacher?.price || 150);
+  const [currency, setCurrency] = useState(teacher?.currency || "BRL");
   const [publicUrl, setPublicUrl] = useState(initialPublicLink || "");
   const [isGenerating, setIsGenerating] = useState(false);
 

@@ -140,7 +140,7 @@
       },
       "slotSelected": {
         "prefix": "Você está reagendando a aula de",
-        "suffix": "Agora, selecione o novo horário disponível."
+        "suffix": "Agora, selecione um novo horário disponível."
       }
     },
     "weekDays": {

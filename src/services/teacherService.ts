@@ -12,11 +12,12 @@ const api = createApi();
 
 export async function fetchTeacherAvailability(
   teacherId: string,
+  weeks?: number,
   signal?: AbortSignal
 ) {
   const response = await api.post(
     "/api/teachers/availability",
-    { teacherId },
+    { teacherId, weeks },
     { signal }
   );
   return response.data;
