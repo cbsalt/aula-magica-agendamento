@@ -1,18 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { z } from "zod";
 
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { findTeacherByEmail } from "@/modules/teacher";
-
-const paymentConfigSchema = z.object({
-  receiveViaStripe: z.boolean(),
-  stripeAccountId: z.string().optional(),
-  receiveViaPayPal: z.boolean(),
-  paypalEmail: z.string().email().optional(),
-  isActive: z.boolean(),
-});
+import { paymentSchema } from "@/lib/validation";
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,10 +14,9 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const configData = paymentConfigSchema.parse(body);
+    const configData = paymentSchema.parse(body);
 
-    // Validate configuration
-    if (!configData.receiveViaStripe && !configData.receiveViaPayPal) {
+    if (!configData.receiveViaStripe && !configData.receiveViaBank) {
       return NextResponse.json(
         { error: "Selecione pelo menos uma forma de recebimento" },
         { status: 400 }
@@ -57,7 +48,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Update or create payment config
     const updatedConfig = await prisma.paymentConfig.upsert({
       where: { teacherId: teacher.id },
       update: {
@@ -65,7 +55,12 @@ export async function POST(request: NextRequest) {
         stripeAccountId: configData.stripeAccountId || null,
         receiveViaPayPal: configData.receiveViaPayPal,
         paypalEmail: configData.paypalEmail || null,
-        isActive: configData.isActive,
+        receiveViaBank: configData.receiveViaBank || null,
+        bankName: configData.bankName || null,
+        bankAgency: configData.bankAgency || null,
+        bankAccount: configData.bankAccount || null,
+        accountHolder: configData.accountHolder || null,
+        pixKey: configData.pixKey || null,
       },
       create: {
         teacherId: teacher.id,
@@ -73,7 +68,12 @@ export async function POST(request: NextRequest) {
         stripeAccountId: configData.stripeAccountId || null,
         receiveViaPayPal: configData.receiveViaPayPal,
         paypalEmail: configData.paypalEmail || null,
-        isActive: configData.isActive,
+        receiveViaBank: configData.receiveViaBank || null,
+        bankName: configData.bankName || null,
+        bankAgency: configData.bankAgency || null,
+        bankAccount: configData.bankAccount || null,
+        accountHolder: configData.accountHolder || null,
+        pixKey: configData.pixKey || null,
       },
     });
 
@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({
-      config: teacher.paymentConfig,
+      paymentConfig: teacher.paymentConfig,
     });
   } catch (error) {
     console.error("Erro ao buscar configuração de pagamento:", error);
