@@ -59,7 +59,17 @@ export async function updateTeacherProfile(data) {
 export async function saveTeacherPaymentConfig(paymentConfig) {
   const response = await api.post("/api/teachers/me/payment-config", {
     ...paymentConfig,
-    isActive: true,
   });
+  return response.data;
+}
+
+export async function getTeacherPaymentConfig() {
+  const response = await api.get("/api/teachers/me/payment-config");
+  const { paymentConfig } = response.data;
+  return paymentConfig;
+}
+
+export async function fetchBanks() {
+  const response = await api.get("https://brasilapi.com.br/api/banks/v1");
   return response.data;
 }
