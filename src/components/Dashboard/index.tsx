@@ -28,6 +28,7 @@ export default function Dashboard({
   previewData,
   initialAvailability,
   teacherProfile,
+  paymentConfig,
 }) {
   const { data: session } = useSession();
   const searchParams = useSearchParams();
@@ -70,7 +71,7 @@ export default function Dashboard({
       />
     ),
     integrations: <IntegrationsSection />,
-    payments: <PaymentsSection initialData={{}} />,
+    payments: <PaymentsSection initialData={paymentConfig} />,
     "public-link": <PublicLinkSection teacher={teacher} onUpdate={mutate} />,
   };
 
