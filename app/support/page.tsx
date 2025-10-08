@@ -9,8 +9,8 @@ export default function Support() {
 
         <p className="mb-4">
           Para qualquer dúvida ou problema relacionado ao{" "}
-          <strong>scheduleasier</strong> ou à integração com o Zoom, nossa
-          equipe de suporte está à disposição pelo e-mail:
+          <strong>scheduleasier</strong>, nossa equipe de suporte está à
+          disposição pelo e-mail:
         </p>
 
         <p className="mb-6">

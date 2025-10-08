@@ -8,6 +8,9 @@ export default function Footer() {
           <Link href="/" className="hover:underline">
             Home
           </Link>
+          <Link href="/fees-policy" className="hover:underline">
+            Política de Taxas
+          </Link>
           <Link href="/privacy" className="hover:underline">
             Política de Privacidade
           </Link>

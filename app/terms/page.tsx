@@ -1,4 +1,5 @@
 import Footer from "@/components/Footer";
+import Link from "next/link";
 
 export default function TermsOfService() {
   return (
@@ -35,6 +36,17 @@ export default function TermsOfService() {
             Você é responsável por manter a confidencialidade de sua conta e
             senha.
           </li>
+          <li>
+            Ao utilizar funcionalidades pagas da plataforma, você concorda com a
+            aplicação das taxas de serviço, conforme descrito na{" "}
+            <Link
+              href="/fees-policy"
+              className="text-blue-600 hover:underline font-medium"
+            >
+              Política de Taxas
+            </Link>
+            .
+          </li>
         </ul>
 
         <h2 className="text-2xl font-semibold mt-6 mb-2">
@@ -58,7 +70,7 @@ export default function TermsOfService() {
           5. Limitação de Responsabilidade
         </h2>
         <p className="mb-4">
-          O ScheduleAsier não se responsabiliza por danos diretos, indiretos ou
+          O scheduleasier não se responsabiliza por danos diretos, indiretos ou
           consequenciais resultantes do uso do aplicativo, dentro dos limites
           permitidos por lei.
         </p>
