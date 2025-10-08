@@ -24,6 +24,7 @@ import DateSelectionStep from "./Steps/date-selection";
 import PaymentStep from "./Steps/payment";
 import { StudentInfoFormData, StudentInfoStep } from "./Steps/student-info";
 import { TimeSelectionStep } from "./Steps/time-selection";
+import Footer from "./Footer";
 
 interface Props {
   teacher: SerializedTeacher;
@@ -427,6 +428,7 @@ export default function PublicBookingPage({ teacher, scheduled }: Props) {
   return (
     <SelectedTimesProvider>
       <PublicBookingPageContent teacher={teacher} scheduled={scheduled} />
+      <Footer isPublic />
     </SelectedTimesProvider>
   );
 }
