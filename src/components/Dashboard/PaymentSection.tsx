@@ -1,16 +1,39 @@
 "use client";
 
-import { useState } from "react";
-import { useForm, FormProvider } from "react-hook-form";
+import { useEffect, useState } from "react";
+import { useForm, FormProvider, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
 import { toast } from "react-hot-toast";
-import { saveTeacherPaymentConfig } from "@/services/teacherService";
+import {
+  fetchBanks,
+  getTeacherPaymentConfig,
+  saveTeacherPaymentConfig,
+} from "@/services/teacherService";
 import { PaymentFormData, paymentSchema } from "@/lib/validation";
+import Select from "react-select";
+import useSWR from "swr";
+
+type Bank = {
+  code: number;
+  name: string;
+  fullName: string;
+};
 
 export const PaymentsSection = ({ initialData }) => {
   const [isSaving, setIsSaving] = useState(false);
+  const [banks, setBanks] = useState<Bank[]>([]);
+
+  const { data: paymentConfig, mutate } = useSWR(
+    "/api/teachers/me/payment-config",
+    getTeacherPaymentConfig,
+    {
+      fallbackData: initialData,
+      revalidateOnFocus: false,
+      revalidateOnMount: !initialData,
+    }
+  );
 
   const methods = useForm<PaymentFormData>({
     mode: "onChange",
@@ -34,10 +57,41 @@ export const PaymentsSection = ({ initialData }) => {
     formState: { errors, isValid },
     setValue,
     trigger,
+    control,
   } = methods;
 
   const receiveViaStripe = watch("receiveViaStripe");
   const receiveViaBank = watch("receiveViaBank");
+
+  useEffect(() => {
+    if (!paymentConfig) return;
+
+    const fieldsToUpdate: Partial<PaymentFormData> = {
+      receiveViaStripe: paymentConfig.receiveViaStripe ?? false,
+      stripeAccountId: paymentConfig.stripeAccountId ?? "",
+      receiveViaBank: paymentConfig.receiveViaBank ?? false,
+      bankName: paymentConfig.bankName ?? "",
+      bankAgency: paymentConfig.bankAgency ?? "",
+      bankAccount: paymentConfig.bankAccount ?? "",
+      accountHolder: paymentConfig.accountHolder ?? "",
+      pixKey: paymentConfig.pixKey ?? "",
+    };
+
+    Object.entries(fieldsToUpdate).forEach(([key, value]) =>
+      setValue(key as keyof PaymentFormData, value, { shouldValidate: false })
+    );
+  }, [paymentConfig, setValue]);
+
+  useEffect(() => {
+    if (!receiveViaBank) return;
+
+    const loadBanks = async () => {
+      const data = await fetchBanks();
+      setBanks(data);
+    };
+
+    loadBanks();
+  }, [receiveViaBank]);
 
   const inputClass =
     "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500";
@@ -48,6 +102,7 @@ export const PaymentsSection = ({ initialData }) => {
     try {
       await saveTeacherPaymentConfig(data);
       toast.success("Configuração de pagamento salva com sucesso!");
+      await mutate();
     } catch (err) {
       console.error(err);
       toast.error(err?.message || "Erro ao salvar configuração", {
@@ -91,6 +146,11 @@ export const PaymentsSection = ({ initialData }) => {
 
   const isAtLeastOneOptionSelected = receiveViaStripe || receiveViaBank;
   const isSubmitDisabled = isSaving || !isValid || !isAtLeastOneOptionSelected;
+
+  const options = banks.map((b) => ({
+    value: `${b.code} - ${b.name}`,
+    label: `${b.code} - ${b.name}`,
+  }));
 
   return (
     <FormProvider {...methods}>
@@ -180,7 +240,51 @@ export const PaymentsSection = ({ initialData }) => {
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Banco
                     </label>
-                    <input {...register("bankName")} className={inputClass} />
+                    <Controller
+                      name="bankName"
+                      control={control}
+                      rules={{ required: "Selecione um banco" }}
+                      render={({ field }) => (
+                        <Select
+                          {...field}
+                          value={
+                            options.find((opt) => opt.value === field.value) ||
+                            null
+                          }
+                          onChange={(selected) =>
+                            field.onChange(selected?.value)
+                          }
+                          onBlur={field.onBlur}
+                          options={options}
+                          placeholder="Digite ou selecione um banco"
+                          classNamePrefix="react-select"
+                          classNames={{
+                            control: ({ isFocused }) =>
+                              [
+                                "w-full rounded-md border py-1",
+                                isFocused
+                                  ? "border-blue-500 ring-2 ring-blue-300"
+                                  : errors.bankName
+                                  ? "border-red-500"
+                                  : "border-gray-300",
+                              ].join(" "),
+                            menu: () =>
+                              "bg-white border border-gray-200 rounded-md mt-1 shadow-lg z-50",
+                            option: ({ isFocused, isSelected }) =>
+                              [
+                                "cursor-pointer px-3 py-2 text-sm",
+                                isSelected
+                                  ? "bg-blue-500 text-white"
+                                  : isFocused
+                                  ? "bg-blue-100 text-blue-800"
+                                  : "hover:bg-blue-50",
+                              ].join(" "),
+                            placeholder: () => "text-gray-400",
+                            singleValue: () => "text-gray-800",
+                          }}
+                        />
+                      )}
+                    />
                     {errors.bankName?.message && (
                       <p className={errorClass}>{errors.bankName.message}</p>
                     )}

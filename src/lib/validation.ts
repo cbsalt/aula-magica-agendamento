@@ -25,6 +25,8 @@ export const paymentSchema = z
   .object({
     receiveViaStripe: z.boolean().default(false),
     stripeAccountId: z.string().optional(),
+    receiveViaPayPal: z.boolean().default(false),
+    paypalEmail: z.string().email().optional(),
     receiveViaBank: z.boolean().default(false),
     bankName: z.string().optional(),
     bankAgency: z.string().optional(),

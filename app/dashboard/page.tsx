@@ -38,17 +38,19 @@ export default async function DashboardPage() {
 
   const serializedTeacher = serializeTeacher(teacher);
 
-  const [availabilityRes, teacherRes, previewRes] = await Promise.allSettled([
-    customFetch(`${process.env.NEXTAUTH_URL}/api/teachers/me/availability`),
-    customFetch(`${process.env.NEXTAUTH_URL}/api/teachers/me`),
-    customFetch(`${process.env.NEXTAUTH_URL}/api/teachers/availability`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ teacherId: teacher.id, weeks: WEEKS_TO_SHOW }),
-    }),
-  ]);
+  const [availabilityRes, teacherRes, previewRes, paymentRes] =
+    await Promise.allSettled([
+      customFetch(`${process.env.NEXTAUTH_URL}/api/teachers/me/availability`),
+      customFetch(`${process.env.NEXTAUTH_URL}/api/teachers/me`),
+      customFetch(`${process.env.NEXTAUTH_URL}/api/teachers/availability`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ teacherId: teacher.id, weeks: WEEKS_TO_SHOW }),
+      }),
+      customFetch(`${process.env.NEXTAUTH_URL}/api/teachers/me/payment-config`),
+    ]);
 
   const initialAvailability =
     availabilityRes.status === "fulfilled" && availabilityRes.value.ok
@@ -65,6 +67,11 @@ export default async function DashboardPage() {
       ? { availability: (await previewRes.value.json()).availability }
       : null;
 
+  const { paymentConfig } =
+    paymentRes.status === "fulfilled" && paymentRes.value.ok
+      ? await paymentRes.value.json()
+      : null;
+
   return (
     <>
       <Dashboard
@@ -72,6 +79,7 @@ export default async function DashboardPage() {
         previewData={previewData}
         initialAvailability={initialAvailability}
         teacherProfile={teacherProfile}
+        paymentConfig={paymentConfig}
       />
       <Footer />
     </>

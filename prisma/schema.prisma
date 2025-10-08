@@ -101,15 +101,22 @@ model PaymentConfig {
   id        String @id @default(cuid())
   teacherId String @unique @map("teacher_id")
 
-  // Recebimento do Professor
+  // Recebimento via Stripe
   receiveViaStripe Boolean @default(false) @map("receive_via_stripe")
   stripeAccountId  String? @map("stripe_account_id")
 
   receiveViaPayPal Boolean @default(false) @map("receive_via_paypal")
   paypalEmail      String?
 
-  // Configuração ativa
-  isActive Boolean @default(false) @map("is_active")
+  // Recebimento via Banco
+  receiveViaBank Boolean @default(false) @map("receive_via_bank")
+  bankName       String? @map("bank_name")
+  bankAgency     String? @map("bank_agency")
+  bankAccount    String? @map("bank_account")
+  accountHolder  String? @map("account_holder")
+
+  // Recebimento via Pix
+  pixKey String? @map("pix_key")
 
   teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
 
