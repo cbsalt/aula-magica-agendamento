@@ -1,5 +1,4 @@
 import Footer from "@/components/Footer";
-import { Plug, Calendar, Trash2, LifeBuoy } from "lucide-react";
 
 export default function Documentation() {
   return (
@@ -10,7 +9,6 @@ export default function Documentation() {
 
         {/* 1. Adicionando o App */}
         <h2 className="text-2xl font-semibold mt-6 mb-2 flex items-center gap-2">
-          <Plug className="w-6 h-6 text-blue-600" />
           1. Adicionando o Zoom ao Scheduleasier
         </h2>
         <ol className="list-decimal list-inside mb-4 space-y-1">
@@ -35,7 +33,7 @@ export default function Documentation() {
         </ol>
 
         <p className="mb-4 font-semibold flex items-center gap-2">
-          <LifeBuoy className="w-5 h-5 text-indigo-600" /> Solução de problemas:
+          Solução de problemas:
         </p>
         <ul className="list-disc list-inside mb-4">
           <li>
@@ -57,7 +55,6 @@ export default function Documentation() {
 
         {/* 2. Uso do App */}
         <h2 className="text-2xl font-semibold mt-6 mb-2 flex items-center gap-2">
-          <Calendar className="w-6 h-6 text-green-600" />
           2. Uso do App
         </h2>
 
@@ -99,7 +96,6 @@ export default function Documentation() {
 
         {/* 3. Removendo o App */}
         <h2 className="text-2xl font-semibold mt-6 mb-2 flex items-center gap-2">
-          <Trash2 className="w-6 h-6 text-red-600" />
           3. Removendo a integração com Zoom
         </h2>
         <ol className="list-decimal list-inside mb-4 space-y-1">
@@ -141,7 +137,6 @@ export default function Documentation() {
           id="suporte"
           className="text-2xl font-semibold mt-6 mb-2 flex items-center gap-2"
         >
-          <LifeBuoy className="w-5 h-5 text-indigo-600" />
           4. Suporte
         </h2>
         <ul className="list-disc list-inside mb-4">
