@@ -1,22 +1,22 @@
 "use client";
 
-import React from "react";
 import { useTranslation } from "react-i18next";
-import { Button } from "@/components/ui/button";
+import { Globe } from "lucide-react";
+
 import {
+  Button,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Globe } from "lucide-react";
+} from "@/components/ui";
 
 const languages = [
   { code: "pt-BR", flag: "🇧🇷" },
   { code: "en-US", flag: "🇺🇸" },
 ];
 
-const LanguageSelector = () => {
+export const LanguageSelector = () => {
   const { t, i18n } = useTranslation();
 
   const currentLanguage =
@@ -52,5 +52,3 @@ const LanguageSelector = () => {
     </DropdownMenu>
   );
 };
-
-export default LanguageSelector;

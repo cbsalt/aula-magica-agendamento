@@ -1,6 +1,11 @@
 import { notFound } from "next/navigation";
-import PublicBookingPage from "@/components/PublicBookingPage";
-import { findTeacherByPublicLink, serializeTeacher } from "@/modules/teacher";
+
+import { PublicBookingPage } from "@/components";
+import {
+  findTeacherByPublicLink,
+  findWorkScheduleByTeacherId,
+  serializeTeacher,
+} from "@/modules/teacher";
 
 export default async function AppointmentPage(props) {
   const params = await props.params;
@@ -11,10 +16,18 @@ export default async function AppointmentPage(props) {
   });
 
   const serializedTeacher = serializeTeacher(teacher);
+  const workScheduleTeacher = await findWorkScheduleByTeacherId(teacher.id, {
+    dayOfWeek: true,
+  });
 
   if (!serializedTeacher) {
     notFound();
   }
 
-  return <PublicBookingPage teacher={serializedTeacher} />;
+  return (
+    <PublicBookingPage
+      teacher={serializedTeacher}
+      workScheduleTeacher={workScheduleTeacher}
+    />
+  );
 }

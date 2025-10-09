@@ -1,14 +1,20 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTranslation } from "react-i18next";
 import { SerializedTeacher } from "../interfaces";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+  Card,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui";
 
 interface Props {
   teacher: SerializedTeacher;
   isRescheduleMode: boolean;
 }
 
-export default function Header({ teacher, isRescheduleMode }: Props) {
+export function Header({ teacher, isRescheduleMode }: Props) {
   const { t } = useTranslation();
 
   return (

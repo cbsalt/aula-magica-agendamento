@@ -1,12 +1,12 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { TimeSlot, useSelectedTimes } from "@/hooks/useSelectedTimes";
-import { format, parseISO } from "date-fns";
-import { Calendar, Clock, X } from "lucide-react";
 import { Dispatch, SetStateAction } from "react";
 import { useTranslation } from "react-i18next";
+import { format, parseISO } from "date-fns";
+import { Calendar, Clock, X } from "lucide-react";
+
+import { Card, CardContent, Button } from "@/components/ui";
+import { TimeSlot, useSelectedTimes } from "@/hooks/useSelectedTimes";
 import { SerializedTeacher } from "./interfaces";
 
 interface Props {
@@ -22,7 +22,7 @@ interface Props {
 
 type ExtendedSlot = TimeSlot & { isEdited?: boolean };
 
-export default function SelectedTimesDrawer({
+export function SelectedTimesDrawer({
   isRescheduleMode,
   teacher,
   scheduledBookings = [],

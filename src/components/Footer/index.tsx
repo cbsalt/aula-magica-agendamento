@@ -1,6 +1,40 @@
 import Link from "next/link";
 
-export default function Footer({ isPublic }: { isPublic?: boolean }) {
+export function Footer({ isPublic = false }: { isPublic?: boolean }) {
+  console.log(isPublic);
+  const links = [
+    {
+      path: "/",
+      name: "Home",
+      show: true,
+    },
+    {
+      path: "/fees-policy",
+      name: "Política de Taxas",
+      show: !isPublic,
+    },
+    {
+      path: "/privacy",
+      name: "Política de Privacidade",
+      show: true,
+    },
+    {
+      path: "/terms",
+      name: "Termos de Serviço",
+      show: true,
+    },
+    {
+      path: "/support",
+      name: "Suporte",
+      show: !isPublic,
+    },
+    {
+      path: "/help/zoom",
+      name: "Integração Zoom",
+      show: !isPublic,
+    },
+  ];
+
   return (
     <footer
       className={`py-6 ${
@@ -9,30 +43,18 @@ export default function Footer({ isPublic }: { isPublic?: boolean }) {
     >
       <div className="max-w-6xl mx-auto px-4 text-center text-gray-600">
         <div className="flex flex-col sm:flex-row sm:flex-wrap sm:justify-center gap-3 text-sm">
-          <Link href="/" className="hover:underline">
-            Home
-          </Link>
-          {!isPublic && (
-            <Link href="/fees-policy" className="hover:underline">
-              Política de Taxas
-            </Link>
-          )}
-          <Link href="/privacy" className="hover:underline">
-            Política de Privacidade
-          </Link>
-          <Link href="/terms" className="hover:underline">
-            Termos de Serviço
-          </Link>
-
-          {!isPublic && (
-            <>
-              <Link href="/support" className="hover:underline">
-                Suporte
+          {links.map((link) =>
+            link.show ? (
+              <Link
+                key={link.name}
+                href={link.path}
+                className="hover:underline"
+              >
+                {link.name}
               </Link>
-              <Link href="/help/zoom" className="hover:underline">
-                Integração Zoom
-              </Link>
-            </>
+            ) : (
+              ""
+            )
           )}
 
           <a

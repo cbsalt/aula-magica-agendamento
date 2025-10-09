@@ -1,6 +1,5 @@
+import { ArrowRight, Clock, X } from "lucide-react";
 import { useSelectedTimes } from "@/hooks/useSelectedTimes";
-import { ArrowRight, Clock, Info, X } from "lucide-react";
-import { useState } from "react";
 
 interface Props {
   day: {

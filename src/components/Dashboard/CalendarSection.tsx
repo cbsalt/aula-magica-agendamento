@@ -1,16 +1,15 @@
+import { useCallback, useState } from "react";
+import { useSession } from "next-auth/react";
+import toast from "react-hot-toast";
+import useSWR from "swr";
+
 import { useTeacherData } from "@/hooks/useTeacherData";
 import {
   fetchTeacherAvailability,
   saveTeacherAvailability,
 } from "@/services/teacherService";
-import { useSession } from "next-auth/react";
-import { useCallback, useState } from "react";
-import toast from "react-hot-toast";
-import useSWR from "swr";
-import { Availability } from "../Partials/Availability";
-import { TimePicker } from "../Partials/TimePicker";
-import { Button } from "../ui/button";
-import { Card, CardContent } from "../ui/card";
+import { TimePicker, Availability } from "../Partials";
+import { Card, CardContent, Button } from "../ui";
 
 const WEEKS_TO_SHOW = 1;
 

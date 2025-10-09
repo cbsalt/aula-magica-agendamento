@@ -1,32 +1,32 @@
 import { Clock, ChevronLeft, ChevronRight, Info } from "lucide-react";
 import { addDays, format, isBefore, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import AnimatedCard from "./animated-card";
-import { t } from "i18next";
-import { TeacherAvailability } from "../Partials/TeacherAvailability";
-import { capitalize } from "@/utils";
 import toast from "react-hot-toast";
+import { t } from "i18next";
+
+import { CardContent, CardHeader, CardTitle, Skeleton } from "@/components/ui";
+import { AnimatedCard } from "./animated-card";
+import { TeacherAvailability } from "../Partials";
+import { capitalize } from "@/utils";
 
 interface Props {
   selectedDate: Date;
-  onChangeDate: (date: Date) => void;
   teacherAvailability: [];
-  onHandleSlot: (slot: { date: string; time: string }) => void;
   loadingAvailability: boolean;
   isRescheduleMode?: boolean;
   slotToUpdate;
+  onChangeDate: (date: Date) => void;
+  onHandleSlot: (slot: { date: string; time: string }) => void;
 }
 
 export function TimeSelectionStep({
   selectedDate,
-  onChangeDate,
   teacherAvailability,
-  onHandleSlot,
   loadingAvailability,
   isRescheduleMode = false,
   slotToUpdate,
+  onChangeDate,
+  onHandleSlot,
 }: Props) {
   const changeDate = (days: number) => {
     if (!loadingAvailability) {

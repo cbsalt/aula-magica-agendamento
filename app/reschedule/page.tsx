@@ -1,7 +1,8 @@
-import PublicBookingPage from "@/components/PublicBookingPage";
+import { notFound, redirect } from "next/navigation";
+
+import { PublicBookingPage } from "@/components";
 import { findBooking, findBookingsByBatchId } from "@/modules/booking";
 import { findTeacherById, serializeTeacher } from "@/modules/teacher";
-import { notFound, redirect } from "next/navigation";
 
 export default async function ReschedulePage({
   searchParams,

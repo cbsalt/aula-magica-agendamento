@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
-import { Card } from "@/components/ui/card";
+import { Card } from "@/components/ui";
 
-const AnimatedCard: React.FC<{ children: React.ReactNode }> = ({
+export const AnimatedCard: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => (
   <motion.div
@@ -16,5 +16,3 @@ const AnimatedCard: React.FC<{ children: React.ReactNode }> = ({
     </Card>
   </motion.div>
 );
-
-export default AnimatedCard;

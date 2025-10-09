@@ -1,5 +1,6 @@
 import { addHours, format, parse, parseISO, set } from "date-fns";
 import { format as formatTz, toZonedTime } from "date-fns-tz";
+import { GetDaysOfWeek } from "./types";
 
 export function formatDateString(date: string) {
   return new Date(date).toLocaleTimeString("pt-BR", {
@@ -54,10 +55,8 @@ export const buildCalendarEvent = (
   withConference: boolean = false
 ) => {
   const timeZone = "America/Sao_Paulo";
-
   const slotStart = getBookingDateTime(booking);
   const slotEnd = new Date(slotStart.getTime() + ONE_HOURS_MS);
-
   const startDateTime = slotStart.toISOString();
   const endDateTime = slotEnd.toISOString();
 
@@ -67,6 +66,7 @@ export const buildCalendarEvent = (
     hour: "2-digit",
     minute: "2-digit",
   })}`;
+
   const endFormatted = `${slotEnd.toLocaleTimeString("pt-BR", {
     hour: "2-digit",
     minute: "2-digit",
@@ -92,5 +92,32 @@ export const buildCalendarEvent = (
     }),
   };
 };
+
+function getDaysOfWeek({ dayOfWeek, year, month = 0 }: GetDaysOfWeek): Date[] {
+  const dates: Date[] = [];
+  const date = new Date(year, month, 1);
+
+  while (date.getMonth() === month) {
+    if (date.getDay() === dayOfWeek) {
+      dates.push(new Date(date));
+    }
+
+    date.setDate(date.getDate() + 1);
+  }
+
+  return dates;
+}
+
+export function groupByDaysOfWeek(workScheduleTeacher, dateSelected: Date) {
+  return workScheduleTeacher
+    ? workScheduleTeacher.flatMap((item: { dayOfWeek: number }) =>
+        getDaysOfWeek({
+          dayOfWeek: item.dayOfWeek,
+          year: dateSelected.getFullYear(),
+          month: dateSelected.getMonth(),
+        })
+      )
+    : [];
+}
 
 export const ONE_HOURS_MS = 1000 * 60 * 60;

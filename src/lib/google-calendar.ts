@@ -1,7 +1,6 @@
 import { google } from "googleapis";
 import { addDays } from "date-fns";
-import { prisma } from "@/lib/prisma";
-import { updateDataTeacher, updateDataTeacherById } from "@/modules/teacher";
+import { updateDataTeacherById } from "@/modules/teacher";
 
 export class GoogleCalendarService {
   private oauth2Client;

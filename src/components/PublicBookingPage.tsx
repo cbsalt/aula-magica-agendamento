@@ -1,33 +1,45 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { fetchTeacherAvailability } from "@/services/teacherService";
-import { format, parse, parseISO } from "date-fns";
-import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
-
-import LanguageSelector from "@/components/LanguageSelector";
-import { SelectedTimesProvider } from "@/contexts/SelectedTimesContext";
-import { useSelectedTimes } from "@/hooks/useSelectedTimes";
-import { updateScheduledBookings } from "@/services/bookingService";
-import { createBooking } from "@/services/paymentService";
-import { getBrasiliaTimeLabel } from "@/utils";
-import { Info } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { format, parse, parseISO } from "date-fns";
 import toast, { Toaster } from "react-hot-toast";
 import { useTranslation } from "react-i18next";
-import Header from "./Booking/header";
-import { ModalRescheduleConfirmation } from "./Booking/modal-reschedule-confirmation";
-import { ProgressBar } from "./Booking/progress-bar";
+import { Info } from "lucide-react";
+
+import { getBrasiliaTimeLabel } from "@/utils";
+import {
+  DateSelectionStep,
+  PaymentStep,
+  StudentInfoFormData,
+  StudentInfoStep,
+  TimeSelectionStep,
+} from "./Steps";
+
+import { TeacherWorkSchedule } from "@prisma/client";
+import {
+  LanguageSelector,
+  SelectedTimesDrawer,
+  ModalRescheduleConfirmation,
+  Header,
+  Footer,
+  ProgressBar,
+} from "@/components";
+import { Button } from "@/components/ui";
+
+import { SelectedTimesProvider } from "@/contexts/SelectedTimesContext";
+import { useSelectedTimes } from "@/hooks/useSelectedTimes";
+import { PaymentMethod } from "@/utils/enums";
+
+import { fetchTeacherAvailability } from "@/services/teacherService";
+import { updateScheduledBookings } from "@/services/bookingService";
+import { createBooking } from "@/services/paymentService";
+
 import { SerializedTeacher } from "./interfaces";
-import SelectedTimesDrawer from "./SelectedTimesDrawer";
-import DateSelectionStep from "./Steps/date-selection";
-import PaymentStep from "./Steps/payment";
-import { StudentInfoFormData, StudentInfoStep } from "./Steps/student-info";
-import { TimeSelectionStep } from "./Steps/time-selection";
-import Footer from "./Footer";
 
 interface Props {
   teacher: SerializedTeacher;
+  workScheduleTeacher?: Partial<TeacherWorkSchedule>[];
   scheduled?: Array<{
     id: string;
     batchId: string | null;
@@ -46,7 +58,11 @@ interface ReschedulePayload {
   batchId?: string;
 }
 
-function PublicBookingPageContent({ teacher, scheduled }: Props) {
+function PublicBookingPageContent({
+  teacher,
+  scheduled,
+  workScheduleTeacher,
+}: Props) {
   const { t } = useTranslation();
   const router = useRouter();
   const { selectedTimes, addTimeSlot, removeTimeSlot, isTimeSlotSelected } =
@@ -75,9 +91,8 @@ function PublicBookingPageContent({ teacher, scheduled }: Props) {
 
   const steps = ["dateTime", "info", "payment"];
 
-  const [studentPaymentMethod, setStudentPaymentMethod] = useState<
-    "creditCard" | "paypal"
-  >("creditCard");
+  const [studentPaymentMethod, setStudentPaymentMethod] =
+    useState<PaymentMethod>(PaymentMethod.CREDITCARD);
 
   const searchParams = useSearchParams();
   const rescheduleParams = useMemo(() => {
@@ -290,6 +305,7 @@ function PublicBookingPageContent({ teacher, scheduled }: Props) {
         </div>
 
         <Header teacher={teacher} isRescheduleMode={isRescheduleMode} />
+
         {isRescheduleMode && (
           <div className="bg-purple-200 border-l-4 border-purple-400 text-purple-700 p-3 rounded mb-4 text-center">
             {!slotToUpdate.length ? (
@@ -318,15 +334,14 @@ function PublicBookingPageContent({ teacher, scheduled }: Props) {
 
         {!isRescheduleMode && <ProgressBar steps={steps} step={step} />}
 
-        {/* Booking Steps */}
         <div className="flex flex-col md:flex-row md:flex-wrap gap-6 justify-center">
-          {/* Step 1: Date Selection */}
           {step === "dateTime" && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <DateSelectionStep
                 isRescheduleMode={isRescheduleMode}
                 selectedDate={selectedDate}
                 onSelect={handleDateSelect}
+                workScheduleTeacher={workScheduleTeacher}
               />
 
               {selectedDate && (
@@ -424,11 +439,20 @@ function PublicBookingPageContent({ teacher, scheduled }: Props) {
   );
 }
 
-export default function PublicBookingPage({ teacher, scheduled }: Props) {
+export function PublicBookingPage({
+  teacher,
+  scheduled,
+  workScheduleTeacher,
+}: Props) {
   return (
     <SelectedTimesProvider>
-      <PublicBookingPageContent teacher={teacher} scheduled={scheduled} />
-      <Footer isPublic />
+      <PublicBookingPageContent
+        teacher={teacher}
+        scheduled={scheduled}
+        workScheduleTeacher={workScheduleTeacher}
+      />
+
+      <Footer />
     </SelectedTimesProvider>
   );
 }

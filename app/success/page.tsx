@@ -1,16 +1,9 @@
-import SuccessClient from "@/components/SuccessClient";
+import { SuccessClient, ErrorMessage } from "@/components";
 import { getStripeInstance } from "@/lib/payment";
-import ErrorMessage from "@/components/ErrorMessage";
 
-interface Props {
-  searchParams?: { session_id?: string };
-}
+type Props = { searchParams: Promise<{ session_id?: string }> };
 
-export default async function SuccessPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ session_id?: string }>;
-}) {
+export default async function SuccessPage({ searchParams }: Props) {
   const params = await searchParams;
   const sessionId = params.session_id;
 

@@ -1,20 +1,19 @@
 "use client";
 
-import { useSession } from "next-auth/react";
 import { useMemo, useState } from "react";
+import toast from "react-hot-toast";
 import { FormProvider, useForm } from "react-hook-form";
+import { useSession } from "next-auth/react";
+import Image from "next/image";
+import useSWR from "swr";
+import { User } from "lucide-react";
+
 import {
   getTeacherProfile,
   updateTeacherProfile,
 } from "@/services/teacherService";
-import Image from "next/image";
-import toast from "react-hot-toast";
-import useSWR from "swr";
-import { InputText } from "../Form/InputText";
-import { Textarea } from "../Form/Textarea";
-import { Button } from "../ui/button";
-import { Card, CardContent } from "../ui/card";
-import { User } from "lucide-react";
+import { InputText, Textarea } from "../Form/";
+import { Card, CardContent, Button } from "../ui";
 
 export const ProfileSection = ({ teacherProfile }) => {
   const { data: session } = useSession();

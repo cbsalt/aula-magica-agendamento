@@ -1,5 +1,10 @@
 import { prisma } from "@/lib/prisma";
-import { PaymentConfig, Teacher, TeacherWorkSchedule } from "@prisma/client";
+import {
+  PaymentConfig,
+  PrismaPromise,
+  Teacher,
+  TeacherWorkSchedule,
+} from "@prisma/client";
 
 type TeacherWithInclude = Teacher & {
   paymentConfig?: PaymentConfig;
@@ -23,6 +28,17 @@ export function findTeacherById(
   return prisma.teacher.findUnique({
     where: { id: value },
     include,
+  });
+}
+
+export function findWorkScheduleByTeacherId(
+  teacherId,
+  columns
+): PrismaPromise<Partial<TeacherWorkSchedule>[]> {
+  return prisma.teacherWorkSchedule.findMany({
+    where: { teacherId },
+    select: columns ? columns : undefined,
+    orderBy: { dayOfWeek: "asc" },
   });
 }
 
