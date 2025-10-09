@@ -29,7 +29,7 @@ import { Button } from "@/components/ui";
 
 import { SelectedTimesProvider } from "@/contexts/SelectedTimesContext";
 import { useSelectedTimes } from "@/hooks/useSelectedTimes";
-import { PaymentMethod } from "@/utils/enums";
+import { PaymentMethodEnum, StepsEnum } from "@/utils/enums";
 
 import { fetchTeacherAvailability } from "@/services/teacherService";
 import { updateScheduledBookings } from "@/services/bookingService";
@@ -78,7 +78,7 @@ function PublicBookingPageContent({
     email?: string;
   }>({});
   const [loading, setLoading] = useState(false);
-  const [step, setStep] = useState<"dateTime" | "info" | "payment">("dateTime");
+  const [step, setStep] = useState<StepsEnum>(StepsEnum.DATETIME);
   const [loadingAvailability, setLoadingAvailability] = useState(false);
   const [scheduledBookings, setScheduledBookings] = useState(scheduled);
   const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
@@ -89,10 +89,10 @@ function PublicBookingPageContent({
     time: string;
   } | null>(null);
 
-  const steps = ["dateTime", "info", "payment"];
+  const steps = [StepsEnum.DATETIME, StepsEnum.INFO, StepsEnum.PAYMENT];
 
   const [studentPaymentMethod, setStudentPaymentMethod] =
-    useState<PaymentMethod>(PaymentMethod.CREDITCARD);
+    useState<PaymentMethodEnum>(PaymentMethodEnum.CREDITCARD);
 
   const searchParams = useSearchParams();
   const rescheduleParams = useMemo(() => {
@@ -132,7 +132,7 @@ function PublicBookingPageContent({
   );
 
   useEffect(() => {
-    if (step === "dateTime" && selectedDate) {
+    if (step === StepsEnum.DATETIME && selectedDate) {
       fetchAvailability(selectedDate);
     }
   }, [step, selectedDate, fetchAvailability]);
@@ -143,7 +143,7 @@ function PublicBookingPageContent({
 
   const onSubmit = (data: StudentInfoFormData) => {
     setStudentData(data);
-    setStep("payment");
+    setStep(StepsEnum.PAYMENT);
   };
 
   const handleBooking = async () => {
@@ -335,7 +335,7 @@ function PublicBookingPageContent({
         {!isRescheduleMode && <ProgressBar steps={steps} step={step} />}
 
         <div className="flex flex-col md:flex-row md:flex-wrap gap-6 justify-center">
-          {step === "dateTime" && (
+          {step === StepsEnum.DATETIME && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <DateSelectionStep
                 isRescheduleMode={isRescheduleMode}
@@ -368,12 +368,12 @@ function PublicBookingPageContent({
           )}
 
           {/* Step 3: Student Info */}
-          {!isRescheduleMode && step === "info" && (
+          {!isRescheduleMode && step === StepsEnum.INFO && (
             <StudentInfoStep onSubmit={onSubmit} />
           )}
 
           {/* Step 4: Payment */}
-          {!isRescheduleMode && step === "payment" && (
+          {!isRescheduleMode && step === StepsEnum.PAYMENT && (
             <PaymentStep
               teacher={teacher}
               selectedTimes={selectedTimes}
@@ -388,10 +388,16 @@ function PublicBookingPageContent({
         {/* Navigation */}
         {!isRescheduleMode && (
           <div className="space-y-4 mt-2">
-            {step !== "dateTime" && (
+            {step !== StepsEnum.DATETIME && (
               <Button
                 variant="outline"
-                onClick={() => setStep(step === "info" ? "dateTime" : "info")}
+                onClick={() =>
+                  setStep(
+                    step === StepsEnum.INFO
+                      ? StepsEnum.DATETIME
+                      : StepsEnum.INFO
+                  )
+                }
                 className="w-full md:w-auto"
               >
                 {t("publicBooking.back")}
@@ -399,7 +405,7 @@ function PublicBookingPageContent({
             )}
           </div>
         )}
-        {step === "dateTime" && (
+        {step === StepsEnum.DATETIME && (
           <div className="text-sm text-gray-500 mt-4 text-center">
             {t("publicBooking.timezone.label", {
               offset: getBrasiliaTimeLabel(),
@@ -417,7 +423,9 @@ function PublicBookingPageContent({
         slotToUpdate={slotToUpdate}
         setSlotToUpdate={setSlotToUpdate}
         onContinue={() =>
-          isRescheduleMode ? setIsRescheduleModalOpen(true) : setStep("info")
+          isRescheduleMode
+            ? setIsRescheduleModalOpen(true)
+            : setStep(StepsEnum.INFO)
         }
       />
 

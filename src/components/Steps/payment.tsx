@@ -10,7 +10,7 @@ import {
   Button,
 } from "@/components/ui";
 import { addOneHour } from "@/utils";
-import { PaymentMethod } from "@/utils/enums";
+import { PaymentMethodEnum } from "@/utils/enums";
 import { SerializedTeacher } from "../interfaces";
 import { AnimatedCard } from "./animated-card";
 
@@ -21,9 +21,9 @@ interface Props {
     name?: string;
     email?: string;
   };
-  studentPaymentMethod: PaymentMethod;
+  studentPaymentMethod: PaymentMethodEnum;
   loading: boolean;
-  setStudentPaymentMethod: (method: PaymentMethod) => void;
+  setStudentPaymentMethod: (method: PaymentMethodEnum) => void;
   handleBooking: () => void;
 }
 
@@ -39,7 +39,10 @@ export function PaymentStep({
   const { t } = useTranslation();
 
   const totalAmount = teacher.price * selectedTimes.length;
-  const paymentMethods = [PaymentMethod.CREDITCARD, PaymentMethod.PAYPAL];
+  const paymentMethods = [
+    PaymentMethodEnum.CREDITCARD,
+    PaymentMethodEnum.PAYPAL,
+  ];
   const textButton = loading
     ? t("payment.processing")
     : `${t("payment.pay")} ${totalAmount.toFixed(2)} ${teacher.currency}`;

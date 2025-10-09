@@ -1,9 +1,10 @@
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
+import { StepsEnum } from "@/utils/enums";
 
 interface Props {
   steps: string[];
-  step: "dateTime" | "info" | "payment";
+  step: StepsEnum;
 }
 
 export function ProgressBar({ steps, step }: Props) {
