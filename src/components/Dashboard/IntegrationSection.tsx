@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button } from "../ui/button";
-import { Card, CardContent } from "../ui/card";
-import { toast } from "react-hot-toast";
-import { disconnectZoom, getZoomOAuthUrl } from "@/services/zoomService";
 import { useSession } from "next-auth/react";
+import { toast } from "react-hot-toast";
 import { Video } from "lucide-react";
+
+import { Card, CardContent, Button } from "../ui";
+import { disconnectZoom, getZoomOAuthUrl } from "@/services/zoomService";
 
 export const IntegrationsSection = () => {
   const { data: session } = useSession();

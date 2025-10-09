@@ -1,10 +1,10 @@
-import Dashboard from "@/components/Dashboard";
-import Footer from "@/components/Footer";
-import { authOptions } from "@/lib/auth";
-import { findTeacherByEmail, serializeTeacher } from "@/modules/teacher";
 import { getServerSession } from "next-auth";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
+
+import { Footer, Dashboard } from "@/components";
+import { authOptions } from "@/lib/auth";
+import { findTeacherByEmail, serializeTeacher } from "@/modules/teacher";
 
 const WEEKS_TO_SHOW = 1;
 

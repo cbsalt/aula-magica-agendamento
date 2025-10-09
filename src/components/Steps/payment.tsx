@@ -1,12 +1,18 @@
-import { Button } from "@/components/ui/button";
-import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { addOneHour } from "@/utils";
+import { useTranslation } from "react-i18next";
 import { format, parseISO } from "date-fns";
 import { ArrowRight } from "lucide-react";
-import { useTranslation } from "react-i18next";
+
+import {
+  Label,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Button,
+} from "@/components/ui";
+import { addOneHour } from "@/utils";
+import { PaymentMethodEnum } from "@/utils/enums";
 import { SerializedTeacher } from "../interfaces";
-import AnimatedCard from "./animated-card";
+import { AnimatedCard } from "./animated-card";
 
 interface Props {
   teacher: SerializedTeacher;
@@ -15,24 +21,31 @@ interface Props {
     name?: string;
     email?: string;
   };
-  studentPaymentMethod: "creditCard" | "paypal";
-  setStudentPaymentMethod: (method: "creditCard" | "paypal") => void;
-  handleBooking: () => void;
+  studentPaymentMethod: PaymentMethodEnum;
   loading: boolean;
+  setStudentPaymentMethod: (method: PaymentMethodEnum) => void;
+  handleBooking: () => void;
 }
 
-export default function PaymentStep({
+export function PaymentStep({
   teacher,
   selectedTimes,
   studentData,
   studentPaymentMethod,
+  loading,
   setStudentPaymentMethod,
   handleBooking,
-  loading,
 }: Props) {
   const { t } = useTranslation();
 
   const totalAmount = teacher.price * selectedTimes.length;
+  const paymentMethods = [
+    PaymentMethodEnum.CREDITCARD,
+    PaymentMethodEnum.PAYPAL,
+  ];
+  const textButton = loading
+    ? t("payment.processing")
+    : `${t("payment.pay")} ${totalAmount.toFixed(2)} ${teacher.currency}`;
 
   return (
     <AnimatedCard>
@@ -41,6 +54,7 @@ export default function PaymentStep({
           {t("publicBooking.choosePayment")}
         </CardTitle>
       </CardHeader>
+
       <CardContent className="space-y-6">
         <div className="bg-gray-50 p-4 rounded-lg border text-sm text-gray-700">
           <p>
@@ -107,7 +121,8 @@ export default function PaymentStep({
           <Label className="text-sm font-medium text-gray-700">
             {t("publicBooking.choosePayment")}
           </Label>
-          {["creditCard", "paypal"].map((method) => (
+
+          {paymentMethods.map((method) => (
             <label
               key={method}
               className="flex items-start gap-3 p-3 rounded-md border hover:border-primary transition cursor-pointer"
@@ -117,9 +132,7 @@ export default function PaymentStep({
                 name="paymentMethod"
                 value={method}
                 checked={studentPaymentMethod === method}
-                onChange={() =>
-                  setStudentPaymentMethod(method as "creditCard" | "paypal")
-                }
+                onChange={() => setStudentPaymentMethod(method)}
                 className="mt-1"
               />
               <div>
@@ -139,11 +152,7 @@ export default function PaymentStep({
           disabled={loading || selectedTimes.length === 0}
           className="w-full"
         >
-          {loading
-            ? t("payment.processing")
-            : `${t("payment.pay")} ${totalAmount.toFixed(2)} ${
-                teacher.currency
-              }`}
+          {textButton}
         </Button>
       </CardContent>
     </AnimatedCard>

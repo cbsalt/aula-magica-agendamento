@@ -1,7 +1,6 @@
 "use client";
 
 import { SelectedTimesContext } from "@/hooks/useSelectedTimes";
-import { setHours, setMinutes } from "date-fns";
 import { ReactNode, useState } from "react";
 
 interface TimeSlot {

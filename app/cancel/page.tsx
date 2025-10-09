@@ -1,9 +1,9 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { XCircle } from "lucide-react";
-import LanguageSelector from "@/components/LanguageSelector";
 import { useTranslation } from "react-i18next";
+
+import { LanguageSelector } from "@/components";
 
 export default function CancelPage() {
   const { t } = useTranslation();

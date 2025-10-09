@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "../ui/button";
-import { Card, CardContent } from "../ui/card";
 import { toast } from "react-hot-toast";
+
+import { Card, CardContent, Button } from "../ui";
 import { generatePublicLink } from "@/services/teacherService";
 
 export const PublicLinkSection = ({ teacher, onUpdate }) => {

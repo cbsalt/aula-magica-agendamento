@@ -1,10 +1,11 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import * as Dialog from "@radix-ui/react-dialog";
 import { useState } from "react";
 import Select from "react-select";
 import { X } from "lucide-react";
+import * as Dialog from "@radix-ui/react-dialog";
+
+import { Button } from "@/components/ui";
 
 const hoursOptions = Array.from({ length: 24 }, (_, i) => ({
   value: i.toString().padStart(2, "0"),

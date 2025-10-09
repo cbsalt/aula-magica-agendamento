@@ -2,18 +2,18 @@
 
 import { useEffect, useState } from "react";
 import { useForm, FormProvider, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Button } from "../ui/button";
-import { Card, CardContent } from "../ui/card";
 import { toast } from "react-hot-toast";
+import Select from "react-select";
+import useSWR from "swr";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Card, CardContent, Button } from "../ui";
 import {
   fetchBanks,
   getTeacherPaymentConfig,
   saveTeacherPaymentConfig,
 } from "@/services/teacherService";
 import { PaymentFormData, paymentSchema } from "@/lib/validation";
-import Select from "react-select";
-import useSWR from "swr";
 
 type Bank = {
   code: number;

@@ -1,9 +1,10 @@
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
+import { StepsEnum } from "@/utils/enums";
 
 interface Props {
   steps: string[];
-  step: "dateTime" | "info" | "payment";
+  step: StepsEnum;
 }
 
 export function ProgressBar({ steps, step }: Props) {
@@ -24,6 +25,7 @@ export function ProgressBar({ steps, step }: Props) {
           </div>
         ))}
       </div>
+
       <div className="relative h-2 bg-gray-200 rounded-full overflow-hidden">
         <motion.div
           className="absolute top-0 left-0 h-full bg-gradient-to-r from-primary to-green-400 rounded-full"

@@ -6,7 +6,7 @@ interface ErrorMessageProps {
   message: string;
 }
 
-export default function ErrorMessage({ message }: ErrorMessageProps) {
+export function ErrorMessage({ message }: ErrorMessageProps) {
   return (
     <div className="flex flex-col items-center justify-center text-center px-4 py-10 max-w-md mx-auto">
       <AlertTriangle className="w-12 h-12 text-red-500 mb-4" />

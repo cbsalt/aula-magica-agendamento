@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { Button } from "./ui/button";
 import { useTranslation } from "react-i18next";
 import {
   CalendarClock,
@@ -11,7 +10,9 @@ import {
   CheckCircle,
 } from "lucide-react";
 
-export default function LandingPage() {
+import { Button } from "./ui";
+
+export function LandingPage() {
   const { t } = useTranslation();
 
   const features = [

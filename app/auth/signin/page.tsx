@@ -3,8 +3,7 @@
 import { signIn, getSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Button, Card, CardContent } from "@/components/ui";
 
 export default function SignIn() {
   const router = useRouter();
