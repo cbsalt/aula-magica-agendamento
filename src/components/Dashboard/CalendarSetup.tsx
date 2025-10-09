@@ -1,5 +1,5 @@
-import { useCallback, useState } from "react";
 import { useSession } from "next-auth/react";
+import { useCallback, useState } from "react";
 import toast from "react-hot-toast";
 import useSWR from "swr";
 
@@ -8,12 +8,12 @@ import {
   fetchTeacherAvailability,
   saveTeacherAvailability,
 } from "@/services/teacherService";
-import { TimePicker, Availability } from "../Partials";
-import { Card, CardContent, Button } from "../ui";
+import { TimePicker } from "../Partials";
+import { Button, Card, CardContent } from "../ui";
 
 const WEEKS_TO_SHOW = 1;
 
-export const CalendarSection = ({
+export const CalendarSetup = ({
   teacherAvailability,
   initialAvailability,
   teacherProfile,
@@ -32,14 +32,14 @@ export const CalendarSection = ({
     return data.availability;
   };
 
-  const {
-    data: previewData,
-    error,
-    mutate,
-  } = useSWR(shouldFetch ? ["teacherAvailability", teacherId] : null, fetcher, {
-    fallbackData: teacherAvailability.availability,
-    revalidateOnMount: false,
-  });
+  const { mutate } = useSWR(
+    shouldFetch ? ["teacherAvailability", teacherId] : null,
+    fetcher,
+    {
+      fallbackData: teacherAvailability.availability,
+      revalidateOnMount: false,
+    }
+  );
 
   const handleSave = useCallback(async () => {
     if (saving) return;
@@ -139,29 +139,6 @@ export const CalendarSection = ({
               </Button>
             </div>
           </>
-        </div>
-
-        <div className="mt-8">
-          {error && (
-            <div className="text-red-600">Erro ao buscar disponibilidade.</div>
-          )}
-
-          {previewData?.length ? (
-            <>
-              <h3 className="text-lg font-semibold mb-4 text-blue-900">
-                Sua disponibilidade para a próxima semana
-              </h3>
-              <div className="overflow-x-auto">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {previewData.map((day) => (
-                    <Availability day={day} key={day.date} />
-                  ))}
-                </div>
-              </div>
-            </>
-          ) : (
-            <div className="text-gray-500">Nenhum horário disponível.</div>
-          )}
         </div>
       </CardContent>
     </Card>

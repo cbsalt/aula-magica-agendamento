@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm, FormProvider, Controller } from "react-hook-form";
 import { toast } from "react-hot-toast";
 import Select from "react-select";
@@ -24,6 +24,7 @@ type Bank = {
 export const PaymentsSection = ({ initialData }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [banks, setBanks] = useState<Bank[]>([]);
+  const [banksLoaded, setBanksLoaded] = useState(false);
 
   const { data: paymentConfig, mutate } = useSWR(
     "/api/teachers/me/payment-config",
@@ -82,16 +83,23 @@ export const PaymentsSection = ({ initialData }) => {
     );
   }, [paymentConfig, setValue]);
 
-  useEffect(() => {
-    if (!receiveViaBank) return;
+  const handleLoadBanks = async () => {
+    if (banksLoaded) return;
 
-    const loadBanks = async () => {
+    try {
       const data = await fetchBanks();
-      setBanks(data);
-    };
 
-    loadBanks();
-  }, [receiveViaBank]);
+      setBanks(data);
+      setBanksLoaded(true);
+    } catch {
+      toast.error(
+        "Ocorreu um erro ao buscar os bancos. Por favor, tente mais tarde.",
+        {
+          position: "top-center",
+        }
+      );
+    }
+  };
 
   const inputClass =
     "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500";
@@ -244,46 +252,57 @@ export const PaymentsSection = ({ initialData }) => {
                       name="bankName"
                       control={control}
                       rules={{ required: "Selecione um banco" }}
-                      render={({ field }) => (
-                        <Select
-                          {...field}
-                          value={
-                            options.find((opt) => opt.value === field.value) ||
-                            null
-                          }
-                          onChange={(selected) =>
-                            field.onChange(selected?.value)
-                          }
-                          onBlur={field.onBlur}
-                          options={options}
-                          placeholder="Digite ou selecione um banco"
-                          classNamePrefix="react-select"
-                          classNames={{
-                            control: ({ isFocused }) =>
-                              [
-                                "w-full rounded-md border py-1",
-                                isFocused
-                                  ? "border-blue-500 ring-2 ring-blue-300"
-                                  : errors.bankName
-                                  ? "border-red-500"
-                                  : "border-gray-300",
-                              ].join(" "),
-                            menu: () =>
-                              "bg-white border border-gray-200 rounded-md mt-1 shadow-lg z-50",
-                            option: ({ isFocused, isSelected }) =>
-                              [
-                                "cursor-pointer px-3 py-2 text-sm",
-                                isSelected
-                                  ? "bg-blue-500 text-white"
-                                  : isFocused
-                                  ? "bg-blue-100 text-blue-800"
-                                  : "hover:bg-blue-50",
-                              ].join(" "),
-                            placeholder: () => "text-gray-400",
-                            singleValue: () => "text-gray-800",
-                          }}
-                        />
-                      )}
+                      render={({ field }) => {
+                        let selectedOption = options.find(
+                          (opt) => opt.value === field.value
+                        );
+
+                        if (!selectedOption && paymentConfig?.bankName) {
+                          selectedOption = {
+                            value: paymentConfig.bankName,
+                            label: paymentConfig.bankName,
+                          };
+                        }
+
+                        return (
+                          <Select
+                            {...field}
+                            value={selectedOption || null}
+                            onMenuOpen={handleLoadBanks}
+                            onChange={(selected) =>
+                              field.onChange(selected?.value)
+                            }
+                            onBlur={field.onBlur}
+                            options={options}
+                            placeholder="Digite ou selecione um banco"
+                            classNamePrefix="react-select"
+                            classNames={{
+                              control: ({ isFocused }) =>
+                                [
+                                  "w-full rounded-md border py-1",
+                                  isFocused
+                                    ? "border-blue-500 ring-2 ring-blue-300"
+                                    : errors.bankName
+                                    ? "border-red-500"
+                                    : "border-gray-300",
+                                ].join(" "),
+                              menu: () =>
+                                "bg-white border border-gray-200 rounded-md mt-1 shadow-lg z-50",
+                              option: ({ isFocused, isSelected }) =>
+                                [
+                                  "cursor-pointer px-3 py-2 text-sm",
+                                  isSelected
+                                    ? "bg-blue-500 text-white"
+                                    : isFocused
+                                    ? "bg-blue-100 text-blue-800"
+                                    : "hover:bg-blue-50",
+                                ].join(" "),
+                              placeholder: () => "text-gray-400",
+                              singleValue: () => "text-gray-800",
+                            }}
+                          />
+                        );
+                      }}
                     />
                     {errors.bankName?.message && (
                       <p className={errorClass}>{errors.bankName.message}</p>

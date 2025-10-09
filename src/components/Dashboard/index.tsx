@@ -12,16 +12,20 @@ import {
   Share2,
   Menu,
   X,
+  CalendarCog,
+  BarChart3,
+  Banknote,
 } from "lucide-react";
 import useSWR from "swr";
 
 import { Button } from "../ui/button";
 import { ProfileSection } from "./ProfileSection";
-import { CalendarSection } from "./CalendarSection";
+import { CalendarSetup } from "./CalendarSetup";
 import { IntegrationsSection } from "./IntegrationSection";
 import { PaymentsSection } from "./PaymentSection";
 import { PublicLinkSection } from "./PublicSection";
 import { getTeacherPublicLink } from "@/services/teacherService";
+import { CalendarView } from "./CalendarView";
 
 export function Dashboard({
   teacherFallback,
@@ -40,10 +44,20 @@ export function Dashboard({
 
   const tabs = [
     { id: "profile", label: "Perfil", icon: <User size={18} /> },
-    { id: "calendar", label: "Calendário", icon: <CalendarDays size={18} /> },
+    {
+      id: "calendar-setup",
+      label: "Disponibilidade",
+      icon: <CalendarCog size={18} />,
+    },
+    {
+      id: "calendar-view",
+      label: "Calendário",
+      icon: <CalendarDays size={18} />,
+    },
+    { id: "public-link", label: "Link Público", icon: <Share2 size={18} /> },
     { id: "integrations", label: "Integrações", icon: <Link2 size={18} /> },
     { id: "payments", label: "Pagamentos", icon: <CreditCard size={18} /> },
-    { id: "public-link", label: "Link Público", icon: <Share2 size={18} /> },
+    // { id: "finance", label: "Financeiro", icon: <Banknote size={18} /> },
   ];
 
   const clearUrlParams = () => {
@@ -63,16 +77,23 @@ export function Dashboard({
 
   const renderTabs = {
     profile: <ProfileSection teacherProfile={teacherProfile} />,
-    calendar: (
-      <CalendarSection
+    ["calendar-setup"]: (
+      <CalendarSetup
         teacherAvailability={previewData}
         initialAvailability={initialAvailability}
         teacherProfile={teacherProfile}
       />
     ),
+    ["calendar-view"]: (
+      <CalendarView
+        teacherAvailability={previewData}
+        teacherProfile={teacherProfile}
+      />
+    ),
+    "public-link": <PublicLinkSection teacher={teacher} onUpdate={mutate} />,
     integrations: <IntegrationsSection />,
     payments: <PaymentsSection initialData={paymentConfig} />,
-    "public-link": <PublicLinkSection teacher={teacher} onUpdate={mutate} />,
+    finance: <></>,
   };
 
   useEffect(() => {
