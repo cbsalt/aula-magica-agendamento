@@ -1,7 +1,6 @@
 import Link from "next/link";
 
 export function Footer({ isPublic = false }: { isPublic?: boolean }) {
-  console.log(isPublic);
   const links = [
     {
       path: "/",
