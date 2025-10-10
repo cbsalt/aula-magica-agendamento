@@ -1,19 +1,18 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { useForm, FormProvider, Controller } from "react-hook-form";
+import { useEffect, useState } from "react";
+import { Controller, FormProvider, useForm } from "react-hook-form";
 import { toast } from "react-hot-toast";
 import Select from "react-select";
 import useSWR from "swr";
-
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Card, CardContent, Button } from "../ui";
+import { PaymentFormData, paymentSchema } from "@/lib/validation";
 import {
   fetchBanks,
   getTeacherPaymentConfig,
   saveTeacherPaymentConfig,
 } from "@/services/teacherService";
-import { PaymentFormData, paymentSchema } from "@/lib/validation";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Button, Card, CardContent } from "../ui";
 
 type Bank = {
   code: number;
