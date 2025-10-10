@@ -64,7 +64,10 @@ export function Calendar({
       }}
       onMonthChange={loadWorkScheduleTeacher}
       modifiers={{ markedDays }}
-      modifiersClassNames={{ markedDays: "marked-day" }}
+      modifiersClassNames={{
+        markedDays:
+          "relative after:content-[''] after:absolute after:bottom-[4px] after:left-1/2 after:-translate-x-1/2 after:w-[6px] after:h-[6px] after:bg-emerald-400 after:rounded-full",
+      }}
     />
   );
 }
