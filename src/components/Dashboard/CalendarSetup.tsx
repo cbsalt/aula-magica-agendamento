@@ -32,14 +32,12 @@ export const CalendarSetup = ({
     return data.availability;
   };
 
-  const { mutate } = useSWR(
-    shouldFetch ? ["teacherAvailability", teacherId] : null,
-    fetcher,
-    {
-      fallbackData: teacherAvailability.availability,
-      revalidateOnMount: false,
-    }
-  );
+  const shouldedFetch = shouldFetch ? ["teacherAvailability", teacherId] : null;
+
+  const { mutate } = useSWR(shouldedFetch, fetcher, {
+    fallbackData: teacherAvailability.availability,
+    revalidateOnMount: false,
+  });
 
   const handleSave = useCallback(async () => {
     if (saving) return;
