@@ -1,19 +1,18 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import toast from "react-hot-toast";
-import { FormProvider, useForm } from "react-hook-form";
+import { User } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
+import { useMemo, useState } from "react";
+import { FormProvider, useForm } from "react-hook-form";
+import toast from "react-hot-toast";
 import useSWR from "swr";
-import { User } from "lucide-react";
-
 import {
   getTeacherProfile,
   updateTeacherProfile,
 } from "@/services/teacherService";
 import { InputText, Textarea } from "../Form/";
-import { Card, CardContent, Button } from "../ui";
+import { Button, Card, CardContent, CardHeader, CardTitle } from "../ui";
 
 export const ProfileSection = ({ teacherProfile }) => {
   const { data: session } = useSession();
@@ -25,7 +24,6 @@ export const ProfileSection = ({ teacherProfile }) => {
     isLoading,
   } = useSWR("/api/teachers/me", getTeacherProfile, {
     fallbackData: teacherProfile,
-    revalidateOnMount: false,
   });
 
   const methods = useForm({
@@ -62,8 +60,12 @@ export const ProfileSection = ({ teacherProfile }) => {
 
   return (
     <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center">Dados do Perfil</CardTitle>
+        </div>
+      </CardHeader>
       <CardContent className="p-6">
-        <h2 className="text-xl font-semibold mb-6">Dados do Perfil</h2>
         <div className="space-y-6">
           <FormProvider {...methods}>
             <div className="flex items-center space-x-4 bg-gray-100 px-3 py-2 rounded-lg">

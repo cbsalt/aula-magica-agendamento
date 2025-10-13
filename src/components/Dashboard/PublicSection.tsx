@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 
-import { Card, CardContent, Button } from "../ui";
+import { Card, CardContent, Button, CardTitle, CardHeader } from "../ui";
 import { generatePublicLink } from "@/services/teacherService";
 
 export const PublicLinkSection = ({ teacher, onUpdate }) => {
@@ -44,8 +44,10 @@ export const PublicLinkSection = ({ teacher, onUpdate }) => {
 
   return (
     <Card>
-      <CardContent className="p-6">
-        <h2 className="text-xl font-semibold mb-6">Gerar Link Público</h2>
+      <CardHeader>
+        <CardTitle className="flex items-center">Gerar Link Público</CardTitle>
+      </CardHeader>
+      <CardContent className="p-6 pt-0">
         <div className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">

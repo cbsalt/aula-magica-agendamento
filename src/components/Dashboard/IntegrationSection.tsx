@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { toast } from "react-hot-toast";
 import { Video } from "lucide-react";
 
-import { Card, CardContent, Button } from "../ui";
+import { Card, CardContent, Button, CardHeader, CardTitle } from "../ui";
 import { disconnectZoom, getZoomOAuthUrl } from "@/services/zoomService";
 
 export const IntegrationsSection = () => {
@@ -53,11 +53,12 @@ export const IntegrationsSection = () => {
   return (
     <div className="space-y-6">
       <Card>
-        <CardContent className="p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center">
             Integração com Zoom
-          </h2>
-
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6 pt-0">
           {zoomConnected ? (
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
