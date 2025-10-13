@@ -2,14 +2,15 @@ import { useSession } from "next-auth/react";
 import { useCallback, useState } from "react";
 import toast from "react-hot-toast";
 import useSWR from "swr";
-
 import { useTeacherData } from "@/hooks/useTeacherData";
 import {
   fetchTeacherAvailability,
   saveTeacherAvailability,
 } from "@/services/teacherService";
 import { TimePicker } from "../Partials";
-import { Button, Card, CardContent } from "../ui";
+import { Button, Card, CardContent, CardHeader, CardTitle } from "../ui";
+import { CalendarView } from "./CalendarView";
+import { RefreshCw } from "lucide-react";
 
 const WEEKS_TO_SHOW = 1;
 
@@ -36,7 +37,6 @@ export const CalendarSetup = ({
 
   const { mutate } = useSWR(shouldedFetch, fetcher, {
     fallbackData: teacherAvailability.availability,
-    revalidateOnMount: false,
   });
 
   const handleSave = useCallback(async () => {
@@ -80,12 +80,19 @@ export const CalendarSetup = ({
 
   return (
     <Card>
-      <CardContent className="p-6 space-y-8">
-        <div>
-          <h2 className="text-xl font-semibold mb-2">
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center">
             Disponibilidade semanal
-          </h2>
-
+          </CardTitle>
+          <Button variant="outline" size="sm" onClick={() => mutate()}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Atualizar
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="p-6 pt-0 space-y-8">
+        <div>
           <p className="text-gray-700 mb-4">
             Escolha os dias e horários em que você costuma estar disponível para
             dar aulas. Os compromissos da sua agenda conectada (Google Calendar)
@@ -138,6 +145,10 @@ export const CalendarSetup = ({
             </div>
           </>
         </div>
+        <CalendarView
+          teacherAvailability={teacherAvailability}
+          teacherProfile={teacherProfile}
+        />
       </CardContent>
     </Card>
   );
