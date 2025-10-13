@@ -1,38 +1,38 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useSession, signOut } from "next-auth/react";
-import { useSearchParams } from "next/navigation";
-import toast, { Toaster } from "react-hot-toast";
-import {
-  User,
-  CalendarDays,
-  Link2,
-  CreditCard,
-  Share2,
-  Menu,
-  X,
-  CalendarCog,
-  BarChart3,
-  Banknote,
-} from "lucide-react";
-import useSWR from "swr";
-
-import { Button } from "../ui/button";
-import { ProfileSection } from "./ProfileSection";
-import { CalendarSetup } from "./CalendarSetup";
-import { IntegrationsSection } from "./IntegrationSection";
-import { PaymentsSection } from "./PaymentSection";
-import { PublicLinkSection } from "./PublicSection";
 import { getTeacherPublicLink } from "@/services/teacherService";
-import { CalendarView } from "./CalendarView";
+import {
+  Banknote,
+  CalendarCog,
+  CalendarDays,
+  CreditCard,
+  Link2,
+  Menu,
+  Share2,
+  User,
+  X,
+} from "lucide-react";
+import { signOut, useSession } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import toast, { Toaster } from "react-hot-toast";
+import useSWR from "swr";
+import { Button } from "../ui/button";
+import { CalendarSetup } from "./CalendarSetup";
+import { FinancialPanel } from "./FinancialPanel";
+import { IntegrationsSection } from "./IntegrationSection";
+import { InteractiveCalendar } from "./InteractiveCalendar";
+import { PaymentsSection } from "./PaymentSection";
+import { ProfileSection } from "./ProfileSection";
+import { PublicLinkSection } from "./PublicSection";
 
 export function Dashboard({
-  teacherFallback,
+  bookings,
   previewData,
-  initialAvailability,
-  teacherProfile,
   paymentConfig,
+  teacherProfile,
+  teacherFallback,
+  initialAvailability,
 }) {
   const { data: session } = useSession();
   const searchParams = useSearchParams();
@@ -73,6 +73,7 @@ export function Dashboard({
   } = useSWR("/api/teachers/me/public-link", getTeacherPublicLink, {
     fallbackData: teacherFallback,
     revalidateOnFocus: false,
+    revalidateOnMount: true,
   });
 
   const renderTabs = {
@@ -84,16 +85,11 @@ export function Dashboard({
         teacherProfile={teacherProfile}
       />
     ),
-    ["calendar-view"]: (
-      <CalendarView
-        teacherAvailability={previewData}
-        teacherProfile={teacherProfile}
-      />
-    ),
+    ["calendar-view"]: <InteractiveCalendar bookings={bookings} />,
     "public-link": <PublicLinkSection teacher={teacher} onUpdate={mutate} />,
     integrations: <IntegrationsSection />,
     payments: <PaymentsSection initialData={paymentConfig} />,
-    finance: <></>,
+    finance: <FinancialPanel />,
   };
 
   useEffect(() => {
