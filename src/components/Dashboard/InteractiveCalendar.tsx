@@ -24,8 +24,9 @@ import {
 import { useCallback, useMemo, useState } from "react";
 import useSWR from "swr";
 
-import { getTeacherBookings, type Booking } from "@/services/financialService";
 import { Button, Card, CardContent, CardHeader, CardTitle } from "../ui";
+import { getTeacherBookings } from "@/services/bookingService";
+import { Booking } from "@prisma/client";
 
 interface CalendarDay {
   date: Date;
@@ -66,11 +67,10 @@ export const InteractiveCalendar = ({ bookings }) => {
     }).format(amount);
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("pt-BR");
+  const formatDate = (date: Date | string) => {
+    return new Date(date).toLocaleDateString("pt-BR");
   };
 
-  // Agrupar bookings por data
   const bookingsByDate = useMemo(() => {
     const bookings = bookingsData?.bookings || [];
 
@@ -115,19 +115,16 @@ export const InteractiveCalendar = ({ bookings }) => {
     setSelectedDate(new Date());
   }, []);
 
-  // Selecionar data
   const handleDateSelect = useCallback((day: CalendarDay) => {
     setSelectedDate(day.date);
   }, []);
 
-  // Obter aulas do dia selecionado
   const selectedDayBookings = useMemo(() => {
     if (!selectedDate) return [];
     const dateKey = format(selectedDate, "yyyy-MM-dd");
     return bookingsByDate[dateKey] || [];
   }, [selectedDate, bookingsByDate]);
 
-  // Obter estatísticas do mês
   const monthStats = useMemo(() => {
     const totalBookings = calendarDays.reduce(
       (sum, day) => sum + day.bookings.length,
@@ -162,7 +159,6 @@ export const InteractiveCalendar = ({ bookings }) => {
 
   return (
     <div className="space-y-6">
-      {/* Cabeçalho do Calendário */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -223,7 +219,6 @@ export const InteractiveCalendar = ({ bookings }) => {
             </div>
           </div>
 
-          {/* Controles de Navegação */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" onClick={goToPreviousMonth}>
@@ -298,7 +293,6 @@ export const InteractiveCalendar = ({ bookings }) => {
         </CardContent>
       </Card>
 
-      {/* Detalhes do Dia Selecionado */}
       {selectedDate && (
         <Card>
           <CardHeader>
@@ -372,7 +366,6 @@ export const InteractiveCalendar = ({ bookings }) => {
         </Card>
       )}
 
-      {/* Dica */}
       <Card>
         <CardContent className="p-4">
           <div className="flex items-center">
