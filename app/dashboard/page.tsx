@@ -38,7 +38,7 @@ export default async function DashboardPage() {
 
   const serializedTeacher = serializeTeacher(teacher);
 
-  const [availabilityRes, teacherRes, previewRes, paymentRes] =
+  const [availabilityRes, teacherRes, previewRes, paymentRes, bookingsRes] =
     await Promise.allSettled([
       customFetch(`${process.env.NEXTAUTH_URL}/api/teachers/me/availability`),
       customFetch(`${process.env.NEXTAUTH_URL}/api/teachers/me`),
@@ -50,6 +50,9 @@ export default async function DashboardPage() {
         body: JSON.stringify({ teacherId: teacher.id, weeks: WEEKS_TO_SHOW }),
       }),
       customFetch(`${process.env.NEXTAUTH_URL}/api/teachers/me/payment-config`),
+      customFetch(
+        `${process.env.NEXTAUTH_URL}/api/teachers/me/bookings?status=confirmed&limit=100`
+      ),
     ]);
 
   const initialAvailability =
@@ -60,6 +63,11 @@ export default async function DashboardPage() {
   const teacherProfile =
     teacherRes.status === "fulfilled" && teacherRes.value.ok
       ? await teacherRes.value.json()
+      : null;
+
+  const bookings =
+    bookingsRes.status === "fulfilled" && bookingsRes.value.ok
+      ? await bookingsRes.value.json()
       : null;
 
   const previewData =
@@ -75,11 +83,12 @@ export default async function DashboardPage() {
   return (
     <>
       <Dashboard
-        teacherFallback={serializedTeacher}
+        bookings={bookings}
         previewData={previewData}
-        initialAvailability={initialAvailability}
-        teacherProfile={teacherProfile}
         paymentConfig={paymentConfig}
+        teacherProfile={teacherProfile}
+        teacherFallback={serializedTeacher}
+        initialAvailability={initialAvailability}
       />
       <Footer />
     </>
