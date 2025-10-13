@@ -19,7 +19,7 @@ import toast, { Toaster } from "react-hot-toast";
 import useSWR from "swr";
 import { Button } from "../ui/button";
 import { CalendarSetup } from "./CalendarSetup";
-import { FinancialPanel } from "./FinancialPanel";
+// import { FinancialPanel } from "./FinancialPanel";
 import { IntegrationsSection } from "./IntegrationSection";
 import { InteractiveCalendar } from "./InteractiveCalendar";
 import { PaymentsSection } from "./PaymentSection";
@@ -89,7 +89,7 @@ export function Dashboard({
     "public-link": <PublicLinkSection teacher={teacher} onUpdate={mutate} />,
     integrations: <IntegrationsSection />,
     payments: <PaymentsSection initialData={paymentConfig} />,
-    finance: <FinancialPanel />,
+    // finance: <FinancialPanel />,
   };
 
   useEffect(() => {
