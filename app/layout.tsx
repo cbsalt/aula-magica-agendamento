@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-
-import "./globals.css";
 import { I18nProvider } from "@/components";
 import { AuthProvider } from "@/components/providers/AuthProvider";
+import { SWRConfig } from "swr";
+import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,7 +21,17 @@ export default function RootLayout({
     <html lang="pt-BR">
       <body className={inter.className}>
         <I18nProvider>
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            <SWRConfig
+              value={{
+                revalidateOnFocus: false,
+                revalidateOnMount: false,
+                shouldRetryOnError: false,
+              }}
+            >
+              {children}
+            </SWRConfig>
+          </AuthProvider>
         </I18nProvider>
       </body>
     </html>
