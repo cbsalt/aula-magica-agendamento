@@ -23,7 +23,6 @@ export const CalendarView = ({ teacherAvailability, teacherProfile }) => {
     fetcher,
     {
       fallbackData: teacherAvailability.availability,
-      revalidateOnMount: false,
     }
   );
 
