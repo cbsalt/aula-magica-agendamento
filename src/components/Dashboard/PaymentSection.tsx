@@ -12,7 +12,7 @@ import {
   saveTeacherPaymentConfig,
 } from "@/services/teacherService";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button, Card, CardContent } from "../ui";
+import { Button, Card, CardContent, CardHeader, CardTitle } from "../ui";
 
 type Bank = {
   code: number;
@@ -30,7 +30,6 @@ export const PaymentsSection = ({ initialData }) => {
     getTeacherPaymentConfig,
     {
       fallbackData: initialData,
-      revalidateOnFocus: false,
       revalidateOnMount: !initialData,
     }
   );
@@ -162,10 +161,12 @@ export const PaymentsSection = ({ initialData }) => {
   return (
     <FormProvider {...methods}>
       <Card>
-        <CardContent className="p-6">
-          <h2 className="text-xl font-semibold mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center">
             Configuração de Recebimento
-          </h2>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6 pt-0">
           <p className="text-gray-600 mb-6">
             Configure como deseja receber os pagamentos dos alunos. A plataforma
             processará os pagamentos e repassará os valores automaticamente.
