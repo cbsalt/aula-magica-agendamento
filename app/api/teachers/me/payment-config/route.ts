@@ -9,10 +9,6 @@ import { paymentSchema } from "@/lib/validation";
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
-    }
-
     const body = await request.json();
     const configData = paymentSchema.parse(body);
 
@@ -93,10 +89,6 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
-    }
-
     const teacher = await findTeacherByEmail(session.user.email, {
       paymentConfig: true,
     });
