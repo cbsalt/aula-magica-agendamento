@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { findTeacherByEmail } from "@/modules/teacher";
+import { BookingsListResponseDto } from "@/types/booking-response.dto";
 
 export async function GET(request: NextRequest) {
   try {
@@ -22,7 +23,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status") || "confirmed";
-    const limit = parseInt(searchParams.get("limit") || "50");
+    const limit = parseInt(searchParams.get("limit")) || 50;
 
     const bookings = await prisma.booking.findMany({
       where: {
@@ -35,7 +36,7 @@ export async function GET(request: NextRequest) {
       take: limit,
     });
 
-    return NextResponse.json({
+    const response: BookingsListResponseDto = {
       bookings: bookings.map((booking) => ({
         id: booking.id,
         studentName: booking.studentName,
@@ -53,7 +54,9 @@ export async function GET(request: NextRequest) {
         paypalOrderId: booking.paypalOrderId,
         googleEventId: booking.googleEventId,
       })),
-    });
+    };
+
+    return NextResponse.json(response);
   } catch (error) {
     console.error("Erro ao buscar aulas:", error);
     return NextResponse.json(

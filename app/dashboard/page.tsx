@@ -11,6 +11,7 @@ const WEEKS_TO_SHOW = 1;
 const customFetch = async (url: string, options: RequestInit = {}) => {
   const hdrs = await headers();
   const cookieStore = await cookies();
+  const baseUrl = `${process.env.NEXTAUTH_URL}`;
 
   const currentHeaders = Object.fromEntries(hdrs.entries());
   const cookieHeader = cookieStore
@@ -18,7 +19,7 @@ const customFetch = async (url: string, options: RequestInit = {}) => {
     .map((c) => `${c.name}=${c.value}`)
     .join("; ");
 
-  return fetch(url, {
+  return fetch(`${baseUrl}${url}`, {
     ...options,
     headers: {
       ...currentHeaders,
@@ -40,19 +41,17 @@ export default async function DashboardPage() {
 
   const [availabilityRes, teacherRes, previewRes, paymentRes, bookingsRes] =
     await Promise.allSettled([
-      customFetch(`${process.env.NEXTAUTH_URL}/api/teachers/me/availability`),
-      customFetch(`${process.env.NEXTAUTH_URL}/api/teachers/me`),
-      customFetch(`${process.env.NEXTAUTH_URL}/api/teachers/availability`, {
+      customFetch("/api/teachers/me/availability"),
+      customFetch("/api/teachers/me"),
+      customFetch("/api/teachers/availability", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ teacherId: teacher.id, weeks: WEEKS_TO_SHOW }),
       }),
-      customFetch(`${process.env.NEXTAUTH_URL}/api/teachers/me/payment-config`),
-      customFetch(
-        `${process.env.NEXTAUTH_URL}/api/teachers/me/bookings?status=confirmed&limit=100`
-      ),
+      customFetch("/api/teachers/me/payment-config"),
+      customFetch("/api/teachers/me/bookings?status=confirmed&limit=100"),
     ]);
 
   const initialAvailability =
