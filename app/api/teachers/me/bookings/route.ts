@@ -9,11 +9,8 @@ import { BookingsListResponseDto } from "@/types/booking-response.dto";
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
-    }
-
     const teacher = await findTeacherByEmail(session.user.email);
+
     if (!teacher) {
       return NextResponse.json(
         { error: "Professor não encontrado" },
