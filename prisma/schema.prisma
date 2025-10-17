@@ -90,6 +90,8 @@ model Teacher {
   // Relationships
   bookings             Booking[]
   teacherWorkSchedules TeacherWorkSchedule[]
+  withdrawalRequest    WithdrawalRequest[]
+  refundRequest        RefundRequest[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -152,7 +154,8 @@ model Booking {
   meetLink String? @map("meet_link")
 
   // Relationships
-  teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  teacher       Teacher         @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  refundRequest RefundRequest[]
 
   googleEventId String?
 
@@ -178,4 +181,36 @@ model TeacherWorkSchedule {
 
   @@unique([teacherId, dayOfWeek, startTime, endTime])
   @@map("teacher_work_schedules")
+}
+
+model WithdrawalRequest {
+  id        String  @id @default(cuid())
+  teacherId String  @map("teacher_id")
+  amount    Float
+  status    String  @default("requested") // requested, processed, cancelled
+  notes     String?
+
+  teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("withdrawal_requests")
+}
+
+model RefundRequest {
+  id        String  @id @default(cuid())
+  teacherId String  @map("teacher_id")
+  bookingId String  @map("booking_id")
+  amount    Float
+  reason    String?
+  status    String  @default("requested") // requested, processed, cancelled
+
+  teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("refund_requests")
 }
