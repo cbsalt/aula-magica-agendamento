@@ -5,6 +5,10 @@ import type { NextRequest } from "next/server";
 import { authOptions } from "@/lib/auth";
 
 export async function middleware(request: NextRequest) {
+  if (request.nextUrl.pathname.startsWith("/api/auth")) {
+    return NextResponse.next();
+  }
+
   const response = NextResponse.next();
   const allowedOrigins = process.env.NEXTAUTH_URL;
   const origin = request.headers.get("origin");
@@ -23,15 +27,13 @@ export async function middleware(request: NextRequest) {
     "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization"
   );
 
-  if (request.nextUrl.pathname.startsWith("/api/")) {
-    const session = await getToken({
-      req: request,
-      secret: authOptions.secret,
-    });
+  const session = await getToken({
+    req: request,
+    secret: authOptions.secret,
+  });
 
-    if (!session) {
-      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
-    }
+  if (!session) {
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
 
   return response;
